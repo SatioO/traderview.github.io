@@ -317,7 +317,7 @@ const TradingCalculator: React.FC = () => {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Risk Per Trade (%)
+                        Risk Per Trade (Portfolio) (%)
                         <Info
                           className="inline w-4 h-4 ml-1 text-blue-500 cursor-help"
                           xlinkTitle="Percentage of account to risk per trade (recommended: 1-2%)"
@@ -330,9 +330,9 @@ const TradingCalculator: React.FC = () => {
                           handleInputChange('riskPercentage', e.target.value)
                         }
                         className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:bg-gray-700 dark:text-white transition-all duration-300"
-                        min="0.1"
+                        min="0.25"
                         max="10"
-                        step="0.1"
+                        step="0.25"
                       />
                     </div>
                   </div>
