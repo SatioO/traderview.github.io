@@ -353,11 +353,30 @@ const TradingCalculator: React.FC = () => {
                         />
                       </label>
                       <input
-                        value={formData.entryPrice}
-                        onChange={(e) =>
-                          handleInputChange('entryPrice', e.target.value)
+                        type="number"
+                        value={
+                          formData.entryPrice === 0 ? '' : formData.entryPrice
                         }
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          // Allow empty string for backspace/delete
+                          if (value === '') {
+                            handleInputChange('entryPrice', '0');
+                            return;
+                          }
+                          // Check if the value has more than 2 decimal places
+                          const decimalParts = value.split('.');
+                          if (
+                            decimalParts.length > 1 &&
+                            decimalParts[1].length > 2
+                          ) {
+                            return; // Prevent input if more than 2 decimal places
+                          }
+                          handleInputChange('entryPrice', value);
+                        }}
                         className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:bg-gray-700 dark:text-white transition-all duration-300"
+                        min="0"
+                        step="0.1"
                       />
                     </div>
                     <div>
@@ -369,11 +388,28 @@ const TradingCalculator: React.FC = () => {
                         />
                       </label>
                       <input
-                        value={formData.stopLoss}
-                        onChange={(e) =>
-                          handleInputChange('stopLoss', e.target.value)
-                        }
+                        type="number"
+                        value={formData.stopLoss === 0 ? '' : formData.stopLoss}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          // Allow empty string for backspace/delete
+                          if (value === '') {
+                            handleInputChange('stopLoss', '0');
+                            return;
+                          }
+                          // Check if the value has more than 2 decimal places
+                          const decimalParts = value.split('.');
+                          if (
+                            decimalParts.length > 1 &&
+                            decimalParts[1].length > 2
+                          ) {
+                            return; // Prevent input if more than 2 decimal places
+                          }
+                          handleInputChange('stopLoss', value);
+                        }}
                         className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:bg-gray-700 dark:text-white transition-all duration-300"
+                        min="0"
+                        step="1"
                       />
                     </div>
                     <div>
