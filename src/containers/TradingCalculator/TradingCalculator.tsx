@@ -164,20 +164,20 @@ const TradingCalculator: React.FC = () => {
       setFormData((prev) => {
         const newData: FormData = { ...prev, [field]: numValue };
 
-        // Auto-calculate stop loss when risk on investment or entry price changes
-        if (
-          field === 'riskOnInvestment' ||
-          (field === 'entryPrice' && prev.riskOnInvestment)
-        ) {
-          const entryPrice =
-            field === 'entryPrice' ? numValue : prev.entryPrice;
-          const riskPercent =
-            field === 'riskOnInvestment' ? numValue : prev.riskOnInvestment;
+        // // Auto-calculate stop loss when risk on investment or entry price changes
+        // if (
+        //   field === 'riskOnInvestment' ||
+        //   (field === 'entryPrice' && prev.riskOnInvestment)
+        // ) {
+        //   const entryPrice =
+        //     field === 'entryPrice' ? numValue : prev.entryPrice;
+        //   const riskPercent =
+        //     field === 'riskOnInvestment' ? numValue : prev.riskOnInvestment;
 
-          if (entryPrice > 0 && riskPercent > 0) {
-            newData.stopLoss = entryPrice * (1 - riskPercent / 100);
-          }
-        }
+        //   if (entryPrice > 0 && riskPercent > 0) {
+        //     newData.stopLoss = entryPrice * (1 - riskPercent / 100);
+        //   }
+        // }
 
         // Auto-calculate risk on investment when stop loss or entry price changes
         if (field === 'stopLoss' || (field === 'entryPrice' && prev.stopLoss)) {
