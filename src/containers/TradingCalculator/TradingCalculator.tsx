@@ -583,7 +583,7 @@ const TradingCalculator: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Position Sizing Scenarios */}
+                {/* Position Sizing Scenarios here */}
                 <div className="mb-6">
                   <div className="bg-gradient-to-r from-green-600 to-emerald-600 text-white p-4 rounded-t-xl">
                     <h3 className="text-lg font-semibold text-center">
