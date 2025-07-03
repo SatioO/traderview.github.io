@@ -10,7 +10,6 @@ import type {
 } from './types';
 
 const TradingCalculator: React.FC = () => {
-  const [darkMode, setDarkMode] = useState<boolean>(false);
   const [formData, setFormData] = useState<FormData>({
     accountBalance: 1000000,
     riskPercentage: 0.25,
@@ -51,16 +50,15 @@ const TradingCalculator: React.FC = () => {
 
   // Load preferences on mount
   useEffect(() => {
-    const saved = localStorage.getItem('tradingCalculatorPrefs');
+    const saved = localStorage.getItem('accountInfo');
     if (saved) {
       try {
         const prefs: Preferences = JSON.parse(saved);
         setFormData((prev) => ({
           ...prev,
+          accountBalance: prefs.accountBalance || 1000000,
           riskPercentage: prefs.riskPercentage || 1,
-          riskOnInvestment: prefs.riskOnInvestment || 5.0,
         }));
-        setDarkMode(prefs.darkMode || false);
       } catch (error) {
         console.error('Error loading preferences:', error);
       }
@@ -70,12 +68,11 @@ const TradingCalculator: React.FC = () => {
   // Save preferences
   useEffect(() => {
     const prefs: Preferences = {
+      accountBalance: formData.accountBalance,
       riskPercentage: formData.riskPercentage,
-      riskOnInvestment: formData.riskOnInvestment,
-      darkMode,
     };
-    localStorage.setItem('tradingCalculatorPrefs', JSON.stringify(prefs));
-  }, [formData.riskPercentage, formData.riskOnInvestment, darkMode]);
+    localStorage.setItem('accountInfo', JSON.stringify(prefs));
+  }, [formData.riskPercentage, formData.accountBalance]);
 
   // Format currency in INR
   const formatCurrency = useCallback((amount: number): string => {
@@ -234,12 +231,7 @@ const TradingCalculator: React.FC = () => {
       const riskAmount = (accountBalance * riskPercent) / 100;
       const riskPerShare = entryPrice - stopLoss;
 
-      // Calculate position size with auto brokerage (buy only)
-      const initialPositionSize = Math.floor(riskAmount / riskPerShare);
-      const charges = calculateBrokerage(entryPrice, initialPositionSize);
-      const positionSize = Math.floor(
-        (riskAmount - charges.totalCharges) / riskPerShare
-      );
+      const positionSize = Math.floor(riskAmount / riskPerShare);
 
       const totalInvestment = positionSize * entryPrice;
       const portfolioPercentage = (totalInvestment / accountBalance) * 100;
@@ -252,7 +244,7 @@ const TradingCalculator: React.FC = () => {
         portfolioPercentage,
       };
     });
-  }, [formData, calculateBrokerage]);
+  }, [formData]);
 
   // Export to CSV
   const exportToCSV = useCallback((): void => {

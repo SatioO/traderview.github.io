@@ -41,8 +41,7 @@ export interface Scenario {
 
 export interface Preferences {
   riskPercentage: number;
-  riskOnInvestment: number;
-  darkMode: boolean;
+  accountBalance: number;
 }
 
 export interface ChargesBreakdown {
