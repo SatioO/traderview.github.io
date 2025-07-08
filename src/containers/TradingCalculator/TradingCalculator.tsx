@@ -7,6 +7,7 @@ import type {
   Scenario,
   Preferences,
   ChargesBreakdown,
+  TabType,
 } from './types';
 
 const TradingCalculator: React.FC = () => {
@@ -17,7 +18,9 @@ const TradingCalculator: React.FC = () => {
     stopLoss: 475,
     brokerageCost: 0,
     riskOnInvestment: 5.0,
+    allocationPercentage: 10.0,
   });
+  const [activeTab, setActiveTab] = useState<TabType>('risk');
   const [calculations, setCalculations] = useState<Calculations | null>(null);
   const [warnings, setWarnings] = useState<string[]>([]);
 
@@ -57,22 +60,12 @@ const TradingCalculator: React.FC = () => {
         setFormData((prev) => ({
           ...prev,
           accountBalance: prefs.accountBalance || 1000000,
-          riskPercentage: prefs.riskPercentage || 1,
         }));
       } catch (error) {
         console.error('Error loading preferences:', error);
       }
     }
   }, []);
-
-  // Save preferences
-  useEffect(() => {
-    const prefs: Preferences = {
-      accountBalance: formData.accountBalance,
-      riskPercentage: formData.riskPercentage,
-    };
-    localStorage.setItem('accountInfo', JSON.stringify(prefs));
-  }, [formData.riskPercentage, formData.accountBalance]);
 
   // Format currency in INR
   const formatCurrency = useCallback((amount: number): string => {
@@ -106,8 +99,8 @@ const TradingCalculator: React.FC = () => {
     return newWarnings;
   }, [formData]);
 
-  // Calculate position size and risk metrics
-  const calculatePositionSize = useCallback((): Calculations | null => {
+  // Calculate position size based on risk-based sizing
+  const calculateRiskBasedPositionSize = useCallback((): Calculations | null => {
     const validationWarnings = validateInputs();
     setWarnings(validationWarnings);
 
@@ -147,11 +140,69 @@ const TradingCalculator: React.FC = () => {
     };
   }, [formData, validateInputs, calculateBrokerage]);
 
-  // Update calculations when form data changes
+  // Calculate position size based on allocation-based sizing
+  const calculateAllocationBasedPositionSize = useCallback((): Calculations | null => {
+    const validationWarnings = validateInputs();
+    setWarnings(validationWarnings);
+
+    if (validationWarnings.length > 0) return null;
+
+    const { accountBalance, allocationPercentage, entryPrice, stopLoss } = formData;
+
+    const allocationAmount = (accountBalance * allocationPercentage) / 100;
+    const positionSize = Math.floor(allocationAmount / entryPrice);
+
+    // Calculate brokerage for this position size
+    const chargesBreakdown = calculateBrokerage(entryPrice, positionSize);
+
+    const totalInvestment = positionSize * entryPrice;
+    const portfolioPercentage = (totalInvestment / accountBalance) * 100;
+
+    // Calculate actual risk
+    const riskPerShare = entryPrice - stopLoss;
+    const riskAmount = positionSize * riskPerShare;
+    const riskPercentage = (riskAmount / accountBalance) * 100;
+
+    // Calculate breakeven price (entry price + brokerage cost per share)
+    const brokerageCostPerShare = chargesBreakdown.totalCharges / positionSize;
+    const breakEvenPrice = entryPrice + brokerageCostPerShare;
+
+    return {
+      accountBalance,
+      riskPercentage,
+      riskAmount,
+      entryPrice,
+      stopLoss,
+      brokerageCost: chargesBreakdown.totalCharges,
+      riskPerShare,
+      positionSize,
+      totalInvestment,
+      portfolioPercentage,
+      chargesBreakdown,
+      breakEvenPrice,
+    };
+  }, [formData, validateInputs, calculateBrokerage]);
+
+  // Calculate position size based on active tab
+  const calculatePositionSize = useCallback((): Calculations | null => {
+    return activeTab === 'risk' 
+      ? calculateRiskBasedPositionSize() 
+      : calculateAllocationBasedPositionSize();
+  }, [activeTab, calculateRiskBasedPositionSize, calculateAllocationBasedPositionSize]);
+
+  // Update calculations when form data or active tab changes
   useEffect(() => {
     const result = calculatePositionSize();
     setCalculations(result);
-  }, [calculatePositionSize]);
+  }, [calculatePositionSize, activeTab]);
+
+  const handleAccountBalanceChange = (value: number) => {
+    setFormData({ ...formData, accountBalance: value });
+    const prefs: Preferences = {
+      accountBalance: value,
+    };
+    localStorage.setItem('accountInfo', JSON.stringify(prefs));
+  };
 
   // Handle input changes with automatic calculations
   const handleInputChange = useCallback(
@@ -161,23 +212,8 @@ const TradingCalculator: React.FC = () => {
       setFormData((prev) => {
         const newData: FormData = { ...prev, [field]: numValue };
 
-        // // Auto-calculate stop loss when risk on investment or entry price changes
-        // if (
-        //   field === 'riskOnInvestment' ||
-        //   (field === 'entryPrice' && prev.riskOnInvestment)
-        // ) {
-        //   const entryPrice =
-        //     field === 'entryPrice' ? numValue : prev.entryPrice;
-        //   const riskPercent =
-        //     field === 'riskOnInvestment' ? numValue : prev.riskOnInvestment;
-
-        //   if (entryPrice > 0 && riskPercent > 0) {
-        //     newData.stopLoss = entryPrice * (1 - riskPercent / 100);
-        //   }
-        // }
-
-        // Auto-calculate risk on investment when stop loss or entry price changes
-        if (field === 'stopLoss' || (field === 'entryPrice' && prev.stopLoss)) {
+        // Auto-calculate risk on investment when stop loss or entry price changes (for risk-based sizing)
+        if (activeTab === 'risk' && (field === 'stopLoss' || (field === 'entryPrice' && prev.stopLoss))) {
           const entryPrice =
             field === 'entryPrice' ? numValue : prev.entryPrice;
           const stopLoss = field === 'stopLoss' ? numValue : prev.stopLoss;
@@ -191,7 +227,7 @@ const TradingCalculator: React.FC = () => {
         return newData;
       });
     },
-    []
+    [activeTab]
   );
 
   // Generate R-multiple targets
@@ -226,25 +262,49 @@ const TradingCalculator: React.FC = () => {
     if (!accountBalance || !entryPrice || !stopLoss || stopLoss >= entryPrice)
       return [];
 
-    const riskPercentages = [0.25, 0.5, 0.75, 1.0, 1.5, 2.0];
-    return riskPercentages.map((riskPercent) => {
-      const riskAmount = (accountBalance * riskPercent) / 100;
-      const riskPerShare = entryPrice - stopLoss;
+    if (activeTab === 'risk') {
+      const riskPercentages = [0.25, 0.5, 0.75, 1.0, 1.5, 2.0];
+      return riskPercentages.map((riskPercent) => {
+        const riskAmount = (accountBalance * riskPercent) / 100;
+        const riskPerShare = entryPrice - stopLoss;
 
-      const positionSize = Math.floor(riskAmount / riskPerShare);
+        const positionSize = Math.floor(riskAmount / riskPerShare);
 
-      const totalInvestment = positionSize * entryPrice;
-      const portfolioPercentage = (totalInvestment / accountBalance) * 100;
+        const totalInvestment = positionSize * entryPrice;
+        const portfolioPercentage = (totalInvestment / accountBalance) * 100;
 
-      return {
-        riskPercent,
-        positionSize,
-        totalInvestment,
-        riskAmount,
-        portfolioPercentage,
-      };
-    });
-  }, [formData]);
+        return {
+          riskPercent,
+          positionSize,
+          totalInvestment,
+          riskAmount,
+          portfolioPercentage,
+        };
+      });
+    } else {
+      const allocationPercentages = [5, 10, 15, 20, 25, 30];
+      return allocationPercentages.map((allocPercent) => {
+        const allocationAmount = (accountBalance * allocPercent) / 100;
+        const positionSize = Math.floor(allocationAmount / entryPrice);
+        
+        const totalInvestment = positionSize * entryPrice;
+        const portfolioPercentage = (totalInvestment / accountBalance) * 100;
+
+        // Calculate actual risk for this allocation
+        const riskPerShare = entryPrice - stopLoss;
+        const riskAmount = positionSize * riskPerShare;
+        const riskPercent = (riskAmount / accountBalance) * 100;
+
+        return {
+          riskPercent,
+          positionSize,
+          totalInvestment,
+          riskAmount,
+          portfolioPercentage,
+        };
+      });
+    }
+  }, [formData, activeTab]);
 
   // Export to CSV
   const exportToCSV = useCallback((): void => {
@@ -290,7 +350,7 @@ const TradingCalculator: React.FC = () => {
                   <div className="space-y-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Account Balance / Net Worth (₹)
+                        Trading Capital (₹)
                         <Info
                           className="inline w-4 h-4 ml-1 text-blue-500 cursor-help"
                           xlinkTitle="Total trading capital available in INR"
@@ -300,42 +360,95 @@ const TradingCalculator: React.FC = () => {
                         type="number"
                         value={formData.accountBalance}
                         onChange={(e) =>
-                          handleInputChange('accountBalance', e.target.value)
+                          handleAccountBalanceChange(parseFloat(e.target.value))
                         }
                         className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:bg-gray-700 dark:text-white transition-all duration-300"
                         min="0"
                         step="10000"
                       />
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Risk Per Trade (Portfolio) (%)
-                        <Info
-                          className="inline w-4 h-4 ml-1 text-blue-500 cursor-help"
-                          xlinkTitle="Percentage of account to risk per trade (recommended: 1-2%)"
-                        />
-                      </label>
-                      <input
-                        type="number"
-                        value={formData.riskPercentage}
-                        onChange={(e) =>
-                          handleInputChange('riskPercentage', e.target.value)
-                        }
-                        className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:bg-gray-700 dark:text-white transition-all duration-300"
-                        min="0.25"
-                        max="10"
-                        step="0.25"
-                      />
-                    </div>
                   </div>
                 </div>
 
                 {/* Trade Setup */}
+                {/* Tab Navigation */}
+                <div className="mb-6">
+                  <div className="flex space-x-1 bg-gray-100 dark:bg-gray-700 p-1 rounded-lg">
+                    <button
+                      onClick={() => setActiveTab('risk')}
+                      className={`flex-1 py-3 px-4 text-sm font-semibold rounded-md transition-all duration-300 ${
+                        activeTab === 'risk'
+                          ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg transform scale-105 border-2 border-white/20'
+                          : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 hover:scale-102'
+                      }`}
+                    >
+                      Risk-Based Sizing
+                    </button>
+                    <button
+                      onClick={() => setActiveTab('allocation')}
+                      className={`flex-1 py-3 px-4 text-sm font-semibold rounded-md transition-all duration-300 ${
+                        activeTab === 'allocation'
+                          ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg transform scale-105 border-2 border-white/20'
+                          : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 hover:scale-102'
+                      }`}
+                    >
+                      Allocation-Based Sizing
+                    </button>
+                  </div>
+                </div>
+                
                 <div>
                   <h3 className="text-xl font-semibold text-gray-800 dark:text-white mb-4 border-b-2 border-blue-500 pb-2">
                     Trade Setup
                   </h3>
                   <div className="space-y-4">
+                    {/* Risk-Based Sizing Tab */}
+                    {activeTab === 'risk' && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                          Risk on Capital (%)
+                          <Info
+                            className="inline w-4 h-4 ml-1 text-blue-500 cursor-help"
+                            xlinkTitle="Percentage of account to risk per trade (recommended: 1-2%)"
+                          />
+                        </label>
+                        <input
+                          type="number"
+                          value={formData.riskPercentage}
+                          onChange={(e) =>
+                            handleInputChange('riskPercentage', e.target.value)
+                          }
+                          className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:bg-gray-700 dark:text-white transition-all duration-300"
+                          min="0.25"
+                          max="10"
+                          step="0.25"
+                        />
+                      </div>
+                    )}
+                    
+                    {/* Allocation-Based Sizing Tab */}
+                    {activeTab === 'allocation' && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                          Portfolio Allocation (%)
+                          <Info
+                            className="inline w-4 h-4 ml-1 text-blue-500 cursor-help"
+                            xlinkTitle="Percentage of total portfolio to allocate to this trade"
+                          />
+                        </label>
+                        <input
+                          type="number"
+                          value={formData.allocationPercentage}
+                          onChange={(e) =>
+                            handleInputChange('allocationPercentage', e.target.value)
+                          }
+                          className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:bg-gray-700 dark:text-white transition-all duration-300"
+                          min="1"
+                          max="100"
+                          step="1"
+                        />
+                      </div>
+                    )}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         Entry Price (₹)
@@ -380,16 +493,22 @@ const TradingCalculator: React.FC = () => {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Risk on Investment / per trade (%)
+                        {activeTab === 'risk' 
+                          ? 'Risk on Investment / per trade (%)' 
+                          : 'Actual Risk on Capital (%)'}
                         <Info
                           className="inline w-4 h-4 ml-1 text-blue-500 cursor-help"
-                          xlinkTitle="Percentage risk on this specific trade (auto-calculates stop loss)"
+                          xlinkTitle={activeTab === 'risk' 
+                            ? "Percentage risk on this specific trade (auto-calculates stop loss)" 
+                            : "Actual risk percentage based on your allocation and stop loss"}
                         />
                       </label>
                       <input
                         disabled
                         type="number"
-                        value={formData.riskOnInvestment.toFixed(2)}
+                        value={activeTab === 'risk' 
+                          ? formData.riskOnInvestment.toFixed(2) 
+                          : (calculations?.riskPercentage.toFixed(2) || '0.00')}
                         onChange={(e) =>
                           handleInputChange('riskOnInvestment', e.target.value)
                         }
@@ -488,11 +607,15 @@ const TradingCalculator: React.FC = () => {
                       </div>
                     </div>
                     <div className="bg-gradient-to-br from-red-500 to-pink-600 text-white p-4 rounded-xl text-center hover:scale-105 transition-transform duration-300">
-                      <div className="text-sm opacity-90 mb-1">Risk Amount</div>
+                      <div className="text-sm opacity-90 mb-1">
+                        {activeTab === 'risk' ? 'Risk Amount' : 'Actual Risk Amount'}
+                      </div>
                       <div className="text-lg font-bold">
                         {formatCurrency(calculations.riskAmount)}
                       </div>
-                      <div className="text-xs opacity-80">Maximum loss</div>
+                      <div className="text-xs opacity-80">
+                        {activeTab === 'risk' ? 'Maximum loss' : `${calculations.riskPercentage.toFixed(2)}% of capital`}
+                      </div>
                     </div>
                     <div className="bg-gradient-to-br from-indigo-500 to-blue-600 text-white p-4 rounded-xl text-center hover:scale-105 transition-transform duration-300">
                       <div className="text-sm opacity-90 mb-1">
@@ -590,7 +713,7 @@ const TradingCalculator: React.FC = () => {
                 <div className="mb-6">
                   <div className="bg-gradient-to-r from-green-600 to-emerald-600 text-white p-4 rounded-t-xl">
                     <h3 className="text-lg font-semibold text-center">
-                      Position Sizing Scenarios
+                      {activeTab === 'risk' ? 'Risk-Based Position Sizing Scenarios' : 'Allocation-Based Position Sizing Scenarios'}
                     </h3>
                   </div>
                   <div className="bg-white dark:bg-gray-800 rounded-b-xl overflow-hidden">
@@ -599,7 +722,7 @@ const TradingCalculator: React.FC = () => {
                         <thead className="bg-gray-50 dark:bg-gray-700">
                           <tr>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                              Risk %
+                              {activeTab === 'risk' ? 'Risk %' : 'Allocation %'}
                             </th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                               Position Size
@@ -608,10 +731,10 @@ const TradingCalculator: React.FC = () => {
                               Investment Required
                             </th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                              Risk Amount
+                              {activeTab === 'risk' ? 'Risk Amount' : 'Actual Risk Amount'}
                             </th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                              Portfolio %
+                              {activeTab === 'risk' ? 'Portfolio %' : 'Actual Risk %'}
                             </th>
                           </tr>
                         </thead>
@@ -622,7 +745,9 @@ const TradingCalculator: React.FC = () => {
                               className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
                             >
                               <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">
-                                {scenario.riskPercent}%
+                                {activeTab === 'risk' 
+                                  ? `${scenario.riskPercent}%` 
+                                  : `${scenario.portfolioPercentage.toFixed(0)}%`}
                               </td>
                               <td className="px-4 py-3 text-sm text-gray-900 dark:text-white">
                                 {scenario.positionSize.toLocaleString()}
@@ -634,7 +759,9 @@ const TradingCalculator: React.FC = () => {
                                 {formatCurrency(scenario.riskAmount)}
                               </td>
                               <td className="px-4 py-3 text-sm text-gray-900 dark:text-white">
-                                {scenario.portfolioPercentage.toFixed(2)}%
+                                {activeTab === 'risk' 
+                                  ? `${scenario.portfolioPercentage.toFixed(2)}%` 
+                                  : `${scenario.riskPercent.toFixed(2)}%`}
                               </td>
                             </tr>
                           ))}

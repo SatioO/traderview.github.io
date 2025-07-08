@@ -6,7 +6,10 @@ export interface FormData {
   stopLoss: number;
   brokerageCost: number;
   riskOnInvestment: number;
+  allocationPercentage: number;
 }
+
+export type TabType = 'risk' | 'allocation';
 
 export interface Calculations {
   accountBalance: number;
@@ -40,7 +43,6 @@ export interface Scenario {
 }
 
 export interface Preferences {
-  riskPercentage: number;
   accountBalance: number;
 }
 
