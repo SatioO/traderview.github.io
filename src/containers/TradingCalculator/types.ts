@@ -1,12 +1,12 @@
 // types/trading.ts
 export interface FormData {
   accountBalance: number;
-  riskPercentage: number;
+  riskPercentage: number | '';
   entryPrice: number;
   stopLoss: number;
   brokerageCost: number;
   riskOnInvestment: number;
-  allocationPercentage: number;
+  allocationPercentage: number | '';
 }
 
 export type TabType = 'risk' | 'allocation';

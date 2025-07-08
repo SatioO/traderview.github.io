@@ -110,7 +110,7 @@ const TradingCalculator: React.FC = () => {
 
     if (accountBalance <= 0)
       newWarnings.push('Account balance must be positive');
-    if (riskPercentage <= 0 || riskPercentage > 10)
+    if (riskPercentage === '' || riskPercentage <= 0 || riskPercentage > 10)
       newWarnings.push('Risk percentage should be between 0.1% and 10%');
     if (entryPrice <= 0) newWarnings.push('Entry price must be positive');
     if (stopLoss <= 0) newWarnings.push('Stop loss must be positive');
@@ -118,7 +118,7 @@ const TradingCalculator: React.FC = () => {
       newWarnings.push(
         'Stop loss must be below entry price for long positions'
       );
-    if (riskPercentage > 3)
+    if (typeof riskPercentage === 'number' && riskPercentage > 3)
       newWarnings.push('Risk percentage above 3% is considered high risk');
 
     return newWarnings;
@@ -133,6 +133,9 @@ const TradingCalculator: React.FC = () => {
       if (validationWarnings.length > 0) return null;
 
       const { accountBalance, riskPercentage, entryPrice, stopLoss } = formData;
+
+      // Return null if riskPercentage is empty
+      if (riskPercentage === '') return null;
 
       const riskAmount = (accountBalance * riskPercentage) / 100;
       const riskPerShare = entryPrice - stopLoss;
@@ -177,6 +180,9 @@ const TradingCalculator: React.FC = () => {
 
       const { accountBalance, allocationPercentage, entryPrice, stopLoss } =
         formData;
+
+      // Return null if allocationPercentage is empty
+      if (allocationPercentage === '') return null;
 
       const allocationAmount = (accountBalance * allocationPercentage) / 100;
       const positionSize = Math.floor(allocationAmount / entryPrice);
@@ -241,10 +247,18 @@ const TradingCalculator: React.FC = () => {
   // Handle input changes with automatic calculations
   const handleInputChange = useCallback(
     (field: keyof FormData, value: string): void => {
-      const numValue = parseFloat(value) || 0;
+      let processedValue: number | '' = parseFloat(value) || 0;
+
+      // Handle empty string for riskPercentage and allocationPercentage
+      if (
+        (field === 'riskPercentage' || field === 'allocationPercentage') &&
+        value === ''
+      ) {
+        processedValue = '';
+      }
 
       setFormData((prev) => {
-        const newData: FormData = { ...prev, [field]: numValue };
+        const newData: FormData = { ...prev, [field]: processedValue };
 
         // Auto-calculate risk on investment when stop loss or entry price changes (for risk-based sizing)
         if (
@@ -252,8 +266,11 @@ const TradingCalculator: React.FC = () => {
           (field === 'stopLoss' || (field === 'entryPrice' && prev.stopLoss))
         ) {
           const entryPrice =
-            field === 'entryPrice' ? numValue : prev.entryPrice;
-          const stopLoss = field === 'stopLoss' ? numValue : prev.stopLoss;
+            field === 'entryPrice'
+              ? (processedValue as number)
+              : prev.entryPrice;
+          const stopLoss =
+            field === 'stopLoss' ? (processedValue as number) : prev.stopLoss;
 
           if (entryPrice > 0 && stopLoss > 0 && stopLoss < entryPrice) {
             newData.riskOnInvestment =
@@ -460,7 +477,11 @@ const TradingCalculator: React.FC = () => {
                       </label>
                       <input
                         type="number"
-                        value={formData.riskPercentage}
+                        value={
+                          formData.riskPercentage === ''
+                            ? ''
+                            : formData.riskPercentage
+                        }
                         onChange={(e) =>
                           handleInputChange('riskPercentage', e.target.value)
                         }
@@ -468,6 +489,7 @@ const TradingCalculator: React.FC = () => {
                         min="0.25"
                         max="10"
                         step="0.25"
+                        placeholder="Enter risk percentage"
                       />
                     </div>
                   )}
@@ -484,7 +506,11 @@ const TradingCalculator: React.FC = () => {
                       </label>
                       <input
                         type="number"
-                        value={formData.allocationPercentage}
+                        value={
+                          formData.allocationPercentage === ''
+                            ? ''
+                            : formData.allocationPercentage
+                        }
                         onChange={(e) =>
                           handleInputChange(
                             'allocationPercentage',
@@ -495,6 +521,7 @@ const TradingCalculator: React.FC = () => {
                         min="1"
                         max="100"
                         step="1"
+                        placeholder="Enter allocation percentage"
                       />
                     </div>
                   )}
