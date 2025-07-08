@@ -8,10 +8,7 @@ import {
   PieChart,
   BarChart3,
   TrendingUp,
-  Sun,
-  Moon,
   Target as TargetIcon,
-  DollarSign,
   CreditCard,
 } from 'lucide-react';
 import type {
