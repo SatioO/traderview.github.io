@@ -1,5 +1,19 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Download, Info, Calculator } from 'lucide-react';
+import {
+  Download,
+  Info,
+  Calculator,
+  AlertTriangle,
+  IndianRupee,
+  PieChart,
+  BarChart3,
+  TrendingUp,
+  Sun,
+  Moon,
+  Target as TargetIcon,
+  DollarSign,
+  CreditCard,
+} from 'lucide-react';
 import type {
   FormData,
   Calculations,
@@ -23,6 +37,7 @@ const TradingCalculator: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>('risk');
   const [calculations, setCalculations] = useState<Calculations | null>(null);
   const [warnings, setWarnings] = useState<string[]>([]);
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
 
   // Calculate brokerage automatically for delivery equity (buy only)
   const calculateBrokerage = useCallback(
@@ -51,7 +66,7 @@ const TradingCalculator: React.FC = () => {
     []
   );
 
-  // Load preferences on mount
+  // Load preferences and dark mode on mount
   useEffect(() => {
     const saved = localStorage.getItem('accountInfo');
     if (saved) {
@@ -64,6 +79,19 @@ const TradingCalculator: React.FC = () => {
       } catch (error) {
         console.error('Error loading preferences:', error);
       }
+    }
+
+    // Load dark mode preference
+    const savedDarkMode = localStorage.getItem('darkMode');
+    const darkMode =
+      savedDarkMode === 'true' ||
+      (savedDarkMode === null &&
+        window.matchMedia('(prefers-color-scheme: dark)').matches);
+    setIsDarkMode(darkMode);
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
     }
   }, []);
 
@@ -100,95 +128,104 @@ const TradingCalculator: React.FC = () => {
   }, [formData]);
 
   // Calculate position size based on risk-based sizing
-  const calculateRiskBasedPositionSize = useCallback((): Calculations | null => {
-    const validationWarnings = validateInputs();
-    setWarnings(validationWarnings);
+  const calculateRiskBasedPositionSize =
+    useCallback((): Calculations | null => {
+      const validationWarnings = validateInputs();
+      setWarnings(validationWarnings);
 
-    if (validationWarnings.length > 0) return null;
+      if (validationWarnings.length > 0) return null;
 
-    const { accountBalance, riskPercentage, entryPrice, stopLoss } = formData;
+      const { accountBalance, riskPercentage, entryPrice, stopLoss } = formData;
 
-    const riskAmount = (accountBalance * riskPercentage) / 100;
-    const riskPerShare = entryPrice - stopLoss;
+      const riskAmount = (accountBalance * riskPercentage) / 100;
+      const riskPerShare = entryPrice - stopLoss;
 
-    // Calculate position size WITHOUT considering brokerage (pure calculation)
-    const positionSize = Math.floor(riskAmount / riskPerShare);
+      // Calculate position size WITHOUT considering brokerage (pure calculation)
+      const positionSize = Math.floor(riskAmount / riskPerShare);
 
-    // Calculate brokerage for this position size
-    const chargesBreakdown = calculateBrokerage(entryPrice, positionSize);
+      // Calculate brokerage for this position size
+      const chargesBreakdown = calculateBrokerage(entryPrice, positionSize);
 
-    const totalInvestment = positionSize * entryPrice;
-    const portfolioPercentage = (totalInvestment / accountBalance) * 100;
+      const totalInvestment = positionSize * entryPrice;
+      const portfolioPercentage = (totalInvestment / accountBalance) * 100;
 
-    // Calculate breakeven price (entry price + brokerage cost per share)
-    const brokerageCostPerShare = chargesBreakdown.totalCharges / positionSize;
-    const breakEvenPrice = entryPrice + brokerageCostPerShare;
+      // Calculate breakeven price (entry price + brokerage cost per share)
+      const brokerageCostPerShare =
+        chargesBreakdown.totalCharges / positionSize;
+      const breakEvenPrice = entryPrice + brokerageCostPerShare;
 
-    return {
-      accountBalance,
-      riskPercentage,
-      riskAmount,
-      entryPrice,
-      stopLoss,
-      brokerageCost: chargesBreakdown.totalCharges,
-      riskPerShare,
-      positionSize,
-      totalInvestment,
-      portfolioPercentage,
-      chargesBreakdown,
-      breakEvenPrice,
-    };
-  }, [formData, validateInputs, calculateBrokerage]);
+      return {
+        accountBalance,
+        riskPercentage,
+        riskAmount,
+        entryPrice,
+        stopLoss,
+        brokerageCost: chargesBreakdown.totalCharges,
+        riskPerShare,
+        positionSize,
+        totalInvestment,
+        portfolioPercentage,
+        chargesBreakdown,
+        breakEvenPrice,
+      };
+    }, [formData, validateInputs, calculateBrokerage]);
 
   // Calculate position size based on allocation-based sizing
-  const calculateAllocationBasedPositionSize = useCallback((): Calculations | null => {
-    const validationWarnings = validateInputs();
-    setWarnings(validationWarnings);
+  const calculateAllocationBasedPositionSize =
+    useCallback((): Calculations | null => {
+      const validationWarnings = validateInputs();
+      setWarnings(validationWarnings);
 
-    if (validationWarnings.length > 0) return null;
+      if (validationWarnings.length > 0) return null;
 
-    const { accountBalance, allocationPercentage, entryPrice, stopLoss } = formData;
+      const { accountBalance, allocationPercentage, entryPrice, stopLoss } =
+        formData;
 
-    const allocationAmount = (accountBalance * allocationPercentage) / 100;
-    const positionSize = Math.floor(allocationAmount / entryPrice);
+      const allocationAmount = (accountBalance * allocationPercentage) / 100;
+      const positionSize = Math.floor(allocationAmount / entryPrice);
 
-    // Calculate brokerage for this position size
-    const chargesBreakdown = calculateBrokerage(entryPrice, positionSize);
+      // Calculate brokerage for this position size
+      const chargesBreakdown = calculateBrokerage(entryPrice, positionSize);
 
-    const totalInvestment = positionSize * entryPrice;
-    const portfolioPercentage = (totalInvestment / accountBalance) * 100;
+      const totalInvestment = positionSize * entryPrice;
+      const portfolioPercentage = (totalInvestment / accountBalance) * 100;
 
-    // Calculate actual risk
-    const riskPerShare = entryPrice - stopLoss;
-    const riskAmount = positionSize * riskPerShare;
-    const riskPercentage = (riskAmount / accountBalance) * 100;
+      // Calculate actual risk
+      const riskPerShare = entryPrice - stopLoss;
+      const riskAmount = positionSize * riskPerShare;
+      const riskPercentage = (riskAmount / accountBalance) * 100;
 
-    // Calculate breakeven price (entry price + brokerage cost per share)
-    const brokerageCostPerShare = chargesBreakdown.totalCharges / positionSize;
-    const breakEvenPrice = entryPrice + brokerageCostPerShare;
+      // Calculate breakeven price (entry price + brokerage cost per share)
+      const brokerageCostPerShare =
+        chargesBreakdown.totalCharges / positionSize;
+      const breakEvenPrice = entryPrice + brokerageCostPerShare;
 
-    return {
-      accountBalance,
-      riskPercentage,
-      riskAmount,
-      entryPrice,
-      stopLoss,
-      brokerageCost: chargesBreakdown.totalCharges,
-      riskPerShare,
-      positionSize,
-      totalInvestment,
-      portfolioPercentage,
-      chargesBreakdown,
-      breakEvenPrice,
-    };
-  }, [formData, validateInputs, calculateBrokerage]);
+      return {
+        accountBalance,
+        riskPercentage,
+        riskAmount,
+        entryPrice,
+        stopLoss,
+        brokerageCost: chargesBreakdown.totalCharges,
+        riskPerShare,
+        positionSize,
+        totalInvestment,
+        portfolioPercentage,
+        chargesBreakdown,
+        breakEvenPrice,
+      };
+    }, [formData, validateInputs, calculateBrokerage]);
 
   // Calculate position size based on active tab
   const calculatePositionSize = useCallback((): Calculations | null => {
-    return activeTab === 'risk' 
-      ? calculateRiskBasedPositionSize() 
+    return activeTab === 'risk'
+      ? calculateRiskBasedPositionSize()
       : calculateAllocationBasedPositionSize();
-  }, [activeTab, calculateRiskBasedPositionSize, calculateAllocationBasedPositionSize]);
+  }, [
+    activeTab,
+    calculateRiskBasedPositionSize,
+    calculateAllocationBasedPositionSize,
+  ]);
 
   // Update calculations when form data or active tab changes
   useEffect(() => {
@@ -213,7 +250,10 @@ const TradingCalculator: React.FC = () => {
         const newData: FormData = { ...prev, [field]: numValue };
 
         // Auto-calculate risk on investment when stop loss or entry price changes (for risk-based sizing)
-        if (activeTab === 'risk' && (field === 'stopLoss' || (field === 'entryPrice' && prev.stopLoss))) {
+        if (
+          activeTab === 'risk' &&
+          (field === 'stopLoss' || (field === 'entryPrice' && prev.stopLoss))
+        ) {
           const entryPrice =
             field === 'entryPrice' ? numValue : prev.entryPrice;
           const stopLoss = field === 'stopLoss' ? numValue : prev.stopLoss;
@@ -286,7 +326,7 @@ const TradingCalculator: React.FC = () => {
       return allocationPercentages.map((allocPercent) => {
         const allocationAmount = (accountBalance * allocPercent) / 100;
         const positionSize = Math.floor(allocationAmount / entryPrice);
-        
+
         const totalInvestment = positionSize * entryPrice;
         const portfolioPercentage = (totalInvestment / accountBalance) * 100;
 
@@ -335,471 +375,521 @@ const TradingCalculator: React.FC = () => {
   const scenarios = generateScenarios();
 
   return (
-    <div>
-      <div className="bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-700 dark:from-gray-900 dark:via-blue-900 dark:to-indigo-900 transition-all duration-300">
-        <div className="mx-auto px-16 py-6">
-          <div className="grid lg:grid-cols-3 gap-8">
-            {/* Input Panel */}
-            <div className="lg:col-span-1">
-              <div className="bg-white dark:bg-gray-800/90 backdrop-blur-lg rounded-2xl p-6 shadow-2xl border border-white/20">
-                {/* Account Details */}
-                <div className="mb-8">
-                  <h3 className="text-xl font-semibold text-gray-800 dark:text-white mb-4 border-b-2 border-blue-500 pb-2">
+    <div
+      className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-all duration-300"
+      data-theme={isDarkMode ? 'dark' : 'light'}
+    >
+      {/* Main Content */}
+      <main className="mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Input Panel */}
+          <div className="lg:col-span-1">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-xl border border-gray-200 dark:border-gray-700 sticky top-8">
+              {/* Account Details */}
+              <div className="mb-8">
+                <div className="flex items-center space-x-2 mb-4">
+                  <IndianRupee className="w-5 h-5 text-blue-500" />
+                  <h3 className="text-xl font-semibold text-gray-800 dark:text-white">
                     Account Details
                   </h3>
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Trading Capital (₹)
-                        <Info
-                          className="inline w-4 h-4 ml-1 text-blue-500 cursor-help"
-                          xlinkTitle="Total trading capital available in INR"
-                        />
-                      </label>
+                </div>
+                <div className="space-y-4">
+                  <div className="relative">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Trading Capital (₹)
+                      <Info className="inline w-4 h-4 ml-1 text-blue-500 cursor-help" />
+                    </label>
+                    <div className="relative">
                       <input
                         type="number"
                         value={formData.accountBalance}
                         onChange={(e) =>
                           handleAccountBalanceChange(parseFloat(e.target.value))
                         }
-                        className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:bg-gray-700 dark:text-white transition-all duration-300"
+                        className="w-full px-4 py-3 pl-8 border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:bg-gray-700 dark:text-white transition-all duration-300"
                         min="0"
                         step="10000"
                       />
+                      <IndianRupee className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                     </div>
                   </div>
                 </div>
+              </div>
 
-                {/* Trade Setup */}
-                {/* Tab Navigation */}
-                <div className="mb-6">
-                  <div className="flex space-x-1 bg-gray-100 dark:bg-gray-700 p-1 rounded-lg">
-                    <button
-                      onClick={() => setActiveTab('risk')}
-                      className={`flex-1 py-3 px-4 text-sm font-semibold rounded-md transition-all duration-300 ${
-                        activeTab === 'risk'
-                          ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg transform scale-105 border-2 border-white/20'
-                          : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 hover:scale-102'
-                      }`}
-                    >
-                      Risk-Based Sizing
-                    </button>
-                    <button
-                      onClick={() => setActiveTab('allocation')}
-                      className={`flex-1 py-3 px-4 text-sm font-semibold rounded-md transition-all duration-300 ${
-                        activeTab === 'allocation'
-                          ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg transform scale-105 border-2 border-white/20'
-                          : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 hover:scale-102'
-                      }`}
-                    >
-                      Allocation-Based Sizing
-                    </button>
-                  </div>
+              {/* Trade Setup */}
+              {/* Tab Navigation */}
+              <div className="mb-6">
+                <div className="flex space-x-1 bg-gray-100 dark:bg-gray-700 p-1 rounded-lg">
+                  <button
+                    onClick={() => setActiveTab('risk')}
+                    className={`flex-1 py-3 px-4 text-sm font-semibold rounded-md transition-all duration-300 ${
+                      activeTab === 'risk'
+                        ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg transform scale-105 border-2 border-white/20'
+                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 hover:scale-102'
+                    }`}
+                  >
+                    Risk-Based Sizing
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('allocation')}
+                    className={`flex-1 py-3 px-4 text-sm font-semibold rounded-md transition-all duration-300 ${
+                      activeTab === 'allocation'
+                        ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg transform scale-105 border-2 border-white/20'
+                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 hover:scale-102'
+                    }`}
+                  >
+                    Allocation-Based Sizing
+                  </button>
                 </div>
-                
-                <div>
-                  <h3 className="text-xl font-semibold text-gray-800 dark:text-white mb-4 border-b-2 border-blue-500 pb-2">
+              </div>
+
+              <div>
+                <div className="flex items-center space-x-2 mb-4">
+                  <BarChart3 className="w-5 h-5 text-blue-500" />
+                  <h3 className="text-xl font-semibold text-gray-800 dark:text-white">
                     Trade Setup
                   </h3>
-                  <div className="space-y-4">
-                    {/* Risk-Based Sizing Tab */}
-                    {activeTab === 'risk' && (
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                          Risk on Capital (%)
-                          <Info
-                            className="inline w-4 h-4 ml-1 text-blue-500 cursor-help"
-                            xlinkTitle="Percentage of account to risk per trade (recommended: 1-2%)"
-                          />
-                        </label>
-                        <input
-                          type="number"
-                          value={formData.riskPercentage}
-                          onChange={(e) =>
-                            handleInputChange('riskPercentage', e.target.value)
-                          }
-                          className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:bg-gray-700 dark:text-white transition-all duration-300"
-                          min="0.25"
-                          max="10"
-                          step="0.25"
-                        />
-                      </div>
-                    )}
-                    
-                    {/* Allocation-Based Sizing Tab */}
-                    {activeTab === 'allocation' && (
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                          Portfolio Allocation (%)
-                          <Info
-                            className="inline w-4 h-4 ml-1 text-blue-500 cursor-help"
-                            xlinkTitle="Percentage of total portfolio to allocate to this trade"
-                          />
-                        </label>
-                        <input
-                          type="number"
-                          value={formData.allocationPercentage}
-                          onChange={(e) =>
-                            handleInputChange('allocationPercentage', e.target.value)
-                          }
-                          className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:bg-gray-700 dark:text-white transition-all duration-300"
-                          min="1"
-                          max="100"
-                          step="1"
-                        />
-                      </div>
-                    )}
+                </div>
+                <div className="space-y-4">
+                  {/* Risk-Based Sizing Tab */}
+                  {activeTab === 'risk' && (
                     <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Risk on Capital (%)
+                        <Info
+                          className="inline w-4 h-4 ml-1 text-blue-500 cursor-help"
+                          xlinkTitle="Percentage of account to risk per trade (recommended: 1-2%)"
+                        />
+                      </label>
+                      <input
+                        type="number"
+                        value={formData.riskPercentage}
+                        onChange={(e) =>
+                          handleInputChange('riskPercentage', e.target.value)
+                        }
+                        className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:bg-gray-700 dark:text-white transition-all duration-300"
+                        min="0.25"
+                        max="10"
+                        step="0.25"
+                      />
+                    </div>
+                  )}
+
+                  {/* Allocation-Based Sizing Tab */}
+                  {activeTab === 'allocation' && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Portfolio Allocation (%)
+                        <Info
+                          className="inline w-4 h-4 ml-1 text-blue-500 cursor-help"
+                          xlinkTitle="Percentage of total portfolio to allocate to this trade"
+                        />
+                      </label>
+                      <input
+                        type="number"
+                        value={formData.allocationPercentage}
+                        onChange={(e) =>
+                          handleInputChange(
+                            'allocationPercentage',
+                            e.target.value
+                          )
+                        }
+                        className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:bg-gray-700 dark:text-white transition-all duration-300"
+                        min="1"
+                        max="100"
+                        step="1"
+                      />
+                    </div>
+                  )}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="relative">
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         Entry Price (₹)
-                        <Info
-                          className="inline w-4 h-4 ml-1 text-blue-500 cursor-help"
-                          xlinkTitle="Price at which you plan to enter the trade"
-                        />
-                      </label>
-                      <input
-                        type="number"
-                        value={
-                          formData.entryPrice !== 0 ? formData.entryPrice : ''
-                        }
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          handleInputChange('entryPrice', value);
-                        }}
-                        className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:bg-gray-700 dark:text-white transition-all duration-300"
-                        min="0"
-                        step="0.1"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Stop Loss Price (₹)
-                        <Info
-                          className="inline w-4 h-4 ml-1 text-blue-500 cursor-help"
-                          xlinkTitle="Price at which you'll exit to limit losses (auto-calculated from risk %)"
-                        />
-                      </label>
-                      <input
-                        type="number"
-                        value={formData.stopLoss !== 0 ? formData.stopLoss : ''}
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          handleInputChange('stopLoss', value);
-                        }}
-                        className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:bg-gray-700 dark:text-white transition-all duration-300"
-                        min="0"
-                        step="0.1"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        {activeTab === 'risk' 
-                          ? 'Risk on Investment / per trade (%)' 
-                          : 'Actual Risk on Capital (%)'}
-                        <Info
-                          className="inline w-4 h-4 ml-1 text-blue-500 cursor-help"
-                          xlinkTitle={activeTab === 'risk' 
-                            ? "Percentage risk on this specific trade (auto-calculates stop loss)" 
-                            : "Actual risk percentage based on your allocation and stop loss"}
-                        />
-                      </label>
-                      <input
-                        disabled
-                        type="number"
-                        value={activeTab === 'risk' 
-                          ? formData.riskOnInvestment.toFixed(2) 
-                          : (calculations?.riskPercentage.toFixed(2) || '0.00')}
-                        onChange={(e) =>
-                          handleInputChange('riskOnInvestment', e.target.value)
-                        }
-                        className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-600 text-gray-600 dark:text-gray-300 cursor-not-allowed"
-                        min="0.1"
-                        max="50"
-                        step="0.1"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Brokerage Cost (₹) - Auto Calculated (Buy Side)
-                        <Info
-                          className="inline w-4 h-4 ml-1 text-blue-500 cursor-help"
-                          xlinkTitle="Automatically calculated for delivery equity buy side: STT, Transaction charges, SEBI charges, GST, and Stamp duty"
-                        />
+                        <Info className="inline w-4 h-4 ml-1 text-blue-500 cursor-help" />
                       </label>
                       <div className="relative">
                         <input
                           type="number"
                           value={
-                            calculations?.brokerageCost.toFixed(2) || '0.00'
+                            formData.entryPrice !== 0 ? formData.entryPrice : ''
                           }
-                          className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-600 text-gray-600 dark:text-gray-300 cursor-not-allowed"
-                          readOnly
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            handleInputChange('entryPrice', value);
+                          }}
+                          className="w-full px-4 py-3 pl-8 border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:bg-gray-700 dark:text-white transition-all duration-300"
+                          min="0"
+                          step="0.1"
+                          placeholder="0.00"
                         />
-                        <Calculator className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                        <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm">
+                          ₹
+                        </span>
                       </div>
-                      {calculations?.chargesBreakdown && (
-                        <div className="mt-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-xs">
-                          <div className="font-semibold text-blue-800 dark:text-blue-200 mb-2">
-                            Buy Side Charges:
+                    </div>
+                    <div className="relative">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Stop Loss Price (₹)
+                        <Info className="inline w-4 h-4 ml-1 text-blue-500 cursor-help" />
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="number"
+                          value={
+                            formData.stopLoss !== 0 ? formData.stopLoss : ''
+                          }
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            handleInputChange('stopLoss', value);
+                          }}
+                          className="w-full px-4 py-3 pl-8 border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:bg-gray-700 dark:text-white transition-all duration-300"
+                          min="0"
+                          step="0.1"
+                          placeholder="0.00"
+                        />
+                        <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm">
+                          ₹
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      {activeTab === 'risk'
+                        ? 'Risk on Investment / per trade (%)'
+                        : 'Actual Risk on Capital (%)'}
+                      <Info
+                        className="inline w-4 h-4 ml-1 text-blue-500 cursor-help"
+                        xlinkTitle={
+                          activeTab === 'risk'
+                            ? 'Percentage risk on this specific trade (auto-calculates stop loss)'
+                            : 'Actual risk percentage based on your allocation and stop loss'
+                        }
+                      />
+                    </label>
+                    <input
+                      disabled
+                      type="number"
+                      value={
+                        activeTab === 'risk'
+                          ? formData.riskOnInvestment.toFixed(2)
+                          : calculations?.riskPercentage.toFixed(2) || '0.00'
+                      }
+                      onChange={(e) =>
+                        handleInputChange('riskOnInvestment', e.target.value)
+                      }
+                      className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-600 text-gray-600 dark:text-gray-300 cursor-not-allowed"
+                      min="0.1"
+                      max="50"
+                      step="0.1"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Brokerage Cost (₹) - Auto Calculated (Buy Side)
+                      <Info
+                        className="inline w-4 h-4 ml-1 text-blue-500 cursor-help"
+                        xlinkTitle="Automatically calculated for delivery equity buy side: STT, Transaction charges, SEBI charges, GST, and Stamp duty"
+                      />
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        value={calculations?.brokerageCost.toFixed(2) || '0.00'}
+                        className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-600 text-gray-600 dark:text-gray-300 cursor-not-allowed"
+                        readOnly
+                      />
+                      <Calculator className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    </div>
+                    {calculations?.chargesBreakdown && (
+                      <div className="mt-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-xs">
+                        <div className="font-semibold text-blue-800 dark:text-blue-200 mb-2">
+                          Buy Side Charges:
+                        </div>
+                        <div className="grid grid-cols-2 gap-1 text-blue-700 dark:text-blue-300">
+                          <div>STT: ₹{calculations.chargesBreakdown.stt}</div>
+                          <div>
+                            Transaction: ₹
+                            {calculations.chargesBreakdown.transactionCharges}
                           </div>
-                          <div className="grid grid-cols-2 gap-1 text-blue-700 dark:text-blue-300">
-                            <div>STT: ₹{calculations.chargesBreakdown.stt}</div>
-                            <div>
-                              Transaction: ₹
-                              {calculations.chargesBreakdown.transactionCharges}
-                            </div>
-                            <div>
-                              SEBI: ₹{calculations.chargesBreakdown.sebiCharges}
-                            </div>
-                            <div>GST: ₹{calculations.chargesBreakdown.gst}</div>
-                            <div className="col-span-2">
-                              Stamp Duty: ₹
-                              {calculations.chargesBreakdown.stampDuty}
-                            </div>
+                          <div>
+                            SEBI: ₹{calculations.chargesBreakdown.sebiCharges}
+                          </div>
+                          <div>GST: ₹{calculations.chargesBreakdown.gst}</div>
+                          <div className="col-span-2">
+                            Stamp Duty: ₹
+                            {calculations.chargesBreakdown.stampDuty}
                           </div>
                         </div>
-                      )}
-                    </div>
+                      </div>
+                    )}
                   </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Results Panel */}
-            <div className="lg:col-span-2">
-              <div className="bg-white dark:bg-gray-800/90 backdrop-blur-lg rounded-2xl p-6 shadow-2xl border border-white/20">
-                {/* Warnings */}
-                {warnings.length > 0 && (
-                  <div className="mb-6 p-4 bg-yellow-100 dark:bg-yellow-900/50 border border-yellow-300 dark:border-yellow-600 rounded-lg">
-                    <div className="font-semibold text-yellow-800 dark:text-yellow-200 mb-2">
-                      ⚠️ Warning:
-                    </div>
-                    <ul className="text-yellow-700 dark:text-yellow-300 text-sm space-y-1">
-                      {warnings.map((warning, index) => (
-                        <li key={index}>• {warning}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-
-                {/* Quick Results */}
-                {calculations && (
-                  <div className="grid grid-cols-2 lg:grid-cols-6 gap-4 mb-8">
-                    <div className="bg-gradient-to-br from-blue-500 to-purple-600 text-white p-4 rounded-xl text-center hover:scale-105 transition-transform duration-300">
-                      <div className="text-sm opacity-90 mb-1">
-                        Position Size
-                      </div>
-                      <div className="text-2xl font-bold">
-                        {calculations.positionSize.toLocaleString()}
-                      </div>
-                      <div className="text-xs opacity-80">shares/units</div>
-                    </div>
-                    <div className="bg-gradient-to-br from-green-500 to-emerald-600 text-white p-4 rounded-xl text-center hover:scale-105 transition-transform duration-300">
-                      <div className="text-sm opacity-90 mb-1">
-                        Total Investment
-                      </div>
-                      <div className="text-lg font-bold">
-                        {formatCurrency(calculations.totalInvestment)}
-                      </div>
-                      <div className="text-xs opacity-80">
-                        {calculations.portfolioPercentage.toFixed(2)}% of
-                        portfolio
-                      </div>
-                    </div>
-                    <div className="bg-gradient-to-br from-red-500 to-pink-600 text-white p-4 rounded-xl text-center hover:scale-105 transition-transform duration-300">
-                      <div className="text-sm opacity-90 mb-1">
-                        {activeTab === 'risk' ? 'Risk Amount' : 'Actual Risk Amount'}
-                      </div>
-                      <div className="text-lg font-bold">
-                        {formatCurrency(calculations.riskAmount)}
-                      </div>
-                      <div className="text-xs opacity-80">
-                        {activeTab === 'risk' ? 'Maximum loss' : `${calculations.riskPercentage.toFixed(2)}% of capital`}
-                      </div>
-                    </div>
-                    <div className="bg-gradient-to-br from-indigo-500 to-blue-600 text-white p-4 rounded-xl text-center hover:scale-105 transition-transform duration-300">
-                      <div className="text-sm opacity-90 mb-1">
-                        Risk per Share
-                      </div>
-                      <div className="text-lg font-bold">
-                        {formatCurrency(calculations.riskPerShare)}
-                      </div>
-                      <div className="text-xs opacity-80">
-                        Entry - Stop Loss
-                      </div>
-                    </div>
-                    <div className="bg-gradient-to-br from-purple-500 to-indigo-600 text-white p-4 rounded-xl text-center hover:scale-105 transition-transform duration-300">
-                      <div className="text-sm opacity-90 mb-1">
-                        Total Charges
-                      </div>
-                      <div className="text-lg font-bold">
-                        {formatCurrency(calculations.brokerageCost)}
-                      </div>
-                      <div className="text-xs opacity-80">Auto-calculated</div>
-                    </div>
-                    <div className="bg-gradient-to-br from-orange-500 to-red-600 text-white p-4 rounded-xl text-center hover:scale-105 transition-transform duration-300">
-                      <div className="text-sm opacity-90 mb-1">
-                        Breakeven Price
-                      </div>
-                      <div className="text-lg font-bold">
-                        {formatCurrency(calculations.breakEvenPrice)}
-                      </div>
-                      <div className="text-xs opacity-80">Entry + charges</div>
-                    </div>
-                  </div>
-                )}
-
-                {/* R-Multiple Targets */}
-                <div className="mb-8">
-                  <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4 rounded-t-xl">
-                    <h3 className="text-lg font-semibold text-center">
-                      R-Multiple Profit Targets
-                    </h3>
-                  </div>
-                  <div className="bg-white dark:bg-gray-800 rounded-b-xl overflow-hidden">
-                    <div className="overflow-x-auto">
-                      <table className="w-full">
-                        <thead className="bg-gray-50 dark:bg-gray-700">
-                          <tr>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                              R-Multiple
-                            </th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                              Target Price
-                            </th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                              Gross Profit
-                            </th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                              Return %
-                            </th>
-
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                              Risk:Reward
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-200 dark:divide-gray-600">
-                          {targets.map((target, index) => (
-                            <tr
-                              key={index}
-                              className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
-                            >
-                              <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">
-                                {target.r}R
-                              </td>
-                              <td className="px-4 py-3 text-sm text-gray-900 dark:text-white">
-                                {formatCurrency(target.targetPrice)}
-                              </td>
-                              <td className="px-4 py-3 text-sm font-semibold text-green-600 dark:text-green-400">
-                                {formatCurrency(target.netProfit)}
-                              </td>
-                              <td className="px-4 py-3 text-sm font-semibold text-green-600 dark:text-green-400">
-                                {target.returnPercentage.toFixed(2)}%
-                              </td>
-
-                              <td className="px-4 py-3 text-sm text-gray-900 dark:text-white">
-                                1:{target.r}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Position Sizing Scenarios here */}
-                <div className="mb-6">
-                  <div className="bg-gradient-to-r from-green-600 to-emerald-600 text-white p-4 rounded-t-xl">
-                    <h3 className="text-lg font-semibold text-center">
-                      {activeTab === 'risk' ? 'Risk-Based Position Sizing Scenarios' : 'Allocation-Based Position Sizing Scenarios'}
-                    </h3>
-                  </div>
-                  <div className="bg-white dark:bg-gray-800 rounded-b-xl overflow-hidden">
-                    <div className="overflow-x-auto">
-                      <table className="w-full">
-                        <thead className="bg-gray-50 dark:bg-gray-700">
-                          <tr>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                              {activeTab === 'risk' ? 'Risk %' : 'Allocation %'}
-                            </th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                              Position Size
-                            </th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                              Investment Required
-                            </th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                              {activeTab === 'risk' ? 'Risk Amount' : 'Actual Risk Amount'}
-                            </th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                              {activeTab === 'risk' ? 'Portfolio %' : 'Actual Risk %'}
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-200 dark:divide-gray-600">
-                          {scenarios.map((scenario, index) => (
-                            <tr
-                              key={index}
-                              className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
-                            >
-                              <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">
-                                {activeTab === 'risk' 
-                                  ? `${scenario.riskPercent}%` 
-                                  : `${scenario.portfolioPercentage.toFixed(0)}%`}
-                              </td>
-                              <td className="px-4 py-3 text-sm text-gray-900 dark:text-white">
-                                {scenario.positionSize.toLocaleString()}
-                              </td>
-                              <td className="px-4 py-3 text-sm text-gray-900 dark:text-white">
-                                {formatCurrency(scenario.totalInvestment)}
-                              </td>
-                              <td className="px-4 py-3 text-sm font-semibold text-red-600 dark:text-red-400">
-                                {formatCurrency(scenario.riskAmount)}
-                              </td>
-                              <td className="px-4 py-3 text-sm text-gray-900 dark:text-white">
-                                {activeTab === 'risk' 
-                                  ? `${scenario.portfolioPercentage.toFixed(2)}%` 
-                                  : `${scenario.riskPercent.toFixed(2)}%`}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Export Buttons */}
-                <div className="flex justify-center space-x-4">
-                  <button
-                    onClick={exportToCSV}
-                    className="flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6 py-3 rounded-xl transition-all duration-300 hover:scale-105 shadow-lg"
-                  >
-                    <Download className="w-4 h-4" />
-                    <span>Export CSV</span>
-                  </button>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Disclaimer */}
-          <div className="mt-8 bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20 text-center">
-            <h3 className="text-xl font-semibold text-white mb-3">
-              ⚠️ Risk Disclaimer
-            </h3>
-            <p className="text-white/90 leading-relaxed">
-              This calculator is for educational purposes only. Trading involves
-              substantial risk of loss. Past performance does not guarantee
-              future results. Always consult with a qualified financial advisor
-              before making investment decisions. Never risk more than you can
-              afford to lose.
-            </p>
+          {/* Results Panel */}
+          <div className="lg:col-span-2">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-xl border border-gray-200 dark:border-gray-700">
+              {/* Warnings */}
+              {warnings.length > 0 && (
+                <div className="mb-6 p-4 bg-yellow-100 dark:bg-yellow-900/50 border border-yellow-300 dark:border-yellow-600 rounded-lg">
+                  <div className="font-semibold text-yellow-800 dark:text-yellow-200 mb-2">
+                    ⚠️ Warning:
+                  </div>
+                  <ul className="text-yellow-700 dark:text-yellow-300 text-sm space-y-1">
+                    {warnings.map((warning, index) => (
+                      <li key={index}>• {warning}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Quick Results */}
+              {calculations && (
+                <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
+                  <div className="bg-gradient-to-br from-blue-500 to-purple-600 text-white p-4 rounded-xl text-center hover:scale-105 transition-transform duration-300">
+                    <div className="flex items-center justify-center mb-2">
+                      <BarChart3 className="w-5 h-5 opacity-80" />
+                    </div>
+                    <div className="text-sm opacity-90 mb-1">Position Size</div>
+                    <div className="text-xl lg:text-2xl font-bold">
+                      {calculations.positionSize.toLocaleString()}
+                    </div>
+                    <div className="text-xs opacity-80">shares/units</div>
+                  </div>
+                  <div className="bg-gradient-to-br from-green-500 to-emerald-600 text-white p-4 rounded-xl text-center hover:scale-105 transition-transform duration-300">
+                    <div className="flex items-center justify-center mb-2">
+                      <PieChart className="w-5 h-5 opacity-80" />
+                    </div>
+                    <div className="text-sm opacity-90 mb-1">
+                      Total Investment
+                    </div>
+                    <div className="text-lg font-bold">
+                      {formatCurrency(calculations.totalInvestment)}
+                    </div>
+                    <div className="text-xs opacity-80">
+                      {calculations.portfolioPercentage.toFixed(2)}% of
+                      portfolio
+                    </div>
+                  </div>
+                  <div className="bg-gradient-to-br from-red-500 to-pink-600 text-white p-4 rounded-xl text-center hover:scale-105 transition-transform duration-300">
+                    <div className="flex items-center justify-center mb-2">
+                      <AlertTriangle className="w-5 h-5 opacity-80" />
+                    </div>
+                    <div className="text-sm opacity-90 mb-1">
+                      {activeTab === 'risk'
+                        ? 'Risk Amount'
+                        : 'Actual Risk Amount'}
+                    </div>
+                    <div className="text-lg font-bold">
+                      {formatCurrency(calculations.riskAmount)}
+                    </div>
+                    <div className="text-xs opacity-80">
+                      {activeTab === 'risk'
+                        ? 'Maximum loss'
+                        : `${calculations.riskPercentage.toFixed(
+                            2
+                          )}% of capital`}
+                    </div>
+                  </div>
+                  <div className="bg-gradient-to-br from-indigo-500 to-blue-600 text-white p-4 rounded-xl text-center hover:scale-105 transition-transform duration-300">
+                    <div className="flex items-center justify-center mb-2">
+                      <TrendingUp className="w-5 h-5 opacity-80" />
+                    </div>
+                    <div className="text-sm opacity-90 mb-1">
+                      Risk per Share
+                    </div>
+                    <div className="text-lg font-bold">
+                      {formatCurrency(calculations.riskPerShare)}
+                    </div>
+                    <div className="text-xs opacity-80">Entry - Stop Loss</div>
+                  </div>
+                  <div className="bg-gradient-to-br from-purple-500 to-indigo-600 text-white p-4 rounded-xl text-center hover:scale-105 transition-transform duration-300">
+                    <div className="flex items-center justify-center mb-2">
+                      <CreditCard className="w-5 h-5 opacity-80" />
+                    </div>
+                    <div className="text-sm opacity-90 mb-1">Total Charges</div>
+                    <div className="text-lg font-bold">
+                      {formatCurrency(calculations.brokerageCost)}
+                    </div>
+                    <div className="text-xs opacity-80">Auto-calculated</div>
+                  </div>
+                  <div className="bg-gradient-to-br from-orange-500 to-red-600 text-white p-4 rounded-xl text-center hover:scale-105 transition-transform duration-300">
+                    <div className="flex items-center justify-center mb-2">
+                      <TargetIcon className="w-5 h-5 opacity-80" />
+                    </div>
+                    <div className="text-sm opacity-90 mb-1">
+                      Breakeven Price
+                    </div>
+                    <div className="text-lg font-bold">
+                      {formatCurrency(calculations.breakEvenPrice)}
+                    </div>
+                    <div className="text-xs opacity-80">Entry + charges</div>
+                  </div>
+                </div>
+              )}
+
+              {/* R-Multiple Targets */}
+              <div className="mb-8">
+                <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4 rounded-t-xl">
+                  <h3 className="text-lg font-semibold text-center">
+                    R-Multiple Profit Targets
+                  </h3>
+                </div>
+                <div className="bg-white dark:bg-gray-800 rounded-b-xl overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead className="bg-gray-50 dark:bg-gray-700">
+                        <tr>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                            R-Multiple
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                            Target Price
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                            Gross Profit
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                            Return %
+                          </th>
+
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                            Risk:Reward
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-200 dark:divide-gray-600">
+                        {targets.map((target, index) => (
+                          <tr
+                            key={index}
+                            className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
+                          >
+                            <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">
+                              {target.r}R
+                            </td>
+                            <td className="px-4 py-3 text-sm text-gray-900 dark:text-white">
+                              {formatCurrency(target.targetPrice)}
+                            </td>
+                            <td className="px-4 py-3 text-sm font-semibold text-green-600 dark:text-green-400">
+                              {formatCurrency(target.netProfit)}
+                            </td>
+                            <td className="px-4 py-3 text-sm font-semibold text-green-600 dark:text-green-400">
+                              {target.returnPercentage.toFixed(2)}%
+                            </td>
+
+                            <td className="px-4 py-3 text-sm text-gray-900 dark:text-white">
+                              1:{target.r}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+
+              {/* Position Sizing Scenarios here */}
+              <div className="mb-6">
+                <div className="bg-gradient-to-r from-green-600 to-emerald-600 text-white p-4 rounded-t-xl">
+                  <h3 className="text-lg font-semibold text-center">
+                    {activeTab === 'risk'
+                      ? 'Risk-Based Position Sizing Scenarios'
+                      : 'Allocation-Based Position Sizing Scenarios'}
+                  </h3>
+                </div>
+                <div className="bg-white dark:bg-gray-800 rounded-b-xl overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead className="bg-gray-50 dark:bg-gray-700">
+                        <tr>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                            {activeTab === 'risk' ? 'Risk %' : 'Allocation %'}
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                            Position Size
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                            Investment Required
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                            {activeTab === 'risk'
+                              ? 'Risk Amount'
+                              : 'Actual Risk Amount'}
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                            {activeTab === 'risk'
+                              ? 'Portfolio %'
+                              : 'Actual Risk %'}
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-200 dark:divide-gray-600">
+                        {scenarios.map((scenario, index) => (
+                          <tr
+                            key={index}
+                            className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
+                          >
+                            <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">
+                              {activeTab === 'risk'
+                                ? `${scenario.riskPercent}%`
+                                : `${scenario.portfolioPercentage.toFixed(0)}%`}
+                            </td>
+                            <td className="px-4 py-3 text-sm text-gray-900 dark:text-white">
+                              {scenario.positionSize.toLocaleString()}
+                            </td>
+                            <td className="px-4 py-3 text-sm text-gray-900 dark:text-white">
+                              {formatCurrency(scenario.totalInvestment)}
+                            </td>
+                            <td className="px-4 py-3 text-sm font-semibold text-red-600 dark:text-red-400">
+                              {formatCurrency(scenario.riskAmount)}
+                            </td>
+                            <td className="px-4 py-3 text-sm text-gray-900 dark:text-white">
+                              {activeTab === 'risk'
+                                ? `${scenario.portfolioPercentage.toFixed(2)}%`
+                                : `${scenario.riskPercent.toFixed(2)}%`}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+
+              {/* Export Buttons */}
+              <div className="flex justify-center space-x-4">
+                <button
+                  onClick={exportToCSV}
+                  className="flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6 py-3 rounded-xl transition-all duration-300 hover:scale-105 shadow-lg"
+                >
+                  <Download className="w-4 h-4" />
+                  <span>Export CSV</span>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+
+        {/* Disclaimer */}
+        <div className="mt-8 bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-xl border border-gray-200 dark:border-gray-700 text-center">
+          <div className="flex items-center justify-center space-x-2 mb-3">
+            <AlertTriangle className="w-6 h-6 text-yellow-500" />
+            <h3 className="text-xl font-semibold text-gray-800 dark:text-white">
+              Risk Disclaimer
+            </h3>
+          </div>
+          <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
+            This calculator is for educational purposes only. Trading involves
+            substantial risk of loss. Past performance does not guarantee future
+            results. Always consult with a qualified financial advisor before
+            making investment decisions. Never risk more than you can afford to
+            lose.
+          </p>
+        </div>
+      </main>
     </div>
   );
 };
