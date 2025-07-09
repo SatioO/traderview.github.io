@@ -390,28 +390,32 @@ const TradingCalculator: React.FC = () => {
 
   return (
     <div
-      className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-all duration-300"
+      className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-100 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-900 transition-all duration-500"
       data-theme={isDarkMode ? 'dark' : 'light'}
     >
+      {/* Floating Background Elements */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-96 h-96 bg-gradient-to-br from-blue-300/15 to-purple-300/15 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-gradient-to-br from-indigo-300/15 to-cyan-300/15 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-gradient-to-br from-pink-300/10 to-orange-300/10 rounded-full blur-3xl animate-pulse delay-2000"></div>
+      </div>
+
+      {/* Header */}
+      <div className="relative z-10 text-center py-4"></div>
+
       {/* Main Content */}
-      <main className="mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <main className="relative z-10 mx-auto  px-4 sm:px-6 lg:px-8 pb-16">
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
           {/* Input Panel */}
-          <div className="lg:col-span-1">
-            <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-xl border border-gray-200 dark:border-gray-700 sticky top-8">
+          <div className="xl:col-span-1">
+            <div className="bg-white/95 dark:bg-gray-800/80 backdrop-blur-xl rounded-3xl p-8 shadow-xl border border-blue-200/30 dark:border-gray-700/30 sticky top-8 hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.01]">
               {/* Account Details */}
-              <div className="mb-8">
-                <div className="flex items-center space-x-2 mb-4">
-                  <IndianRupee className="w-5 h-5 text-blue-500" />
-                  <h3 className="text-xl font-semibold text-gray-800 dark:text-white">
-                    Account Details
-                  </h3>
-                </div>
-                <div className="space-y-4">
-                  <div className="relative">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Trading Capital (₹)
-                      <Info className="inline w-4 h-4 ml-1 text-blue-500 cursor-help" />
+              <div className="mb-10">
+                <div className="space-y-6">
+                  <div className="relative group">
+                    <label className="flex items-center text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+                      <span className="mr-2">Account Balance</span>
+                      <Info className="w-4 h-4 text-blue-500 hover:text-blue-600 cursor-help transition-colors" />
                     </label>
                     <div className="relative">
                       <input
@@ -420,116 +424,146 @@ const TradingCalculator: React.FC = () => {
                         onChange={(e) =>
                           handleAccountBalanceChange(parseFloat(e.target.value))
                         }
-                        className="w-full px-4 py-3 pl-8 border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:bg-gray-700 dark:text-white transition-all duration-300"
+                        className="w-full px-6 py-4 pl-12 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-700 dark:to-gray-800 border-2 border-blue-200 dark:border-gray-600 rounded-2xl focus:border-blue-500 focus:ring-4 focus:ring-blue-200/50 dark:text-white transition-all duration-300 text-lg font-semibold hover:shadow-lg focus:shadow-xl transform focus:scale-[1.02] text-gray-800"
                         min="0"
                         step="10000"
+                        placeholder="1,000,000"
                       />
-                      <IndianRupee className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                      <div className="absolute left-4 top-1/2 transform -translate-y-1/2 p-1 bg-blue-500 rounded-lg">
+                        <IndianRupee className="w-4 h-4 text-white" />
+                      </div>
+                      <div className="absolute right-4 top-1/2 transform -translate-y-1/2 text-xs text-blue-600 font-medium">
+                        INR
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Trade Setup */}
-              {/* Tab Navigation */}
-              <div className="mb-6">
-                <div className="flex space-x-1 bg-gray-100 dark:bg-gray-700 p-1 rounded-lg">
-                  <button
-                    onClick={() => setActiveTab('risk')}
-                    className={`flex-1 py-3 px-4 text-sm font-semibold rounded-md transition-all duration-300 ${
-                      activeTab === 'risk'
-                        ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg transform scale-105 border-2 border-white/20'
-                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 hover:scale-102'
+              {/* Strategy Selection */}
+              <div className="mb-8">
+                <div className="relative bg-gradient-to-r from-blue-100 to-indigo-100 dark:from-gray-700 dark:to-gray-800 p-2 rounded-2xl shadow-inner">
+                  <div className="flex relative">
+                    <button
+                      onClick={() => setActiveTab('risk')}
+                      className={`flex-1 py-4 px-6 text-sm font-bold rounded-xl transition-all duration-500 relative z-10 ${
+                        activeTab === 'risk'
+                          ? 'text-white shadow-xl transform scale-105'
+                          : 'text-gray-700 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 hover:scale-102'
+                      }`}
+                    >
+                      <div className="flex items-center justify-center space-x-2">
+                        <BarChart3 className="w-4 h-4" />
+                        <span>Risk-Based</span>
+                      </div>
+                    </button>
+                    <button
+                      onClick={() => setActiveTab('allocation')}
+                      className={`flex-1 py-4 px-6 text-sm font-bold rounded-xl transition-all duration-500 relative z-10 ${
+                        activeTab === 'allocation'
+                          ? 'text-white shadow-xl transform scale-105'
+                          : 'text-gray-700 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 hover:scale-102'
+                      }`}
+                    >
+                      <div className="flex items-center justify-center space-x-2">
+                        <PieChart className="w-4 h-4" />
+                        <span>Allocation-Based</span>
+                      </div>
+                    </button>
+                  </div>
+                  {/* Animated Background */}
+                  <div
+                    className={`absolute top-2 bottom-2 w-1/2 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 rounded-xl shadow-lg transition-all duration-500 ease-out ${
+                      activeTab === 'risk' ? 'left-2' : 'left-1/2'
                     }`}
-                  >
-                    Risk-Based Sizing
-                  </button>
-                  <button
-                    onClick={() => setActiveTab('allocation')}
-                    className={`flex-1 py-3 px-4 text-sm font-semibold rounded-md transition-all duration-300 ${
-                      activeTab === 'allocation'
-                        ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg transform scale-105 border-2 border-white/20'
-                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 hover:scale-102'
-                    }`}
-                  >
-                    Allocation-Based Sizing
-                  </button>
+                  />
                 </div>
               </div>
 
               <div>
-                <div className="flex items-center space-x-2 mb-4">
-                  <BarChart3 className="w-5 h-5 text-blue-500" />
-                  <h3 className="text-xl font-semibold text-gray-800 dark:text-white">
-                    Trade Setup
-                  </h3>
-                </div>
-                <div className="space-y-4">
+                <div className="space-y-6">
                   {/* Risk-Based Sizing Tab */}
                   {activeTab === 'risk' && (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Risk on Capital (%)
-                        <Info
-                          className="inline w-4 h-4 ml-1 text-blue-500 cursor-help"
-                          xlinkTitle="Percentage of account to risk per trade (recommended: 1-2%)"
-                        />
-                      </label>
-                      <input
-                        type="number"
-                        value={
-                          formData.riskPercentage === ''
-                            ? ''
-                            : formData.riskPercentage
-                        }
-                        onChange={(e) =>
-                          handleInputChange('riskPercentage', e.target.value)
-                        }
-                        className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:bg-gray-700 dark:text-white transition-all duration-300"
-                        min="0.25"
-                        max="10"
-                        step="0.25"
-                        placeholder="Enter risk percentage"
-                      />
+                    <div className="transform transition-all duration-500 ease-out">
+                      <div className="bg-gradient-to-r from-red-50 to-pink-50 dark:from-red-900/20 dark:to-pink-900/20 p-6 rounded-2xl border border-red-200 dark:border-red-700/30 shadow-lg">
+                        <label className="text-sm font-bold text-red-700 dark:text-red-300 mb-3 flex items-center">
+                          <span className="mr-2">Risk on Capital (%)</span>
+                          <Info className="w-4 h-4 text-red-500 hover:text-red-600 cursor-help transition-colors" />
+                        </label>
+                        <div className="relative">
+                          <input
+                            type="number"
+                            value={
+                              formData.riskPercentage === ''
+                                ? ''
+                                : formData.riskPercentage
+                            }
+                            onChange={(e) =>
+                              handleInputChange(
+                                'riskPercentage',
+                                e.target.value
+                              )
+                            }
+                            className="w-full px-6 py-4 bg-white/80 dark:bg-gray-800/80 border-2 border-red-200 dark:border-red-600 rounded-xl focus:border-red-500 focus:ring-4 focus:ring-red-200/50 dark:text-white transition-all duration-300 text-lg font-semibold placeholder-red-400 hover:shadow-lg focus:shadow-xl transform focus:scale-[1.02]"
+                            min="0.25"
+                            max="10"
+                            step="0.25"
+                            placeholder="e.g., 2.5"
+                          />
+                          <div className="absolute right-4 top-1/2 transform -translate-y-1/2 text-red-500 font-bold">
+                            %
+                          </div>
+                        </div>
+                        <p className="text-xs text-red-600 dark:text-red-400 mt-2 font-medium">
+                          💡 Recommended: 1-2% for conservative trading
+                        </p>
+                      </div>
                     </div>
                   )}
 
                   {/* Allocation-Based Sizing Tab */}
                   {activeTab === 'allocation' && (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Portfolio Allocation (%)
-                        <Info
-                          className="inline w-4 h-4 ml-1 text-blue-500 cursor-help"
-                          xlinkTitle="Percentage of total portfolio to allocate to this trade"
-                        />
-                      </label>
-                      <input
-                        type="number"
-                        value={
-                          formData.allocationPercentage === ''
-                            ? ''
-                            : formData.allocationPercentage
-                        }
-                        onChange={(e) =>
-                          handleInputChange(
-                            'allocationPercentage',
-                            e.target.value
-                          )
-                        }
-                        className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:bg-gray-700 dark:text-white transition-all duration-300"
-                        min="1"
-                        max="100"
-                        step="1"
-                        placeholder="Enter allocation percentage"
-                      />
+                    <div className="transform transition-all duration-500 ease-out">
+                      <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 p-6 rounded-2xl border border-green-200 dark:border-green-700/30 shadow-lg">
+                        <label className="block text-sm font-bold text-green-700 dark:text-green-300 mb-3 flex items-center">
+                          <span className="mr-2">Portfolio Allocation (%)</span>
+                          <Info className="w-4 h-4 text-green-500 hover:text-green-600 cursor-help transition-colors" />
+                        </label>
+                        <div className="relative">
+                          <input
+                            type="number"
+                            value={
+                              formData.allocationPercentage === ''
+                                ? ''
+                                : formData.allocationPercentage
+                            }
+                            onChange={(e) =>
+                              handleInputChange(
+                                'allocationPercentage',
+                                e.target.value
+                              )
+                            }
+                            className="w-full px-6 py-4 bg-white/80 dark:bg-gray-800/80 border-2 border-green-200 dark:border-green-600 rounded-xl focus:border-green-500 focus:ring-4 focus:ring-green-200/50 dark:text-white transition-all duration-300 text-lg font-semibold placeholder-green-400 hover:shadow-lg focus:shadow-xl transform focus:scale-[1.02]"
+                            min="1"
+                            max="100"
+                            step="1"
+                            placeholder="e.g., 15"
+                          />
+                          <div className="absolute right-4 top-1/2 transform -translate-y-1/2 text-green-500 font-bold">
+                            %
+                          </div>
+                        </div>
+                        <p className="text-xs text-green-600 dark:text-green-400 mt-2 font-medium">
+                          🎯 Diversification recommended: 5-20% per position
+                        </p>
+                      </div>
                     </div>
                   )}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="relative">
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Entry Price (₹)
-                        <Info className="inline w-4 h-4 ml-1 text-blue-500 cursor-help" />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div className="relative group">
+                      <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-3 flex items-center">
+                        <span className="mr-2">Entry Price</span>
+                        <Info className="w-4 h-4 text-blue-500 hover:text-blue-600 cursor-help transition-colors" />
                       </label>
                       <div className="relative">
                         <input
@@ -541,20 +575,20 @@ const TradingCalculator: React.FC = () => {
                             const value = e.target.value;
                             handleInputChange('entryPrice', value);
                           }}
-                          className="w-full px-4 py-3 pl-8 border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:bg-gray-700 dark:text-white transition-all duration-300"
+                          className="w-full px-6 py-4 pl-12 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border-2 border-blue-200 dark:border-blue-600 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-200/50 dark:text-white transition-all duration-300 text-lg font-semibold placeholder-blue-400 hover:shadow-lg focus:shadow-xl transform focus:scale-[1.02]"
                           min="0"
                           step="0.1"
-                          placeholder="0.00"
+                          placeholder="500.00"
                         />
-                        <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm">
-                          ₹
-                        </span>
+                        <div className="absolute left-4 top-1/2 transform -translate-y-1/2 p-1 bg-blue-500 rounded-lg">
+                          <IndianRupee className="w-4 h-4 text-white" />
+                        </div>
                       </div>
                     </div>
-                    <div className="relative">
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Stop Loss Price (₹)
-                        <Info className="inline w-4 h-4 ml-1 text-blue-500 cursor-help" />
+                    <div className="relative group">
+                      <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-3 flex items-center">
+                        <span className="mr-2">Stop Loss Price</span>
+                        <Info className="w-4 h-4 text-orange-500 hover:text-orange-600 cursor-help transition-colors" />
                       </label>
                       <div className="relative">
                         <input
@@ -566,14 +600,14 @@ const TradingCalculator: React.FC = () => {
                             const value = e.target.value;
                             handleInputChange('stopLoss', value);
                           }}
-                          className="w-full px-4 py-3 pl-8 border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:bg-gray-700 dark:text-white transition-all duration-300"
+                          className="w-full px-6 py-4 pl-12 bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 border-2 border-orange-200 dark:border-orange-600 rounded-xl focus:border-orange-500 focus:ring-4 focus:ring-orange-200/50 dark:text-white transition-all duration-300 text-lg font-semibold placeholder-orange-400 hover:shadow-lg focus:shadow-xl transform focus:scale-[1.02]"
                           min="0"
                           step="0.1"
-                          placeholder="0.00"
+                          placeholder="475.00"
                         />
-                        <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm">
-                          ₹
-                        </span>
+                        <div className="absolute left-4 top-1/2 transform -translate-y-1/2 p-1 bg-orange-500 rounded-lg">
+                          <AlertTriangle className="w-4 h-4 text-white" />
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -654,17 +688,25 @@ const TradingCalculator: React.FC = () => {
           </div>
 
           {/* Results Panel */}
-          <div className="lg:col-span-2">
-            <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-xl border border-gray-200 dark:border-gray-700">
+          <div className="xl:col-span-2">
+            <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-white/20 dark:border-gray-700/30 hover:shadow-3xl transition-all duration-300">
               {/* Warnings */}
               {warnings.length > 0 && (
-                <div className="mb-6 p-4 bg-yellow-100 dark:bg-yellow-900/50 border border-yellow-300 dark:border-yellow-600 rounded-lg">
-                  <div className="font-semibold text-yellow-800 dark:text-yellow-200 mb-2">
-                    ⚠️ Warning:
+                <div className="mb-8 p-6 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border-2 border-amber-200 dark:border-amber-600 rounded-2xl shadow-lg animate-pulse">
+                  <div className="flex items-center space-x-2 mb-4">
+                    <div className="p-2 bg-amber-500 rounded-lg">
+                      <AlertTriangle className="w-5 h-5 text-white" />
+                    </div>
+                    <div className="font-bold text-amber-800 dark:text-amber-200 text-lg">
+                      Attention Required
+                    </div>
                   </div>
-                  <ul className="text-yellow-700 dark:text-yellow-300 text-sm space-y-1">
+                  <ul className="text-amber-700 dark:text-amber-300 space-y-2">
                     {warnings.map((warning, index) => (
-                      <li key={index}>• {warning}</li>
+                      <li key={index} className="flex items-start space-x-2">
+                        <span className="text-amber-500 font-bold">•</span>
+                        <span>{warning}</span>
+                      </li>
                     ))}
                   </ul>
                 </div>
@@ -672,85 +714,110 @@ const TradingCalculator: React.FC = () => {
 
               {/* Quick Results */}
               {calculations && (
-                <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
-                  <div className="bg-gradient-to-br from-blue-500 to-purple-600 text-white p-4 rounded-xl text-center hover:scale-105 transition-transform duration-300">
-                    <div className="flex items-center justify-center mb-2">
-                      <BarChart3 className="w-5 h-5 opacity-80" />
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-10">
+                  <div className="group bg-gradient-to-br from-blue-400 via-indigo-500 to-purple-600 p-6 rounded-2xl text-white shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 hover:rotate-1">
+                    <div className="flex items-center space-x-4 mb-4">
+                      <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
+                        <BarChart3 className="w-8 h-8" />
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-lg">Position Size</h3>
+                        <p className="text-sm opacity-90">Shares to buy</p>
+                      </div>
                     </div>
-                    <div className="text-sm opacity-90 mb-1">Position Size</div>
-                    <div className="text-xl lg:text-2xl font-bold">
+                    <div className="text-3xl font-bold mb-2">
                       {calculations.positionSize.toLocaleString()}
                     </div>
-                    <div className="text-xs opacity-80">shares/units</div>
+                    <div className="text-sm opacity-80">shares/units</div>
                   </div>
-                  <div className="bg-gradient-to-br from-green-500 to-emerald-600 text-white p-4 rounded-xl text-center hover:scale-105 transition-transform duration-300">
-                    <div className="flex items-center justify-center mb-2">
-                      <PieChart className="w-5 h-5 opacity-80" />
+
+                  <div className="group bg-gradient-to-br from-emerald-400 via-teal-500 to-green-600 p-6 rounded-2xl text-white shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 hover:-rotate-1">
+                    <div className="flex items-center space-x-4 mb-4">
+                      <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
+                        <IndianRupee className="w-8 h-8" />
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-lg">Total Investment</h3>
+                        <p className="text-sm opacity-90">
+                          {calculations.portfolioPercentage.toFixed(2)}% of
+                          portfolio
+                        </p>
+                      </div>
                     </div>
-                    <div className="text-sm opacity-90 mb-1">
-                      Total Investment
-                    </div>
-                    <div className="text-lg font-bold">
+                    <div className="text-2xl font-bold mb-2">
                       {formatCurrency(calculations.totalInvestment)}
                     </div>
-                    <div className="text-xs opacity-80">
-                      {calculations.portfolioPercentage.toFixed(2)}% of
-                      portfolio
-                    </div>
+                    <div className="text-sm opacity-80">Required capital</div>
                   </div>
-                  <div className="bg-gradient-to-br from-red-500 to-pink-600 text-white p-4 rounded-xl text-center hover:scale-105 transition-transform duration-300">
-                    <div className="flex items-center justify-center mb-2">
-                      <AlertTriangle className="w-5 h-5 opacity-80" />
+
+                  <div className="group bg-gradient-to-br from-orange-400 via-red-500 to-pink-600 p-6 rounded-2xl text-white shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 hover:rotate-1">
+                    <div className="flex items-center space-x-4 mb-4">
+                      <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
+                        <AlertTriangle className="w-8 h-8" />
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-lg">Risk Amount</h3>
+                        <p className="text-sm opacity-90">
+                          {activeTab === 'risk'
+                            ? 'Maximum loss'
+                            : `${calculations.riskPercentage.toFixed(
+                                2
+                              )}% of capital`}
+                        </p>
+                      </div>
                     </div>
-                    <div className="text-sm opacity-90 mb-1">
-                      {activeTab === 'risk'
-                        ? 'Risk Amount'
-                        : 'Actual Risk Amount'}
-                    </div>
-                    <div className="text-lg font-bold">
+                    <div className="text-2xl font-bold mb-2">
                       {formatCurrency(calculations.riskAmount)}
                     </div>
-                    <div className="text-xs opacity-80">
-                      {activeTab === 'risk'
-                        ? 'Maximum loss'
-                        : `${calculations.riskPercentage.toFixed(
-                            2
-                          )}% of capital`}
-                    </div>
+                    <div className="text-sm opacity-80">Potential loss</div>
                   </div>
-                  <div className="bg-gradient-to-br from-indigo-500 to-blue-600 text-white p-4 rounded-xl text-center hover:scale-105 transition-transform duration-300">
-                    <div className="flex items-center justify-center mb-2">
-                      <TrendingUp className="w-5 h-5 opacity-80" />
+
+                  <div className="group bg-gradient-to-br from-cyan-400 via-blue-500 to-indigo-600 p-6 rounded-2xl text-white shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 hover:-rotate-1">
+                    <div className="flex items-center space-x-4 mb-4">
+                      <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
+                        <TrendingUp className="w-8 h-8" />
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-lg">Risk per Share</h3>
+                        <p className="text-sm opacity-90">Entry - Stop Loss</p>
+                      </div>
                     </div>
-                    <div className="text-sm opacity-90 mb-1">
-                      Risk per Share
-                    </div>
-                    <div className="text-lg font-bold">
+                    <div className="text-2xl font-bold mb-2">
                       {formatCurrency(calculations.riskPerShare)}
                     </div>
-                    <div className="text-xs opacity-80">Entry - Stop Loss</div>
+                    <div className="text-sm opacity-80">Per share risk</div>
                   </div>
-                  <div className="bg-gradient-to-br from-purple-500 to-indigo-600 text-white p-4 rounded-xl text-center hover:scale-105 transition-transform duration-300">
-                    <div className="flex items-center justify-center mb-2">
-                      <CreditCard className="w-5 h-5 opacity-80" />
+
+                  <div className="group bg-gradient-to-br from-purple-400 via-violet-500 to-indigo-600 p-6 rounded-2xl text-white shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 hover:rotate-1">
+                    <div className="flex items-center space-x-4 mb-4">
+                      <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
+                        <CreditCard className="w-8 h-8" />
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-lg">Total Charges</h3>
+                        <p className="text-sm opacity-90">Auto-calculated</p>
+                      </div>
                     </div>
-                    <div className="text-sm opacity-90 mb-1">Total Charges</div>
-                    <div className="text-lg font-bold">
+                    <div className="text-2xl font-bold mb-2">
                       {formatCurrency(calculations.brokerageCost)}
                     </div>
-                    <div className="text-xs opacity-80">Auto-calculated</div>
+                    <div className="text-sm opacity-80">Trading fees</div>
                   </div>
-                  <div className="bg-gradient-to-br from-orange-500 to-red-600 text-white p-4 rounded-xl text-center hover:scale-105 transition-transform duration-300">
-                    <div className="flex items-center justify-center mb-2">
-                      <TargetIcon className="w-5 h-5 opacity-80" />
+
+                  <div className="group bg-gradient-to-br from-amber-400 via-orange-500 to-red-600 p-6 rounded-2xl text-white shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 hover:-rotate-1">
+                    <div className="flex items-center space-x-4 mb-4">
+                      <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
+                        <TargetIcon className="w-8 h-8" />
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-lg">Breakeven Price</h3>
+                        <p className="text-sm opacity-90">Entry + charges</p>
+                      </div>
                     </div>
-                    <div className="text-sm opacity-90 mb-1">
-                      Breakeven Price
-                    </div>
-                    <div className="text-lg font-bold">
+                    <div className="text-2xl font-bold mb-2">
                       {formatCurrency(calculations.breakEvenPrice)}
                     </div>
-                    <div className="text-xs opacity-80">Entry + charges</div>
+                    <div className="text-sm opacity-80">Break-even point</div>
                   </div>
                 </div>
               )}
