@@ -31,6 +31,7 @@ export interface Target {
   targetPrice: number;
   netProfit: number;
   returnPercentage: number;
+  portfolioGainPercentage: number;
   chargesBreakdown: ChargesBreakdown;
 }
 
