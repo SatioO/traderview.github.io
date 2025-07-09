@@ -25,12 +25,13 @@ const TradingCalculator: React.FC = () => {
   const [formData, setFormData] = useState<FormData>({
     accountBalance: 1000000,
     riskPercentage: 0.25,
-    entryPrice: 500,
-    stopLoss: 475,
+    entryPrice: 100,
+    stopLoss: 95,
     brokerageCost: 0,
     riskOnInvestment: 5.0,
     allocationPercentage: 10.0,
   });
+  const [selectedRiskOption, setSelectedRiskOption] = useState<string>('0.25');
   const [activeTab, setActiveTab] = useState<TabType>('risk');
   const [calculations, setCalculations] = useState<Calculations | null>(null);
   const [warnings, setWarnings] = useState<string[]>([]);
@@ -475,22 +476,63 @@ const TradingCalculator: React.FC = () => {
                           xlinkTitle="Percentage of account to risk per trade (recommended: 1-2%)"
                         />
                       </label>
-                      <input
-                        type="number"
-                        value={
-                          formData.riskPercentage === ''
-                            ? ''
-                            : formData.riskPercentage
-                        }
-                        onChange={(e) =>
-                          handleInputChange('riskPercentage', e.target.value)
-                        }
-                        className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:bg-gray-700 dark:text-white transition-all duration-300"
-                        min="0.25"
-                        max="10"
-                        step="0.25"
-                        placeholder="Enter risk percentage"
-                      />
+                      
+                      {/* Risk Percentage Options */}
+                      <div className="grid grid-cols-5 gap-2 mb-3">
+                        {[0.25, 0.5, 0.75, 1].map((option) => (
+                          <button
+                            key={option}
+                            onClick={() => {
+                              setSelectedRiskOption(option.toString());
+                              handleInputChange('riskPercentage', option.toString());
+                            }}
+                            className={`py-2 px-3 text-sm rounded-lg border-2 transition-all duration-300 ${
+                              selectedRiskOption === option.toString()
+                                ? 'bg-blue-500 text-white border-blue-500'
+                                : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600'
+                            }`}
+                          >
+                            {option}%
+                          </button>
+                        ))}
+                        
+                        {/* Custom Option */}
+                        <button
+                          onClick={() => {
+                            setSelectedRiskOption('custom');
+                            if (formData.riskPercentage === '' || [0.25, 0.5, 0.75, 1].includes(Number(formData.riskPercentage))) {
+                              handleInputChange('riskPercentage', '');
+                            }
+                          }}
+                          className={`py-2 px-3 text-sm rounded-lg border-2 transition-all duration-300 ${
+                            selectedRiskOption === 'custom'
+                              ? 'bg-blue-500 text-white border-blue-500'
+                              : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600'
+                          }`}
+                        >
+                          Custom
+                        </button>
+                      </div>
+
+                      {/* Custom Input Field */}
+                      {selectedRiskOption === 'custom' && (
+                        <input
+                          type="number"
+                          value={
+                            formData.riskPercentage === ''
+                              ? ''
+                              : formData.riskPercentage
+                          }
+                          onChange={(e) => {
+                            handleInputChange('riskPercentage', e.target.value);
+                          }}
+                          className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:bg-gray-700 dark:text-white transition-all duration-300"
+                          min="0.25"
+                          max="10"
+                          step="0.25"
+                          placeholder="Enter custom risk percentage"
+                        />
+                      )}
                     </div>
                   )}
 
@@ -576,77 +618,6 @@ const TradingCalculator: React.FC = () => {
                         </span>
                       </div>
                     </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      {activeTab === 'risk'
-                        ? 'Risk on Investment / per trade (%)'
-                        : 'Actual Risk on Capital (%)'}
-                      <Info
-                        className="inline w-4 h-4 ml-1 text-blue-500 cursor-help"
-                        xlinkTitle={
-                          activeTab === 'risk'
-                            ? 'Percentage risk on this specific trade (auto-calculates stop loss)'
-                            : 'Actual risk percentage based on your allocation and stop loss'
-                        }
-                      />
-                    </label>
-                    <input
-                      disabled
-                      type="number"
-                      value={
-                        activeTab === 'risk'
-                          ? formData.riskOnInvestment.toFixed(2)
-                          : calculations?.riskPercentage.toFixed(2) || '0.00'
-                      }
-                      onChange={(e) =>
-                        handleInputChange('riskOnInvestment', e.target.value)
-                      }
-                      className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-600 text-gray-600 dark:text-gray-300 cursor-not-allowed"
-                      min="0.1"
-                      max="50"
-                      step="0.1"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Brokerage Cost (₹) - Auto Calculated (Buy Side)
-                      <Info
-                        className="inline w-4 h-4 ml-1 text-blue-500 cursor-help"
-                        xlinkTitle="Automatically calculated for delivery equity buy side: STT, Transaction charges, SEBI charges, GST, and Stamp duty"
-                      />
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="number"
-                        value={calculations?.brokerageCost.toFixed(2) || '0.00'}
-                        className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-600 text-gray-600 dark:text-gray-300 cursor-not-allowed"
-                        readOnly
-                      />
-                      <Calculator className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                    </div>
-                    {calculations?.chargesBreakdown && (
-                      <div className="mt-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-xs">
-                        <div className="font-semibold text-blue-800 dark:text-blue-200 mb-2">
-                          Buy Side Charges:
-                        </div>
-                        <div className="grid grid-cols-2 gap-1 text-blue-700 dark:text-blue-300">
-                          <div>STT: ₹{calculations.chargesBreakdown.stt}</div>
-                          <div>
-                            Transaction: ₹
-                            {calculations.chargesBreakdown.transactionCharges}
-                          </div>
-                          <div>
-                            SEBI: ₹{calculations.chargesBreakdown.sebiCharges}
-                          </div>
-                          <div>GST: ₹{calculations.chargesBreakdown.gst}</div>
-                          <div className="col-span-2">
-                            Stamp Duty: ₹
-                            {calculations.chargesBreakdown.stampDuty}
-                          </div>
-                        </div>
-                      </div>
-                    )}
                   </div>
                 </div>
               </div>
