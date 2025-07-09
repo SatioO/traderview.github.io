@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from 'react';
 import {
   Download,
   Info,
-  Calculator,
   AlertTriangle,
   IndianRupee,
   PieChart,
@@ -729,29 +728,81 @@ const TradingCalculator: React.FC = () => {
               {/* R-Multiple Targets */}
               <div className="mb-8">
                 <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4 rounded-t-xl">
-                  <h3 className="text-lg font-semibold text-center">
-                    R-Multiple Profit Targets
-                  </h3>
+                  <div className="flex items-center justify-center space-x-2">
+                    <TargetIcon className="w-5 h-5" />
+                    <h3 className="text-lg font-semibold">
+                      R-Multiple Profit Targets
+                    </h3>
+                  </div>
+                  <p className="text-sm opacity-90 mt-1 text-center">
+                    Potential profits based on risk multiples
+                  </p>
                 </div>
-                <div className="bg-white dark:bg-gray-800 rounded-b-xl overflow-hidden">
-                  <div className="overflow-x-auto">
+                <div className="bg-white dark:bg-gray-800 rounded-b-xl overflow-hidden border-2 border-gray-100 dark:border-gray-700">
+                  {/* Mobile Card View */}
+                  <div className="block md:hidden">
+                    <div className="space-y-4 p-4">
+                      {targets.map((target, index) => (
+                        <div
+                          key={index}
+                          className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800 rounded-xl p-4 border-l-4 border-blue-500 hover:shadow-lg transition-all duration-300 hover:scale-[1.02]"
+                        >
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center space-x-2">
+                              <div className="bg-blue-500 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold">
+                                {target.r}R
+                              </div>
+                              <div>
+                                <div className="text-sm font-medium text-gray-600 dark:text-gray-400">Target</div>
+                                <div className="text-lg font-bold text-gray-900 dark:text-white">
+                                  {formatCurrency(target.targetPrice)}
+                                </div>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <div className="text-sm font-medium text-gray-600 dark:text-gray-400">Risk:Reward</div>
+                              <div className="text-lg font-bold text-purple-600 dark:text-purple-400">
+                                1:{target.r}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="text-center">
+                              <div className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Profit</div>
+                              <div className="text-lg font-bold text-green-600 dark:text-green-400">
+                                {formatCurrency(target.netProfit)}
+                              </div>
+                            </div>
+                            <div className="text-center">
+                              <div className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Return</div>
+                              <div className="text-lg font-bold text-green-600 dark:text-green-400">
+                                {target.returnPercentage.toFixed(2)}%
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Desktop Table View */}
+                  <div className="hidden md:block overflow-x-auto">
                     <table className="w-full text-sm">
-                      <thead className="bg-gray-50 dark:bg-gray-700">
+                      <thead className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800">
                         <tr>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                          <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                             R-Multiple
                           </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                          <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                             Target Price
                           </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                          <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                             Gross Profit
                           </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                          <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                             Return %
                           </th>
-
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                          <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                             Risk:Reward
                           </th>
                         </tr>
@@ -760,22 +811,40 @@ const TradingCalculator: React.FC = () => {
                         {targets.map((target, index) => (
                           <tr
                             key={index}
-                            className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
+                            className="hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 dark:hover:from-gray-700 dark:hover:to-gray-800 transition-all duration-300 cursor-pointer"
                           >
-                            <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">
-                              {target.r}R
+                            <td className="px-6 py-4">
+                              <div className="flex items-center space-x-2">
+                                <div className="bg-blue-500 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold">
+                                  {target.r}R
+                                </div>
+                                <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                                  {target.r}x Risk
+                                </span>
+                              </div>
                             </td>
-                            <td className="px-4 py-3 text-sm text-gray-900 dark:text-white">
+                            <td className="px-6 py-4 text-sm font-semibold text-gray-900 dark:text-white">
                               {formatCurrency(target.targetPrice)}
                             </td>
-                            <td className="px-4 py-3 text-sm font-semibold text-green-600 dark:text-green-400">
-                              {formatCurrency(target.netProfit)}
+                            <td className="px-6 py-4">
+                              <div className="text-sm font-bold text-green-600 dark:text-green-400">
+                                {formatCurrency(target.netProfit)}
+                              </div>
                             </td>
-                            <td className="px-4 py-3 text-sm font-semibold text-green-600 dark:text-green-400">
-                              {target.returnPercentage.toFixed(2)}%
+                            <td className="px-6 py-4">
+                              <div className="flex items-center space-x-2">
+                                <span className="text-sm font-bold text-green-600 dark:text-green-400">
+                                  {target.returnPercentage.toFixed(2)}%
+                                </span>
+                                <div className="w-16 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                                  <div
+                                    className="bg-gradient-to-r from-green-500 to-emerald-500 h-2 rounded-full transition-all duration-500"
+                                    style={{ width: `${Math.min(target.returnPercentage / 2, 100)}%` }}
+                                  ></div>
+                                </div>
+                              </div>
                             </td>
-
-                            <td className="px-4 py-3 text-sm text-gray-900 dark:text-white">
+                            <td className="px-6 py-4 text-sm font-bold text-purple-600 dark:text-purple-400">
                               1:{target.r}
                             </td>
                           </tr>
@@ -789,32 +858,95 @@ const TradingCalculator: React.FC = () => {
               {/* Position Sizing Scenarios here */}
               <div className="mb-6">
                 <div className="bg-gradient-to-r from-green-600 to-emerald-600 text-white p-4 rounded-t-xl">
-                  <h3 className="text-lg font-semibold text-center">
+                  <div className="flex items-center justify-center space-x-2">
+                    <PieChart className="w-5 h-5" />
+                    <h3 className="text-lg font-semibold">
+                      {activeTab === 'risk'
+                        ? 'Risk-Based Position Sizing Scenarios'
+                        : 'Allocation-Based Position Sizing Scenarios'}
+                    </h3>
+                  </div>
+                  <p className="text-sm opacity-90 mt-1 text-center">
                     {activeTab === 'risk'
-                      ? 'Risk-Based Position Sizing Scenarios'
-                      : 'Allocation-Based Position Sizing Scenarios'}
-                  </h3>
+                      ? 'Compare different risk levels and their impact'
+                      : 'Compare different allocation levels and their risk'}
+                  </p>
                 </div>
-                <div className="bg-white dark:bg-gray-800 rounded-b-xl overflow-hidden">
-                  <div className="overflow-x-auto">
+                <div className="bg-white dark:bg-gray-800 rounded-b-xl overflow-hidden border-2 border-gray-100 dark:border-gray-700">
+                  {/* Mobile Card View */}
+                  <div className="block lg:hidden">
+                    <div className="space-y-4 p-4">
+                      {scenarios.map((scenario, index) => (
+                        <div
+                          key={index}
+                          className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800 rounded-xl p-4 border-l-4 border-green-500 hover:shadow-lg transition-all duration-300 hover:scale-[1.02]"
+                        >
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center space-x-2">
+                              <div className="bg-green-500 text-white rounded-full w-10 h-10 flex items-center justify-center text-sm font-bold">
+                                {activeTab === 'risk'
+                                  ? `${scenario.riskPercent}%`
+                                  : `${scenario.portfolioPercentage.toFixed(0)}%`}
+                              </div>
+                              <div>
+                                <div className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                                  {activeTab === 'risk' ? 'Risk Level' : 'Allocation'}
+                                </div>
+                                <div className="text-lg font-bold text-gray-900 dark:text-white">
+                                  {scenario.positionSize.toLocaleString()} shares
+                                </div>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <div className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                                {activeTab === 'risk' ? 'Portfolio %' : 'Risk %'}
+                              </div>
+                              <div className="text-lg font-bold text-blue-600 dark:text-blue-400">
+                                {activeTab === 'risk'
+                                  ? `${scenario.portfolioPercentage.toFixed(2)}%`
+                                  : `${scenario.riskPercent.toFixed(2)}%`}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="text-center">
+                              <div className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Investment</div>
+                              <div className="text-lg font-bold text-indigo-600 dark:text-indigo-400">
+                                {formatCurrency(scenario.totalInvestment)}
+                              </div>
+                            </div>
+                            <div className="text-center">
+                              <div className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Risk Amount</div>
+                              <div className="text-lg font-bold text-red-600 dark:text-red-400">
+                                {formatCurrency(scenario.riskAmount)}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Desktop Table View */}
+                  <div className="hidden lg:block overflow-x-auto">
                     <table className="w-full text-sm">
-                      <thead className="bg-gray-50 dark:bg-gray-700">
+                      <thead className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800">
                         <tr>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                          <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                             {activeTab === 'risk' ? 'Risk %' : 'Allocation %'}
                           </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                          <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                             Position Size
                           </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                          <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                             Investment Required
                           </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                          <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                             {activeTab === 'risk'
                               ? 'Risk Amount'
                               : 'Actual Risk Amount'}
                           </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                          <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                             {activeTab === 'risk'
                               ? 'Portfolio %'
                               : 'Actual Risk %'}
@@ -825,26 +957,64 @@ const TradingCalculator: React.FC = () => {
                         {scenarios.map((scenario, index) => (
                           <tr
                             key={index}
-                            className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
+                            className="hover:bg-gradient-to-r hover:from-green-50 hover:to-emerald-50 dark:hover:from-gray-700 dark:hover:to-gray-800 transition-all duration-300 cursor-pointer"
                           >
-                            <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">
-                              {activeTab === 'risk'
-                                ? `${scenario.riskPercent}%`
-                                : `${scenario.portfolioPercentage.toFixed(0)}%`}
+                            <td className="px-6 py-4">
+                              <div className="flex items-center space-x-3">
+                                <div className="bg-green-500 text-white rounded-full w-10 h-10 flex items-center justify-center text-sm font-bold">
+                                  {activeTab === 'risk'
+                                    ? `${scenario.riskPercent}%`
+                                    : `${scenario.portfolioPercentage.toFixed(0)}%`}
+                                </div>
+                                <div>
+                                  <div className="text-sm font-medium text-gray-900 dark:text-white">
+                                    {activeTab === 'risk' ? 'Risk Level' : 'Allocation'}
+                                  </div>
+                                  <div className="text-xs text-gray-500 dark:text-gray-400">
+                                    {activeTab === 'risk' ? 'of capital' : 'of portfolio'}
+                                  </div>
+                                </div>
+                              </div>
                             </td>
-                            <td className="px-4 py-3 text-sm text-gray-900 dark:text-white">
-                              {scenario.positionSize.toLocaleString()}
+                            <td className="px-6 py-4">
+                              <div className="text-sm font-bold text-gray-900 dark:text-white">
+                                {scenario.positionSize.toLocaleString()}
+                              </div>
+                              <div className="text-xs text-gray-500 dark:text-gray-400">
+                                shares/units
+                              </div>
                             </td>
-                            <td className="px-4 py-3 text-sm text-gray-900 dark:text-white">
-                              {formatCurrency(scenario.totalInvestment)}
+                            <td className="px-6 py-4">
+                              <div className="text-sm font-bold text-indigo-600 dark:text-indigo-400">
+                                {formatCurrency(scenario.totalInvestment)}
+                              </div>
+                              <div className="w-20 bg-gray-200 dark:bg-gray-700 rounded-full h-2 mt-1">
+                                <div
+                                  className="bg-gradient-to-r from-indigo-500 to-purple-500 h-2 rounded-full transition-all duration-500"
+                                  style={{ width: `${Math.min(scenario.portfolioPercentage * 3, 100)}%` }}
+                                ></div>
+                              </div>
                             </td>
-                            <td className="px-4 py-3 text-sm font-semibold text-red-600 dark:text-red-400">
-                              {formatCurrency(scenario.riskAmount)}
+                            <td className="px-6 py-4">
+                              <div className="text-sm font-bold text-red-600 dark:text-red-400">
+                                {formatCurrency(scenario.riskAmount)}
+                              </div>
+                              <div className="w-20 bg-gray-200 dark:bg-gray-700 rounded-full h-2 mt-1">
+                                <div
+                                  className="bg-gradient-to-r from-red-500 to-pink-500 h-2 rounded-full transition-all duration-500"
+                                  style={{ width: `${Math.min(scenario.riskPercent * 20, 100)}%` }}
+                                ></div>
+                              </div>
                             </td>
-                            <td className="px-4 py-3 text-sm text-gray-900 dark:text-white">
-                              {activeTab === 'risk'
-                                ? `${scenario.portfolioPercentage.toFixed(2)}%`
-                                : `${scenario.riskPercent.toFixed(2)}%`}
+                            <td className="px-6 py-4">
+                              <div className="text-sm font-bold text-blue-600 dark:text-blue-400">
+                                {activeTab === 'risk'
+                                  ? `${scenario.portfolioPercentage.toFixed(2)}%`
+                                  : `${scenario.riskPercent.toFixed(2)}%`}
+                              </div>
+                              <div className="text-xs text-gray-500 dark:text-gray-400">
+                                {activeTab === 'risk' ? 'of portfolio' : 'of capital'}
+                              </div>
                             </td>
                           </tr>
                         ))}
