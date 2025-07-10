@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Info, AlertTriangle, BarChart3 } from 'lucide-react';
+import { Info } from 'lucide-react';
 import type {
   FormData,
   Calculations,
@@ -249,6 +249,11 @@ const TradingCalculator: React.FC = () => {
       setFormData((prev) => {
         const newData: FormData = { ...prev, [field]: processedValue };
 
+        // Auto-calculate 3% stop loss when entry price is entered
+        if (field === 'entryPrice' && processedValue && processedValue > 0) {
+          newData.stopLoss = parseFloat((processedValue * 0.97).toFixed(2)); // Always calculate 3% below entry price, rounded to 2 decimals
+        }
+
         // Auto-calculate risk on investment when stop loss or entry price changes (for risk-based sizing)
         if (
           activeTab === 'risk' &&
@@ -366,12 +371,6 @@ const TradingCalculator: React.FC = () => {
 
               {/* Gaming Mode Selector */}
               <div className="mb-6">
-                <div className="text-center mb-4">
-                  <h3 className="text-lg font-bold text-cyan-400 mb-2">
-                    🎮 SELECT MODE
-                  </h3>
-                  <div className="w-16 h-0.5 bg-gradient-to-r from-cyan-500 to-purple-500 mx-auto"></div>
-                </div>
                 <div className="flex space-x-3 bg-black/30 p-2 rounded-2xl backdrop-blur-sm border border-purple-500/30">
                   <button
                     onClick={() => setActiveTab('risk')}
@@ -412,53 +411,72 @@ const TradingCalculator: React.FC = () => {
 
               {/* Gaming Battle Setup */}
               <div className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-2xl p-4 border border-purple-500/30 backdrop-blur-sm">
-                <div className="flex items-center space-x-3 mb-4">
-                  <div className="w-8 h-8 bg-gradient-to-r from-purple-400 to-pink-400 rounded-lg flex items-center justify-center">
-                    <BarChart3 className="w-4 h-4 text-black" />
-                  </div>
-                  <h3 className="text-lg font-bold text-purple-400">
-                    ⚔️ TRADE SETUP
-                  </h3>
-                </div>
-
                 {/* Risk-Based Sizing Tab */}
                 {activeTab === 'risk' && (
                   <div>
                     <label className="block text-sm font-medium text-purple-300 mb-3">
-                      ⚡ Risk Level Selection
+                      ⚡ Risk Level
                       <Info
                         className="inline w-4 h-4 ml-1 text-purple-400 cursor-help"
-                        xlinkTitle="Choose your risk level - higher risk, higher rewards!"
+                        xlinkTitle="Strategic allocation of your portfolio to this trade"
                       />
                     </label>
 
                     {/* Gaming Risk Level Buttons */}
                     <div className="grid grid-cols-5 gap-2 mb-4">
-                      {[0.25, 0.5, 0.75, 1].map((option) => (
-                        <button
-                          key={option}
-                          onClick={() => {
-                            setSelectedRiskOption(option.toString());
-                            handleInputChange(
-                              'riskPercentage',
-                              option.toString()
-                            );
-                          }}
-                          className={`py-3 px-2 text-xs font-bold rounded-xl border-2 transition-all duration-500 relative overflow-hidden ${
-                            selectedRiskOption === option.toString()
-                              ? 'bg-gradient-to-r from-red-500 to-orange-500 text-white border-red-400/50 shadow-lg shadow-red-500/30 transform scale-105'
-                              : 'bg-black/30 text-purple-300 border-purple-500/30 hover:bg-purple-500/20 hover:border-purple-400/50 hover:scale-102'
-                          }`}
-                        >
-                          <div className="relative z-10">
-                            <div className="text-lg">🔥</div>
-                            <div>{option}%</div>
-                          </div>
-                          {selectedRiskOption === option.toString() && (
-                            <div className="absolute inset-0 bg-gradient-to-r from-red-600 to-orange-600 opacity-20 animate-pulse"></div>
-                          )}
-                        </button>
-                      ))}
+                      {[0.25, 0.5, 0.75, 1].map((option, index) => {
+                        const riskIcons = ['🌱', '🔥', '⚡', '💀'];
+                        const riskLabels = ['LVL 1', 'LVL 2', 'LVL 3', 'LVL 4'];
+                        const gradients = [
+                          'from-green-500 to-emerald-500',
+                          'from-yellow-500 to-orange-500',
+                          'from-orange-500 to-red-500',
+                          'from-red-500 to-purple-500',
+                        ];
+                        const shadowColors = [
+                          'shadow-green-500/30',
+                          'shadow-yellow-500/30',
+                          'shadow-orange-500/30',
+                          'shadow-red-500/30',
+                        ];
+                        const hoverBorders = [
+                          'hover:border-green-400/50',
+                          'hover:border-yellow-400/50',
+                          'hover:border-orange-400/50',
+                          'hover:border-red-400/50',
+                        ];
+
+                        return (
+                          <button
+                            key={option}
+                            onClick={() => {
+                              setSelectedRiskOption(option.toString());
+                              handleInputChange(
+                                'riskPercentage',
+                                option.toString()
+                              );
+                            }}
+                            className={`py-3 px-2 text-xs font-bold rounded-xl border-2 transition-all duration-500 relative overflow-hidden ${
+                              selectedRiskOption === option.toString()
+                                ? `bg-gradient-to-r ${gradients[index]} text-white border-red-400/50 shadow-lg ${shadowColors[index]} transform scale-105`
+                                : `bg-black/30 text-purple-300 border-purple-500/30 hover:bg-purple-500/20 ${hoverBorders[index]} hover:scale-102`
+                            }`}
+                          >
+                            <div className="relative z-10">
+                              <div className="text-lg">{riskIcons[index]}</div>
+                              <div>{option}%</div>
+                              <div className="text-xs opacity-75">
+                                {riskLabels[index]}
+                              </div>
+                            </div>
+                            {selectedRiskOption === option.toString() && (
+                              <div
+                                className={`absolute inset-0 bg-gradient-to-r ${gradients[index]} opacity-20 animate-pulse`}
+                              ></div>
+                            )}
+                          </button>
+                        );
+                      })}
 
                       {/* Custom Option */}
                       <button
@@ -537,9 +555,9 @@ const TradingCalculator: React.FC = () => {
                         )
                       }
                       className="w-full px-4 py-3 bg-black/40 border-2 border-blue-500/50 rounded-xl focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 text-white placeholder-blue-300/50 font-mono text-lg transition-all duration-300 focus:shadow-lg focus:shadow-blue-500/20"
-                      min="1"
+                      min="5"
                       max="100"
-                      step="1"
+                      step="5"
                       placeholder="Enter allocation %..."
                     />
                   </div>
@@ -549,7 +567,7 @@ const TradingCalculator: React.FC = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
                   <div className="relative">
                     <label className="block text-sm font-medium text-green-300 mb-2">
-                      💰 Entry Price Target
+                      💰 Entry Price
                       <Info className="inline w-4 h-4 ml-1 text-green-400 cursor-help" />
                     </label>
                     <div className="relative">
@@ -574,26 +592,44 @@ const TradingCalculator: React.FC = () => {
                   </div>
                   <div className="relative">
                     <label className="block text-sm font-medium text-red-300 mb-2">
-                      🛡️ Stop Loss Shield
+                      🛡️ Stop Loss
                       <Info className="inline w-4 h-4 ml-1 text-red-400 cursor-help" />
                     </label>
                     <div className="relative">
                       <input
                         type="number"
-                        value={formData.stopLoss !== 0 ? formData.stopLoss : ''}
+                        value={formData.stopLoss || ''}
                         onChange={(e) => {
                           const value = e.target.value;
                           handleInputChange('stopLoss', value);
                         }}
+                        onBlur={(e) => {
+                          // Format to 2 decimal places on blur
+                          const value = parseFloat(e.target.value);
+                          if (!isNaN(value) && value > 0) {
+                            handleInputChange('stopLoss', value.toFixed(2));
+                          }
+                        }}
                         className="w-full px-4 py-3 pl-10 bg-black/40 border-2 border-red-500/50 rounded-xl focus:border-red-400 focus:ring-2 focus:ring-red-400/20 text-white placeholder-red-300/50 font-mono transition-all duration-300 focus:shadow-lg focus:shadow-red-500/20"
                         min="0"
-                        step="0.1"
-                        placeholder="0.00"
+                        step="0.01"
+                        placeholder="Auto: 3% below entry"
                       />
                       <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-red-400">
                         ₹
                       </span>
                     </div>
+                    {/* Risk Percentage Display */}
+                    {formData.entryPrice > 0 && formData.stopLoss > 0 && formData.stopLoss < formData.entryPrice && (
+                      <div className="mt-2 text-center">
+                        <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-400/40 rounded-lg px-3 py-1">
+                          <span className="text-xs text-yellow-300">⚠️ Trade Risk:</span>
+                          <span className="text-sm font-bold text-orange-300">
+                            {(((formData.entryPrice - formData.stopLoss) / formData.entryPrice) * 100).toFixed(2)}%
+                          </span>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -627,10 +663,10 @@ const TradingCalculator: React.FC = () => {
 
               {/* Enhanced Achievement Dashboard - Coinbase-Style Security Focus */}
               {calculations && (
-                <div className="mb-8">
-                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                <div className="mb-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
                     {/* Position Size Achievement with Progress */}
-                    <div className="group relative bg-gradient-to-br from-black/40 to-gray-900/40 backdrop-blur-xl rounded-3xl p-6 border border-blue-500/20 hover:border-blue-400/50 transition-all duration-700 hover:scale-105 cursor-pointer overflow-hidden">
+                    <div className="group relative bg-gradient-to-br from-black/40 to-gray-900/40 backdrop-blur-xl rounded-2xl p-4 border border-blue-500/20 hover:border-blue-400/50 transition-all duration-700 hover:scale-105 cursor-pointer overflow-hidden">
                       <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 via-purple-600/10 to-cyan-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
 
                       {/* Robinhood-style celebration particles */}
@@ -641,24 +677,24 @@ const TradingCalculator: React.FC = () => {
                       </div>
 
                       <div className="relative z-10">
-                        <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center justify-between mb-3">
                           <div className="text-4xl">🎯</div>
-                          <div className="bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-blue-500/40 rounded-xl px-3 py-1">
+                          <div className="bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-blue-500/40 rounded-lg px-2 py-1">
                             <div className="text-xs text-blue-300 font-bold">
                               LOCKED
                             </div>
                           </div>
                         </div>
 
-                        <div className="mb-4">
-                          <div className="text-xs text-blue-300 mb-2 flex items-center">
-                            <span className="w-2 h-2 bg-blue-400 rounded-full mr-2"></span>
+                        <div className="mb-3">
+                          <div className="text-xs text-blue-300 mb-1 flex items-center">
+                            <span className="w-1.5 h-1.5 bg-blue-400 rounded-full mr-1"></span>
                             POSITION SIZE
                           </div>
-                          <div className="text-3xl font-bold text-white mb-2">
+                          <div className="text-2xl font-bold text-white mb-1">
                             {calculations.positionSize.toLocaleString()}
                           </div>
-                          <div className="text-sm text-blue-200">
+                          <div className="text-xs text-blue-200">
                             units secured
                           </div>
                         </div>
@@ -672,7 +708,7 @@ const TradingCalculator: React.FC = () => {
                     </div>
 
                     {/* Investment with Portfolio Allocation */}
-                    <div className="group relative bg-gradient-to-br from-black/40 to-gray-900/40 backdrop-blur-xl rounded-3xl p-6 border border-green-500/20 hover:border-green-400/50 transition-all duration-700 hover:scale-105 cursor-pointer overflow-hidden">
+                    <div className="group relative bg-gradient-to-br from-black/40 to-gray-900/40 backdrop-blur-xl rounded-2xl p-4 border border-green-500/20 hover:border-green-400/50 transition-all duration-700 hover:scale-105 cursor-pointer overflow-hidden">
                       <div className="absolute inset-0 bg-gradient-to-br from-green-600/10 via-emerald-600/10 to-teal-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
 
                       <div className="absolute inset-0 overflow-hidden rounded-3xl">
@@ -681,24 +717,24 @@ const TradingCalculator: React.FC = () => {
                       </div>
 
                       <div className="relative z-10">
-                        <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center justify-between mb-3">
                           <div className="text-4xl">💰</div>
-                          <div className="bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/40 rounded-xl px-3 py-1">
+                          <div className="bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/40 rounded-lg px-2 py-1">
                             <div className="text-xs text-green-300 font-bold">
                               DEPLOYED
                             </div>
                           </div>
                         </div>
 
-                        <div className="mb-4">
-                          <div className="text-xs text-green-300 mb-2 flex items-center">
-                            <span className="w-2 h-2 bg-green-400 rounded-full mr-2"></span>
+                        <div className="mb-3">
+                          <div className="text-xs text-green-300 mb-1 flex items-center">
+                            <span className="w-1.5 h-1.5 bg-green-400 rounded-full mr-1"></span>
                             CAPITAL INVESTMENT
                           </div>
-                          <div className="text-2xl font-bold text-white mb-2">
+                          <div className="text-2xl font-bold text-white mb-1">
                             {formatCurrency(calculations.totalInvestment)}
                           </div>
-                          <div className="text-sm text-green-200">
+                          <div className="text-xs text-green-200">
                             {calculations.portfolioPercentage.toFixed(1)}% of
                             portfolio
                           </div>
@@ -720,7 +756,7 @@ const TradingCalculator: React.FC = () => {
                     </div>
 
                     {/* Risk Analysis with Warning System */}
-                    <div className="group relative bg-gradient-to-br from-black/40 to-gray-900/40 backdrop-blur-xl rounded-3xl p-6 border border-red-500/20 hover:border-red-400/50 transition-all duration-700 hover:scale-105 cursor-pointer overflow-hidden">
+                    <div className="group relative bg-gradient-to-br from-black/40 to-gray-900/40 backdrop-blur-xl rounded-2xl p-4 border border-red-500/20 hover:border-red-400/50 transition-all duration-700 hover:scale-105 cursor-pointer overflow-hidden">
                       <div className="absolute inset-0 bg-gradient-to-br from-red-600/10 via-pink-600/10 to-rose-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
 
                       <div className="absolute inset-0 overflow-hidden rounded-3xl">
@@ -729,10 +765,10 @@ const TradingCalculator: React.FC = () => {
                       </div>
 
                       <div className="relative z-10">
-                        <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center justify-between mb-3">
                           <div className="text-4xl">⚡</div>
                           <div
-                            className={`border rounded-xl px-3 py-1 ${
+                            className={`border rounded-lg px-2 py-1 ${
                               calculations.riskPercentage > 2
                                 ? 'bg-gradient-to-r from-red-500/30 to-orange-500/30 border-red-500/50'
                                 : 'bg-gradient-to-r from-yellow-500/20 to-red-500/20 border-yellow-500/40'
@@ -752,16 +788,16 @@ const TradingCalculator: React.FC = () => {
                           </div>
                         </div>
 
-                        <div className="mb-4">
-                          <div className="text-xs text-red-300 mb-2 flex items-center">
-                            <span className="w-2 h-2 bg-red-400 rounded-full mr-2"></span>
+                        <div className="mb-3">
+                          <div className="text-xs text-red-300 mb-1 flex items-center">
+                            <span className="w-1.5 h-1.5 bg-red-400 rounded-full mr-1"></span>
                             RISK EXPOSURE
                           </div>
-                          <div className="text-2xl font-bold text-white mb-2">
+                          <div className="text-2xl font-bold text-white mb-1">
                             {formatCurrency(calculations.riskAmount)}
                           </div>
-                          <div className="text-sm text-red-200">
-                            {calculations.riskPercentage}% maximum loss
+                          <div className="text-xs text-red-200">
+                            {calculations.riskPercentage}% portfolio impact
                           </div>
                         </div>
 
@@ -781,28 +817,28 @@ const TradingCalculator: React.FC = () => {
                     </div>
 
                     {/* Breakeven Analysis */}
-                    <div className="group relative bg-gradient-to-br from-black/40 to-gray-900/40 backdrop-blur-xl rounded-3xl p-6 border border-orange-500/20 hover:border-orange-400/50 transition-all duration-700 hover:scale-105 cursor-pointer overflow-hidden">
+                    <div className="group relative bg-gradient-to-br from-black/40 to-gray-900/40 backdrop-blur-xl rounded-2xl p-4 border border-orange-500/20 hover:border-orange-400/50 transition-all duration-700 hover:scale-105 cursor-pointer overflow-hidden">
                       <div className="absolute inset-0 bg-gradient-to-br from-orange-600/10 via-amber-600/10 to-yellow-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
 
                       <div className="relative z-10">
-                        <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center justify-between mb-3">
                           <div className="text-4xl">🛡️</div>
-                          <div className="bg-gradient-to-r from-orange-500/20 to-amber-500/20 border border-orange-500/40 rounded-xl px-3 py-1">
+                          <div className="bg-gradient-to-r from-orange-500/20 to-amber-500/20 border border-orange-500/40 rounded-lg px-2 py-1">
                             <div className="text-xs text-orange-300 font-bold">
                               SHIELD
                             </div>
                           </div>
                         </div>
 
-                        <div className="mb-4">
-                          <div className="text-xs text-orange-300 mb-2 flex items-center">
-                            <span className="w-2 h-2 bg-orange-400 rounded-full mr-2"></span>
+                        <div className="mb-3">
+                          <div className="text-xs text-orange-300 mb-1 flex items-center">
+                            <span className="w-1.5 h-1.5 bg-orange-400 rounded-full mr-1"></span>
                             BREAKEVEN PRICE
                           </div>
-                          <div className="text-2xl font-bold text-white mb-2">
+                          <div className="text-2xl font-bold text-white mb-1">
                             {formatCurrency(calculations.breakEvenPrice)}
                           </div>
-                          <div className="text-sm text-orange-200">
+                          <div className="text-xs text-orange-200">
                             survival line
                           </div>
                         </div>
@@ -814,28 +850,28 @@ const TradingCalculator: React.FC = () => {
                     </div>
 
                     {/* Brokerage Cost Analysis */}
-                    <div className="group relative bg-gradient-to-br from-black/40 to-gray-900/40 backdrop-blur-xl rounded-3xl p-6 border border-purple-500/20 hover:border-purple-400/50 transition-all duration-700 hover:scale-105 cursor-pointer overflow-hidden">
+                    <div className="group relative bg-gradient-to-br from-black/40 to-gray-900/40 backdrop-blur-xl rounded-2xl p-4 border border-purple-500/20 hover:border-purple-400/50 transition-all duration-700 hover:scale-105 cursor-pointer overflow-hidden">
                       <div className="absolute inset-0 bg-gradient-to-br from-purple-600/10 via-indigo-600/10 to-blue-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
 
                       <div className="relative z-10">
-                        <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center justify-between mb-3">
                           <div className="text-4xl">💳</div>
-                          <div className="bg-gradient-to-r from-purple-500/20 to-indigo-500/20 border border-purple-500/40 rounded-xl px-3 py-1">
+                          <div className="bg-gradient-to-r from-purple-500/20 to-indigo-500/20 border border-purple-500/40 rounded-lg px-2 py-1">
                             <div className="text-xs text-purple-300 font-bold">
                               AUTO
                             </div>
                           </div>
                         </div>
 
-                        <div className="mb-4">
-                          <div className="text-xs text-purple-300 mb-2 flex items-center">
-                            <span className="w-2 h-2 bg-purple-400 rounded-full mr-2"></span>
+                        <div className="mb-3">
+                          <div className="text-xs text-purple-300 mb-1 flex items-center">
+                            <span className="w-1.5 h-1.5 bg-purple-400 rounded-full mr-1"></span>
                             BROKERAGE COST
                           </div>
-                          <div className="text-2xl font-bold text-white mb-2">
+                          <div className="text-2xl font-bold text-white mb-1">
                             {formatCurrency(calculations.brokerageCost)}
                           </div>
-                          <div className="text-sm text-purple-200">
+                          <div className="text-xs text-purple-200">
                             auto-calculated
                           </div>
                         </div>
@@ -847,28 +883,28 @@ const TradingCalculator: React.FC = () => {
                     </div>
 
                     {/* Risk Per Share Detail */}
-                    <div className="group relative bg-gradient-to-br from-black/40 to-gray-900/40 backdrop-blur-xl rounded-3xl p-6 border border-cyan-500/20 hover:border-cyan-400/50 transition-all duration-700 hover:scale-105 cursor-pointer overflow-hidden">
+                    <div className="group relative bg-gradient-to-br from-black/40 to-gray-900/40 backdrop-blur-xl rounded-2xl p-4 border border-cyan-500/20 hover:border-cyan-400/50 transition-all duration-700 hover:scale-105 cursor-pointer overflow-hidden">
                       <div className="absolute inset-0 bg-gradient-to-br from-cyan-600/10 via-teal-600/10 to-blue-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
 
                       <div className="relative z-10">
-                        <div className="flex items-center justify-between mb-4">
-                          <div className="text-4xl">⚔️</div>
-                          <div className="bg-gradient-to-r from-cyan-500/20 to-teal-500/20 border border-cyan-500/40 rounded-xl px-3 py-1">
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="text-2xl">⚔️</div>
+                          <div className="bg-gradient-to-r from-cyan-500/20 to-teal-500/20 border border-cyan-500/40 rounded-lg px-2 py-1">
                             <div className="text-xs text-cyan-300 font-bold">
                               UNIT
                             </div>
                           </div>
                         </div>
 
-                        <div className="mb-4">
-                          <div className="text-xs text-cyan-300 mb-2 flex items-center">
-                            <span className="w-2 h-2 bg-cyan-400 rounded-full mr-2"></span>
+                        <div className="mb-3">
+                          <div className="text-xs text-cyan-300 mb-1 flex items-center">
+                            <span className="w-1.5 h-1.5 bg-cyan-400 rounded-full mr-1"></span>
                             RISK PER SHARE
                           </div>
-                          <div className="text-2xl font-bold text-white mb-2">
+                          <div className="text-2xl font-bold text-white mb-1">
                             {formatCurrency(calculations.riskPerShare)}
                           </div>
-                          <div className="text-sm text-cyan-200">
+                          <div className="text-xs text-cyan-200">
                             per unit risk
                           </div>
                         </div>
@@ -882,118 +918,161 @@ const TradingCalculator: React.FC = () => {
                 </div>
               )}
 
-              {/* Profit Elevation Chart - Enhanced Bar Visualization */}
-              <div className="mb-8">
-                {/* Enhanced Bar Chart Visualization */}
-                <div className="relative bg-gradient-to-br from-black/40 to-gray-900/40 backdrop-blur-xl rounded-3xl p-8 border border-blue-500/30 overflow-hidden">
-                  {/* Simplified Chart Container */}
-                  <div className="relative">
-                    {/* Clean Profit Display */}
-                    <div className="flex items-start justify-center space-x-4 md:space-x-8 h-72 pb-8">
-                      {targets.map((target, index) => {
-                        const height = (target.r / 6) * 85; // Scale to 85% for better visual
-                        const colors = [
-                          'from-green-400 via-green-500 to-emerald-600',
-                          'from-blue-400 via-blue-500 to-cyan-600',
-                          'from-purple-400 via-purple-500 to-violet-600',
-                          'from-pink-400 via-pink-500 to-rose-600',
-                          'from-orange-400 via-orange-500 to-yellow-600',
-                          'from-red-400 via-red-500 to-pink-600',
-                        ];
+              {/* Animated Profit Command Center */}
+              <div className="mb-6">
+                {/* Gaming-style Profit Dashboard */}
+                <div className="relative bg-gradient-to-br from-black/40 to-gray-900/40 backdrop-blur-xl rounded-2xl p-6 border border-cyan-500/30 overflow-hidden">
+                  {/* Animated Background Grid */}
+                  <div className="absolute inset-0 opacity-10">
+                    <div className="absolute inset-0 bg-grid-pattern animate-pulse"></div>
+                  </div>
 
-                        return (
-                          <div
-                            key={index}
-                            className="relative group flex flex-col items-center"
-                          >
-                            {/* Profit Info Card */}
-                            <div className="mb-4 text-center bg-gradient-to-r from-black/80 to-gray-900/80 backdrop-blur-xl rounded-2xl p-4 border border-green-400/30 min-w-max shadow-lg">
+                  {/* Interactive Profit Cards Grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-6">
+                    {targets.map((target, index) => {
+                      const colors = [
+                        'from-green-400 to-emerald-600',
+                        'from-blue-400 to-cyan-600',
+                        'from-purple-400 to-violet-600',
+                        'from-pink-400 to-rose-600',
+                        'from-orange-400 to-yellow-600',
+                        'from-red-400 to-pink-600',
+                      ];
+                      const borderColors = [
+                        'border-green-400/40',
+                        'border-blue-400/40',
+                        'border-purple-400/40',
+                        'border-pink-400/40',
+                        'border-orange-400/40',
+                        'border-red-400/40',
+                      ];
+                      const glowColors = [
+                        'shadow-green-400/30',
+                        'shadow-blue-400/30',
+                        'shadow-purple-400/30',
+                        'shadow-pink-400/30',
+                        'shadow-orange-400/30',
+                        'shadow-red-400/30',
+                      ];
+
+                      return (
+                        <div
+                          key={index}
+                          className={`group relative bg-gradient-to-br from-black/60 to-gray-900/60 backdrop-blur-sm rounded-xl p-4 border-2 ${borderColors[index]} hover:border-white/50 transition-all duration-500 cursor-pointer hover:scale-105 ${glowColors[index]} hover:shadow-xl`}
+                          style={{
+                            animationDelay: `${index * 0.1}s`,
+                          }}
+                        >
+                          {/* Animated Power Level Indicator */}
+                          <div className="absolute top-2 right-2 flex space-x-1">
+                            {Array.from({ length: target.r }).map((_, i) => (
+                              <div
+                                key={i}
+                                className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-pulse"
+                                style={{
+                                  animationDelay: `${i * 0.2}s`,
+                                }}
+                              ></div>
+                            ))}
+                          </div>
+
+                          {/* R-Multiple Badge */}
+                          <div className="flex items-center justify-center mb-3">
+                            <div
+                              className={`w-12 h-12 bg-gradient-to-r ${colors[index]} rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg group-hover:animate-pulse`}
+                            >
+                              {target.r}R
+                            </div>
+                          </div>
+
+                          {/* Critical Information - Always Visible */}
+                          <div className="space-y-3">
+                            {/* Profit Display */}
+                            <div className="text-center">
                               <div className="text-xs text-green-300 mb-1">
                                 💰 PROFIT
                               </div>
-                              <div className="text-xl font-bold text-green-400">
+                              <div className="text-sm font-bold text-green-400">
                                 {formatCurrency(target.netProfit)}
                               </div>
-                              <div className="text-xs text-blue-300 mt-2">
-                                🎯 {formatCurrency(target.targetPrice)}
+                            </div>
+
+                            {/* Portfolio Impact with Animated Bar */}
+                            <div className="bg-gradient-to-r from-orange-500/20 to-yellow-500/20 border border-orange-400/30 rounded-lg p-2">
+                              <div className="text-xs text-orange-200 mb-1">
+                                📊 PF IMPACT
                               </div>
-                              <div className="text-xs text-orange-300 mt-1">
-                                Portfolio: +
-                                {target.portfolioGainPercentage.toFixed(2)}%
+                              <div className="text-sm font-bold text-orange-300 mb-2">
+                                +{target.portfolioGainPercentage.toFixed(2)}%
+                              </div>
+                              {/* Animated Progress Bar */}
+                              <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
+                                <div
+                                  className="h-full bg-gradient-to-r from-orange-400 to-yellow-400 rounded-full transition-all duration-2000 ease-out"
+                                  style={{
+                                    width: `${Math.min(
+                                      target.portfolioGainPercentage * 10,
+                                      100
+                                    )}%`,
+                                    animationDelay: `${index * 0.3}s`,
+                                  }}
+                                ></div>
                               </div>
                             </div>
 
-                            {/* Profit Bar */}
-                            <div
-                              className={`relative w-16 md:w-20 bg-gradient-to-t ${colors[index]} rounded-t-xl border-2 border-white/20 hover:border-white/50 transition-all duration-700 cursor-pointer group-hover:shadow-2xl group-hover:scale-110 overflow-hidden shadow-lg`}
-                              style={{ height: `${height}%` }}
-                            >
-                              {/* Glow Effect */}
-                              <div className="absolute inset-0 bg-gradient-to-t from-transparent via-white/10 to-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-
-                              {/* Sparkle Effects */}
-                              <div className="absolute inset-0 overflow-hidden">
-                                {Array.from({ length: 3 }).map(
-                                  (_, sparkleIndex) => (
-                                    <div
-                                      key={sparkleIndex}
-                                      className="absolute w-1 h-1 bg-white rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-ping"
-                                      style={{
-                                        left: `${20 + sparkleIndex * 30}%`,
-                                        top: `${10 + sparkleIndex * 20}%`,
-                                        animationDelay: `${
-                                          sparkleIndex * 0.3
-                                        }s`,
-                                      }}
-                                    ></div>
-                                  )
-                                )}
+                            {/* ROI Display */}
+                            <div className="text-center">
+                              <div className="text-xs text-blue-300 mb-1">
+                                🎯 ROI
                               </div>
-                            </div>
-
-                            {/* R-Multiple Badge */}
-                            <div className="mt-4">
-                              <div className="bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-full w-16 h-16 flex items-center justify-center text-xl font-bold shadow-xl group-hover:shadow-blue-500/50 transition-all duration-500">
-                                {target.r}R
-                              </div>
-                            </div>
-
-                            {/* Return Percentage */}
-                            <div className="mt-3 text-center">
-                              <div className="text-lg font-bold text-white">
+                              <div className="text-sm font-bold text-blue-400">
                                 {target.returnPercentage.toFixed(1)}%
                               </div>
-                              <div className="text-xs text-gray-400">ROI</div>
+                            </div>
+
+                            {/* Target Price */}
+                            <div className="text-center">
+                              <div className="text-xs text-purple-300 mb-1">
+                                🎯 TARGET
+                              </div>
+                              <div className="text-xs font-bold text-white">
+                                {formatCurrency(target.targetPrice)}
+                              </div>
                             </div>
                           </div>
-                        );
-                      })}
+
+                          {/* Animated Power Up Effect */}
+                          <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-cyan-400/10 to-blue-400/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Animated Energy Flow Visualization */}
+                  <div className="relative h-16 bg-gradient-to-r from-gray-800/50 to-gray-900/50 rounded-xl border border-gray-600/30 overflow-hidden">
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="text-xs text-gray-400">
+                        PROFIT ENERGY FLOW
+                      </div>
                     </div>
+                    {/* Moving Energy Bars */}
+                    {targets.map((target, index) => (
+                      <div
+                        key={index}
+                        className="absolute bottom-0 bg-gradient-to-t from-cyan-400/80 to-blue-400/80 rounded-t-lg animate-pulse"
+                        style={{
+                          left: `${12 + index * 14}%`,
+                          width: '8%',
+                          height: `${30 + target.portfolioGainPercentage * 2}%`,
+                          animationDelay: `${index * 0.2}s`,
+                          animationDuration: '2s',
+                        }}
+                      ></div>
+                    ))}
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-
-        {/* Gaming Disclaimer */}
-        <div className="mt-8 bg-black/40 backdrop-blur-xl rounded-3xl p-6 shadow-2xl border border-yellow-500/30 text-center">
-          <div className="flex items-center justify-center space-x-3 mb-4">
-            <div className="w-12 h-12 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full flex items-center justify-center shadow-lg shadow-yellow-500/50">
-              <AlertTriangle className="w-6 h-6 text-black" />
-            </div>
-            <h3 className="text-xl font-bold bg-gradient-to-r from-yellow-400 to-orange-400 bg-clip-text text-transparent">
-              ⚠️ RISK WARNING PROTOCOL
-            </h3>
-          </div>
-          <div className="bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-500/30 rounded-2xl p-4">
-            <p className="text-yellow-200 leading-relaxed text-sm">
-              🎮 This is a simulation tool for educational purposes only. Real
-              trading involves substantial risk of loss. Past performance does
-              not guarantee future results. Always consult with a qualified
-              financial advisor before making investment decisions. Never risk
-              more than you can afford to lose. Game responsibly! 🎮
-            </p>
           </div>
         </div>
       </main>
