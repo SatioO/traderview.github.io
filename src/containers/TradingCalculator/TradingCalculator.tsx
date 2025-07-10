@@ -146,7 +146,7 @@ const TradingCalculator: React.FC = () => {
       case 'uptrend-under-pressure':
         return {
           label: 'Uptrend Under Pressure',
-          icon: '⚠️',
+          icon: '🔥',
           color: 'yellow',
           description: 'Weakening momentum - Reduced position sizing',
           healthLevel: 75,
@@ -155,7 +155,7 @@ const TradingCalculator: React.FC = () => {
       case 'rally-attempt':
         return {
           label: 'Rally Attempt',
-          icon: '🔄',
+          icon: '⚖️',
           color: 'orange',
           description: 'Uncertain direction - Conservative sizing',
           healthLevel: 50,
@@ -164,7 +164,7 @@ const TradingCalculator: React.FC = () => {
       case 'downtrend':
         return {
           label: 'Downtrend',
-          icon: '📉',
+          icon: '🩸',
           color: 'red',
           description: 'Bearish conditions - Minimal position sizing',
           healthLevel: 25,
