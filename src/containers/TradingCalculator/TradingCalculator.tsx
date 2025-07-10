@@ -92,6 +92,22 @@ const TradingCalculator: React.FC = () => {
     );
   }, []);
 
+  // Format currency with K/L/Cr suffixes
+  const formatCurrencyWithSuffix = useCallback((amount: number): string => {
+    if (amount >= 10000000) {
+      // 1 crore or more
+      return `${(amount / 10000000).toFixed(1)}Cr`;
+    } else if (amount >= 100000) {
+      // 1 lakh or more
+      return `${(amount / 100000).toFixed(1)}L`;
+    } else if (amount >= 1000) {
+      // 1 thousand or more
+      return `${(amount / 1000).toFixed(1)}K`;
+    } else {
+      return amount.toFixed(0);
+    }
+  }, []);
+
   // Validate inputs
   const validateInputs = useCallback((): string[] => {
     const { accountBalance, riskPercentage, entryPrice, stopLoss } = formData;
@@ -362,7 +378,7 @@ const TradingCalculator: React.FC = () => {
                         ₹
                       </div>
                       <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-emerald-400 text-sm">
-                        {(formData.accountBalance / 100000).toFixed(1)}L
+                        {formatCurrencyWithSuffix(formData.accountBalance)}
                       </div>
                     </div>
                   </div>
@@ -620,16 +636,25 @@ const TradingCalculator: React.FC = () => {
                       </span>
                     </div>
                     {/* Risk Percentage Display */}
-                    {formData.entryPrice > 0 && formData.stopLoss > 0 && formData.stopLoss < formData.entryPrice && (
-                      <div className="mt-2 text-center">
-                        <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-400/40 rounded-lg px-3 py-1">
-                          <span className="text-xs text-yellow-300">⚠️ Trade Risk:</span>
-                          <span className="text-sm font-bold text-orange-300">
-                            {(((formData.entryPrice - formData.stopLoss) / formData.entryPrice) * 100).toFixed(2)}%
-                          </span>
+                    {formData.entryPrice > 0 &&
+                      formData.stopLoss > 0 &&
+                      formData.stopLoss < formData.entryPrice && (
+                        <div className="mt-2 text-center">
+                          <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-400/40 rounded-lg px-3 py-1">
+                            <span className="text-xs text-yellow-300">
+                              ⚠️ Trade Risk:
+                            </span>
+                            <span className="text-sm font-bold text-orange-300">
+                              {(
+                                ((formData.entryPrice - formData.stopLoss) /
+                                  formData.entryPrice) *
+                                100
+                              ).toFixed(2)}
+                              %
+                            </span>
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
                   </div>
                 </div>
               </div>
@@ -1051,7 +1076,7 @@ const TradingCalculator: React.FC = () => {
                   {/* Animated Energy Flow Visualization */}
                   <div className="relative h-16 bg-gradient-to-r from-gray-800/50 to-gray-900/50 rounded-xl border border-gray-600/30 overflow-hidden">
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="text-xs text-gray-400">
+                      <div className="text-xs text-gray-400 mb-4">
                         PROFIT ENERGY FLOW
                       </div>
                     </div>
@@ -1059,7 +1084,7 @@ const TradingCalculator: React.FC = () => {
                     {targets.map((target, index) => (
                       <div
                         key={index}
-                        className="absolute bottom-0 bg-gradient-to-t from-cyan-400/80 to-blue-400/80 rounded-t-lg animate-pulse"
+                        className="absolute bottom-0 bg-gradient-to-t from-cyan-400/80 to-green-400/80 rounded-t-lg animate-pulse"
                         style={{
                           left: `${12 + index * 14}%`,
                           width: '8%',
