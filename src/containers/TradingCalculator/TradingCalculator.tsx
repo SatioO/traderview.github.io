@@ -64,6 +64,7 @@ const TradingCalculator: React.FC = () => {
         setFormData((prev) => ({
           ...prev,
           accountBalance: prefs.accountBalance || 1000000,
+          marketHealth: prefs.marketHealth || 'confirmed-uptrend',
         }));
       } catch (error) {
         console.error('Error loading preferences:', error);
@@ -342,6 +343,16 @@ const TradingCalculator: React.FC = () => {
     setFormData({ ...formData, accountBalance: value });
     const prefs: Preferences = {
       accountBalance: value,
+      marketHealth: formData.marketHealth,
+    };
+    localStorage.setItem('accountInfo', JSON.stringify(prefs));
+  };
+
+  const handleMarketHealthChange = (health: MarketHealth) => {
+    setFormData({ ...formData, marketHealth: health });
+    const prefs: Preferences = {
+      accountBalance: formData.accountBalance,
+      marketHealth: health,
     };
     localStorage.setItem('accountInfo', JSON.stringify(prefs));
   };
@@ -558,7 +569,7 @@ const TradingCalculator: React.FC = () => {
                             <button
                               key={health}
                               onClick={() => {
-                                setFormData({ ...formData, marketHealth: health });
+                                handleMarketHealthChange(health);
                                 setIsMarketHealthExpanded(false); // Auto-collapse after selection
                               }}
                               className={`group relative p-3 rounded-xl border-2 transition-all duration-300 hover:scale-105 ${

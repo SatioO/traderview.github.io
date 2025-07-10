@@ -48,6 +48,7 @@ export interface Scenario {
 
 export interface Preferences {
   accountBalance: number;
+  marketHealth: MarketHealth;
 }
 
 export interface ChargesBreakdown {
