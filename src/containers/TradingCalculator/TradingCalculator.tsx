@@ -27,6 +27,17 @@ const TradingCalculator: React.FC = () => {
   const [warnings, setWarnings] = useState<string[]>([]);
   const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
   const [isMarketHealthExpanded, setIsMarketHealthExpanded] = useState<boolean>(false);
+  const [marketSmithData, setMarketSmithData] = useState<{
+    condition: string;
+    date: string;
+    isLoading: boolean;
+    error: string | null;
+  }>({
+    condition: '',
+    date: '',
+    isLoading: false,
+    error: null,
+  });
 
   // Calculate brokerage automatically for delivery equity (buy only)
   const calculateBrokerage = useCallback(
@@ -83,6 +94,7 @@ const TradingCalculator: React.FC = () => {
     } else {
       document.documentElement.classList.remove('dark');
     }
+
   }, []);
 
   // Format currency in INR
@@ -181,6 +193,100 @@ const TradingCalculator: React.FC = () => {
         };
     }
   }, []);
+
+  // Fetch MarketSmith market condition
+  const fetchMarketSmithData = useCallback(async () => {
+    setMarketSmithData(prev => ({ ...prev, isLoading: true, error: null }));
+    
+    try {
+      // Use a CORS proxy since we're accessing an external site
+      const proxyUrl = 'https://api.allorigins.win/raw?url=';
+      const targetUrl = 'https://marketsmithindia.com/mstool/marketconditionhistory.jsp';
+      
+      const response = await fetch(`${proxyUrl}${encodeURIComponent(targetUrl)}`);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const html = await response.text();
+      
+      // Parse the HTML to extract market condition
+      // Look for market condition data in the page
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+      
+      // Try to find market condition - this may need adjustment based on actual page structure
+      let condition = 'Unknown';
+      let date = new Date().toLocaleDateString();
+      
+      // Look for common patterns in MarketSmith pages
+      const conditionElements = doc.querySelectorAll('td, span, div');
+      
+      for (const element of conditionElements) {
+        const text = element.textContent?.trim().toLowerCase() || '';
+        
+        if (text.includes('confirmed uptrend') || text.includes('confirmed up-trend')) {
+          condition = 'Confirmed Uptrend';
+          break;
+        } else if (text.includes('uptrend under pressure')) {
+          condition = 'Uptrend Under Pressure';
+          break;
+        } else if (text.includes('rally attempt')) {
+          condition = 'Rally Attempt';
+          break;
+        } else if (text.includes('downtrend') || text.includes('down trend')) {
+          condition = 'Downtrend';
+          break;
+        }
+      }
+      
+      // Try to extract date if available
+      const datePattern = /\d{1,2}[-/]\d{1,2}[-/]\d{2,4}/;
+      const dateMatch = html.match(datePattern);
+      if (dateMatch) {
+        date = dateMatch[0];
+      }
+      
+      setMarketSmithData({
+        condition,
+        date,
+        isLoading: false,
+        error: null,
+      });
+      
+    } catch (error) {
+      console.error('Error fetching MarketSmith data:', error);
+      setMarketSmithData(prev => ({
+        ...prev,
+        isLoading: false,
+        error: 'Unable to fetch MarketSmith data. Please check your internet connection or try again later.',
+      }));
+    }
+  }, []);
+
+  // Map MarketSmith condition to our market health
+  const mapMarketSmithToHealth = useCallback((condition: string): MarketHealth => {
+    const lowerCondition = condition.toLowerCase();
+    
+    if (lowerCondition.includes('confirmed uptrend') || lowerCondition.includes('confirmed up-trend')) {
+      return 'confirmed-uptrend';
+    } else if (lowerCondition.includes('uptrend under pressure')) {
+      return 'uptrend-under-pressure';
+    } else if (lowerCondition.includes('rally attempt')) {
+      return 'rally-attempt';
+    } else if (lowerCondition.includes('downtrend') || lowerCondition.includes('down trend')) {
+      return 'downtrend';
+    }
+    
+    // Default to confirmed uptrend if unknown
+    return 'confirmed-uptrend';
+  }, []);
+
+  // Auto-fetch MarketSmith data on mount
+  useEffect(() => {
+    fetchMarketSmithData();
+  }, [fetchMarketSmithData]);
 
   // Validate inputs
   const validateInputs = useCallback((): string[] => {
@@ -455,6 +561,127 @@ const TradingCalculator: React.FC = () => {
           backgroundSize: '50px 50px',
         }}
       ></div>
+
+      {/* MarketSmith Indicator - Enhanced UI */}
+      <div className="absolute top-4 right-6 z-20">
+        {marketSmithData.error ? (
+          <div className="group relative">
+            {/* Error State Card */}
+            <div className="flex items-center space-x-2 bg-gradient-to-r from-red-500/10 to-orange-500/10 backdrop-blur-xl border border-red-400/30 rounded-xl px-3 py-2 cursor-pointer transition-all duration-300 hover:border-red-400/50 hover:shadow-lg hover:shadow-red-500/20">
+              <div className="w-2 h-2 bg-red-400 rounded-full animate-pulse"></div>
+              <div className="text-sm font-medium text-red-300">MarketSmith</div>
+              <div className="text-xs text-red-400/80">●</div>
+            </div>
+            
+            {/* Enhanced Error Tooltip */}
+            <div className="absolute top-full right-0 mt-3 opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none group-hover:pointer-events-auto z-40 transform translate-y-1 group-hover:translate-y-0">
+              <div className="bg-gradient-to-br from-slate-900/95 to-slate-800/95 backdrop-blur-xl border border-red-400/20 rounded-2xl p-4 shadow-2xl min-w-64">
+                <div className="flex items-center space-x-2 mb-3">
+                  <div className="w-3 h-3 bg-red-400 rounded-full"></div>
+                  <div className="text-sm font-semibold text-red-300">Connection Failed</div>
+                </div>
+                <div className="text-xs text-gray-300 mb-4 leading-relaxed">
+                  Unable to fetch MarketSmith data. Check your internet connection or try again.
+                </div>
+                <button
+                  onClick={fetchMarketSmithData}
+                  className="w-full px-4 py-2 bg-gradient-to-r from-red-500/20 to-orange-500/20 hover:from-red-500/30 hover:to-orange-500/30 border border-red-400/30 hover:border-red-400/50 rounded-lg text-sm font-medium text-red-300 transition-all duration-300 hover:text-red-200 hover:shadow-lg"
+                >
+                  🔄 Retry Connection
+                </button>
+              </div>
+              
+              {/* Enhanced Arrow */}
+              <div className="absolute -top-2 right-6 w-4 h-4 bg-gradient-to-br from-slate-900/95 to-slate-800/95 border-l border-t border-red-400/20 transform rotate-45"></div>
+            </div>
+          </div>
+        ) : marketSmithData.condition ? (
+          <div className="group relative">
+            {/* Success State Card */}
+            <div className="flex items-center space-x-3 bg-gradient-to-r from-emerald-500/10 via-cyan-500/10 to-blue-500/10 backdrop-blur-xl border border-emerald-400/30 rounded-xl px-4 py-2 cursor-pointer transition-all duration-300 hover:border-emerald-400/50 hover:shadow-lg hover:shadow-emerald-500/20 hover:scale-105">
+              <div className="flex items-center space-x-2">
+                <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
+                <div className="text-sm font-medium text-emerald-300">MarketSmith</div>
+              </div>
+              <div className="text-xs text-emerald-400/60">|</div>
+              <div className="text-xs font-medium text-gray-300">{marketSmithData.condition}</div>
+            </div>
+            
+            {/* Enhanced Success Tooltip */}
+            <div className="absolute top-full right-0 mt-3 opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none group-hover:pointer-events-auto z-40 transform translate-y-1 group-hover:translate-y-0">
+              <div className="bg-gradient-to-br from-slate-900/95 to-slate-800/95 backdrop-blur-xl border border-emerald-400/20 rounded-2xl p-5 shadow-2xl min-w-72">
+                <div className="flex items-center space-x-3 mb-4">
+                  <div className="w-8 h-8 bg-gradient-to-r from-emerald-400 to-cyan-400 rounded-lg flex items-center justify-center">
+                    <span className="text-sm">📈</span>
+                  </div>
+                  <div>
+                    <div className="text-sm font-semibold text-emerald-300">MarketSmith Analysis</div>
+                    <div className="text-xs text-gray-400">Professional Market Outlook</div>
+                  </div>
+                </div>
+                
+                <div className="mb-4 p-3 bg-gradient-to-r from-emerald-500/10 to-cyan-500/10 border border-emerald-400/20 rounded-lg">
+                  <div className="text-sm font-medium text-white mb-1">{marketSmithData.condition}</div>
+                  <div className="text-xs text-gray-400">Last updated: {marketSmithData.date}</div>
+                </div>
+                
+                <div className="text-xs text-gray-300 mb-4 leading-relaxed">
+                  Apply this professional market rating to automatically adjust your position sizing strategy.
+                </div>
+                
+                <button
+                  onClick={() => {
+                    const suggestedHealth = mapMarketSmithToHealth(marketSmithData.condition);
+                    handleMarketHealthChange(suggestedHealth);
+                  }}
+                  className="w-full px-4 py-2 bg-gradient-to-r from-emerald-500/20 to-cyan-500/20 hover:from-emerald-500/30 hover:to-cyan-500/30 border border-emerald-400/30 hover:border-emerald-400/50 rounded-lg text-sm font-medium text-emerald-300 transition-all duration-300 hover:text-emerald-200 hover:shadow-lg"
+                >
+                  ✨ Apply to Market Health
+                </button>
+              </div>
+              
+              {/* Enhanced Arrow */}
+              <div className="absolute -top-2 right-8 w-4 h-4 bg-gradient-to-br from-slate-900/95 to-slate-800/95 border-l border-t border-emerald-400/20 transform rotate-45"></div>
+            </div>
+          </div>
+        ) : marketSmithData.isLoading ? (
+          <div className="flex items-center space-x-2 bg-gradient-to-r from-blue-500/10 to-purple-500/10 backdrop-blur-xl border border-blue-400/30 rounded-xl px-3 py-2">
+            <div className="w-2 h-2 bg-blue-400 rounded-full animate-spin"></div>
+            <div className="text-sm font-medium text-blue-300">Loading MarketSmith...</div>
+          </div>
+        ) : (
+          <div className="group relative">
+            {/* No Data State Card */}
+            <div className="flex items-center space-x-2 bg-gradient-to-r from-gray-500/10 to-slate-500/10 backdrop-blur-xl border border-gray-400/30 rounded-xl px-3 py-2 cursor-pointer transition-all duration-300 hover:border-gray-400/50 hover:shadow-lg hover:shadow-gray-500/20">
+              <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+              <div className="text-sm font-medium text-gray-300">MarketSmith</div>
+              <div className="text-xs text-gray-500">●</div>
+            </div>
+            
+            {/* Enhanced No Data Tooltip */}
+            <div className="absolute top-full right-0 mt-3 opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none group-hover:pointer-events-auto z-40 transform translate-y-1 group-hover:translate-y-0">
+              <div className="bg-gradient-to-br from-slate-900/95 to-slate-800/95 backdrop-blur-xl border border-gray-400/20 rounded-2xl p-4 shadow-2xl min-w-64">
+                <div className="flex items-center space-x-2 mb-3">
+                  <div className="w-3 h-3 bg-gray-400 rounded-full"></div>
+                  <div className="text-sm font-semibold text-gray-300">No Data Available</div>
+                </div>
+                <div className="text-xs text-gray-300 mb-4 leading-relaxed">
+                  Load professional market analysis from MarketSmith India to enhance your trading decisions.
+                </div>
+                <button
+                  onClick={fetchMarketSmithData}
+                  className="w-full px-4 py-2 bg-gradient-to-r from-gray-500/20 to-slate-500/20 hover:from-gray-500/30 hover:to-slate-500/30 border border-gray-400/30 hover:border-gray-400/50 rounded-lg text-sm font-medium text-gray-300 transition-all duration-300 hover:text-gray-200 hover:shadow-lg"
+                >
+                  📊 Load Market Data
+                </button>
+              </div>
+              
+              {/* Enhanced Arrow */}
+              <div className="absolute -top-2 right-6 w-4 h-4 bg-gradient-to-br from-slate-900/95 to-slate-800/95 border-l border-t border-gray-400/20 transform rotate-45"></div>
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* Main Content */}
       <main className="relative z-10 mx-auto px-4 sm:px-6 lg:px-8 py-8">
