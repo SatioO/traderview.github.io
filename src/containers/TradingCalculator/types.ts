@@ -1,4 +1,6 @@
 // types/trading.ts
+export type MarketHealth = 'confirmed-uptrend' | 'uptrend-under-pressure' | 'rally-attempt' | 'downtrend';
+
 export interface FormData {
   accountBalance: number;
   riskPercentage: number | '';
@@ -7,6 +9,7 @@ export interface FormData {
   brokerageCost: number;
   riskOnInvestment: number;
   allocationPercentage: number | '';
+  marketHealth: MarketHealth;
 }
 
 export type TabType = 'risk' | 'allocation';

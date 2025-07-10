@@ -7,6 +7,7 @@ import type {
   Preferences,
   ChargesBreakdown,
   TabType,
+  MarketHealth,
 } from './types';
 
 const TradingCalculator: React.FC = () => {
@@ -18,12 +19,14 @@ const TradingCalculator: React.FC = () => {
     brokerageCost: 0,
     riskOnInvestment: 5.0,
     allocationPercentage: 10.0,
+    marketHealth: 'confirmed-uptrend',
   });
   const [selectedRiskOption, setSelectedRiskOption] = useState<string>('0.25');
   const [activeTab, setActiveTab] = useState<TabType>('risk');
   const [calculations, setCalculations] = useState<Calculations | null>(null);
   const [warnings, setWarnings] = useState<string[]>([]);
   const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
+  const [isMarketHealthExpanded, setIsMarketHealthExpanded] = useState<boolean>(false);
 
   // Calculate brokerage automatically for delivery equity (buy only)
   const calculateBrokerage = useCallback(
@@ -108,6 +111,76 @@ const TradingCalculator: React.FC = () => {
     }
   }, []);
 
+  // Get market health adjustment factor
+  const getMarketHealthAdjustment = useCallback(
+    (marketHealth: MarketHealth): number => {
+      switch (marketHealth) {
+        case 'confirmed-uptrend':
+          return 1.0; // Full position size
+        case 'uptrend-under-pressure':
+          return 0.75; // Reduce by 25%
+        case 'rally-attempt':
+          return 0.5; // Reduce by 50%
+        case 'downtrend':
+          return 0.25; // Reduce by 75%
+        default:
+          return 1.0;
+      }
+    },
+    []
+  );
+
+  // Get market health display info
+  const getMarketHealthInfo = useCallback((marketHealth: MarketHealth) => {
+    switch (marketHealth) {
+      case 'confirmed-uptrend':
+        return {
+          label: 'Confirmed Uptrend',
+          icon: '🚀',
+          color: 'emerald',
+          description: 'Strong bullish momentum - Full position sizing',
+          healthLevel: 100,
+          adjustment: 'Full',
+        };
+      case 'uptrend-under-pressure':
+        return {
+          label: 'Uptrend Under Pressure',
+          icon: '⚠️',
+          color: 'yellow',
+          description: 'Weakening momentum - Reduced position sizing',
+          healthLevel: 75,
+          adjustment: '-25%',
+        };
+      case 'rally-attempt':
+        return {
+          label: 'Rally Attempt',
+          icon: '🔄',
+          color: 'orange',
+          description: 'Uncertain direction - Conservative sizing',
+          healthLevel: 50,
+          adjustment: '-50%',
+        };
+      case 'downtrend':
+        return {
+          label: 'Downtrend',
+          icon: '📉',
+          color: 'red',
+          description: 'Bearish conditions - Minimal position sizing',
+          healthLevel: 25,
+          adjustment: '-75%',
+        };
+      default:
+        return {
+          label: 'Unknown',
+          icon: '❓',
+          color: 'gray',
+          description: 'Market status unclear',
+          healthLevel: 50,
+          adjustment: '0%',
+        };
+    }
+  }, []);
+
   // Validate inputs
   const validateInputs = useCallback((): string[] => {
     const { accountBalance, riskPercentage, entryPrice, stopLoss } = formData;
@@ -146,7 +219,14 @@ const TradingCalculator: React.FC = () => {
       const riskPerShare = entryPrice - stopLoss;
 
       // Calculate position size WITHOUT considering brokerage (pure calculation)
-      const positionSize = Math.floor(riskAmount / riskPerShare);
+      const basePositionSize = Math.floor(riskAmount / riskPerShare);
+
+      // Apply market health adjustment
+      const marketHealthAdjustment = getMarketHealthAdjustment(
+        formData.marketHealth
+      );
+      const adjustedPositionSize = basePositionSize * marketHealthAdjustment;
+      const positionSize = Math.max(1, Math.floor(adjustedPositionSize)); // Ensure minimum position size of 1
 
       // Calculate brokerage for this position size
       const chargesBreakdown = calculateBrokerage(entryPrice, positionSize);
@@ -173,7 +253,12 @@ const TradingCalculator: React.FC = () => {
         chargesBreakdown,
         breakEvenPrice,
       };
-    }, [formData, validateInputs, calculateBrokerage]);
+    }, [
+      formData,
+      validateInputs,
+      calculateBrokerage,
+      getMarketHealthAdjustment,
+    ]);
 
   // Calculate position size based on allocation-based sizing
   const calculateAllocationBasedPositionSize =
@@ -190,7 +275,14 @@ const TradingCalculator: React.FC = () => {
       if (allocationPercentage === '') return null;
 
       const allocationAmount = (accountBalance * allocationPercentage) / 100;
-      const positionSize = Math.floor(allocationAmount / entryPrice);
+      const basePositionSize = Math.floor(allocationAmount / entryPrice);
+
+      // Apply market health adjustment
+      const marketHealthAdjustment = getMarketHealthAdjustment(
+        formData.marketHealth
+      );
+      const adjustedPositionSize = basePositionSize * marketHealthAdjustment;
+      const positionSize = Math.max(1, Math.floor(adjustedPositionSize)); // Ensure minimum position size of 1
 
       // Calculate brokerage for this position size
       const chargesBreakdown = calculateBrokerage(entryPrice, positionSize);
@@ -222,7 +314,12 @@ const TradingCalculator: React.FC = () => {
         chargesBreakdown,
         breakEvenPrice,
       };
-    }, [formData, validateInputs, calculateBrokerage]);
+    }, [
+      formData,
+      validateInputs,
+      calculateBrokerage,
+      getMarketHealthAdjustment,
+    ]);
 
   // Calculate position size based on active tab
   const calculatePositionSize = useCallback((): Calculations | null => {
@@ -385,6 +482,128 @@ const TradingCalculator: React.FC = () => {
                 </div>
               </div>
 
+              {/* Market Health Indicator - Collapsible */}
+              <div className="mb-6">
+                <div className="bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-2xl border border-blue-500/30 backdrop-blur-sm overflow-hidden">
+                  {/* Collapsible Header - Always Visible */}
+                  <button
+                    onClick={() => setIsMarketHealthExpanded(!isMarketHealthExpanded)}
+                    className="w-full p-4 flex items-center justify-between hover:bg-blue-500/10 transition-all duration-300"
+                  >
+                    <div className="flex items-center space-x-3">
+                      <div className="text-lg">
+                        {getMarketHealthInfo(formData.marketHealth).icon}
+                      </div>
+                      <div>
+                        <div className="text-sm font-bold text-white text-left">
+                          {getMarketHealthInfo(formData.marketHealth).label}
+                        </div>
+                        <div className="text-xs text-blue-300 text-left">
+                          📊 Market Health - {getMarketHealthInfo(formData.marketHealth).adjustment} sizing
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center space-x-2">
+                      {/* Health Level Indicator */}
+                      <div className="w-16 h-2 bg-gray-700 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full bg-gradient-to-r from-${
+                            getMarketHealthInfo(formData.marketHealth).color
+                          }-500 to-${
+                            getMarketHealthInfo(formData.marketHealth).color
+                          }-400 transition-all duration-1000`}
+                          style={{
+                            width: `${
+                              getMarketHealthInfo(formData.marketHealth).healthLevel
+                            }%`,
+                          }}
+                        ></div>
+                      </div>
+                      
+                      {/* Expand/Collapse Icon */}
+                      <div className={`text-blue-300 transition-transform duration-300 ${
+                        isMarketHealthExpanded ? 'rotate-180' : 'rotate-0'
+                      }`}>
+                        ▼
+                      </div>
+                    </div>
+                  </button>
+
+                  {/* Expandable Content */}
+                  <div className={`transition-all duration-500 ease-in-out ${
+                    isMarketHealthExpanded 
+                      ? 'max-h-96 opacity-100' 
+                      : 'max-h-0 opacity-0'
+                  } overflow-hidden`}>
+                    <div className="p-4 pt-0">
+                      <div className="mb-4 text-xs text-blue-300">
+                        Select market condition for position size adjustment:
+                      </div>
+                      
+                      {/* Market Health Options Grid */}
+                      <div className="grid grid-cols-2 gap-3">
+                        {(
+                          [
+                            'confirmed-uptrend',
+                            'uptrend-under-pressure',
+                            'rally-attempt',
+                            'downtrend',
+                          ] as const
+                        ).map((health) => {
+                          const healthInfo = getMarketHealthInfo(health);
+                          const isSelected = formData.marketHealth === health;
+
+                          return (
+                            <button
+                              key={health}
+                              onClick={() => {
+                                setFormData({ ...formData, marketHealth: health });
+                                setIsMarketHealthExpanded(false); // Auto-collapse after selection
+                              }}
+                              className={`group relative p-3 rounded-xl border-2 transition-all duration-300 hover:scale-105 ${
+                                isSelected
+                                  ? `border-${healthInfo.color}-400 bg-${healthInfo.color}-500/10 shadow-lg shadow-${healthInfo.color}-500/30 text-${healthInfo.color}-300 transform scale-105`
+                                  : `border-gray-500/30 bg-black/30 text-gray-300 hover:border-${healthInfo.color}-400/50 hover:bg-${healthInfo.color}-500/5 hover:text-${healthInfo.color}-300`
+                              }`}
+                            >
+                              {/* Selection Indicator */}
+                              {isSelected && (
+                                <div className="absolute top-1 right-1 w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
+                              )}
+                              
+                              <div className="flex items-center space-x-2">
+                                <div className={`text-lg transition-transform duration-300 ${
+                                  isSelected ? 'animate-bounce' : 'group-hover:scale-110'
+                                }`}>
+                                  {healthInfo.icon}
+                                </div>
+                                
+                                <div className="flex-1 text-left">
+                                  <div className="text-xs font-bold mb-1">
+                                    {healthInfo.label}
+                                  </div>
+                                  <div className="text-xs opacity-75">
+                                    {healthInfo.adjustment} sizing
+                                  </div>
+                                </div>
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                      
+                      {/* Current Selection Description */}
+                      <div className="mt-4 p-3 bg-black/40 rounded-lg border border-gray-600/30">
+                        <div className="text-xs text-gray-400">
+                          {getMarketHealthInfo(formData.marketHealth).description}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               {/* Gaming Mode Selector */}
               <div className="mb-6">
                 <div className="flex space-x-3 bg-black/30 p-2 rounded-2xl backdrop-blur-sm border border-purple-500/30">
@@ -442,25 +661,20 @@ const TradingCalculator: React.FC = () => {
                     <div className="grid grid-cols-5 gap-2 mb-4">
                       {[0.25, 0.5, 0.75, 1].map((option, index) => {
                         const riskIcons = ['🌱', '🔥', '⚡', '💀'];
-                        const riskLabels = ['LVL 1', 'LVL 2', 'LVL 3', 'LVL 4'];
-                        const gradients = [
-                          'from-green-500 to-emerald-500',
-                          'from-yellow-500 to-orange-500',
-                          'from-orange-500 to-red-500',
-                          'from-red-500 to-purple-500',
+                        const riskLabels = [
+                          'SAFE',
+                          'MODERATE',
+                          'AGGRESSIVE',
+                          'EXTREME',
                         ];
-                        const shadowColors = [
-                          'shadow-green-500/30',
-                          'shadow-yellow-500/30',
-                          'shadow-orange-500/30',
-                          'shadow-red-500/30',
+                        const riskColors = [
+                          'emerald',
+                          'yellow',
+                          'orange',
+                          'red',
                         ];
-                        const hoverBorders = [
-                          'hover:border-green-400/50',
-                          'hover:border-yellow-400/50',
-                          'hover:border-orange-400/50',
-                          'hover:border-red-400/50',
-                        ];
+                        const isSelected =
+                          selectedRiskOption === option.toString();
 
                         return (
                           <button
@@ -472,22 +686,46 @@ const TradingCalculator: React.FC = () => {
                                 option.toString()
                               );
                             }}
-                            className={`py-3 px-2 text-xs font-bold rounded-xl border-2 transition-all duration-500 relative overflow-hidden ${
-                              selectedRiskOption === option.toString()
-                                ? `bg-gradient-to-r ${gradients[index]} text-white border-red-400/50 shadow-lg ${shadowColors[index]} transform scale-105`
-                                : `bg-black/30 text-purple-300 border-purple-500/30 hover:bg-purple-500/20 ${hoverBorders[index]} hover:scale-102`
+                            className={`group relative py-4 px-2 text-xs font-bold rounded-xl border-2 transition-all duration-500 hover:scale-105 ${
+                              isSelected
+                                ? `border-${riskColors[index]}-400 bg-${riskColors[index]}-500/10 shadow-lg shadow-${riskColors[index]}-500/30 text-${riskColors[index]}-300 transform scale-105`
+                                : `border-purple-500/30 bg-black/30 text-purple-300 hover:border-${riskColors[index]}-400/50 hover:bg-${riskColors[index]}-500/5 hover:text-${riskColors[index]}-300`
                             }`}
                           >
-                            <div className="relative z-10">
-                              <div className="text-lg">{riskIcons[index]}</div>
-                              <div>{option}%</div>
-                              <div className="text-xs opacity-75">
+                            {/* Animated border glow for selected state */}
+                            {isSelected && (
+                              <div
+                                className={`absolute inset-0 rounded-xl border-2 border-${riskColors[index]}-400 animate-pulse`}
+                              ></div>
+                            )}
+
+                            <div className="relative z-10 flex flex-col items-center">
+                              {/* Icon with bounce animation */}
+                              <div
+                                className={`text-lg mb-1 transition-transform duration-300 ${
+                                  isSelected
+                                    ? 'animate-bounce'
+                                    : 'group-hover:scale-110'
+                                }`}
+                              >
+                                {riskIcons[index]}
+                              </div>
+
+                              {/* Percentage */}
+                              <div className="text-sm font-bold mb-1">
+                                {option}%
+                              </div>
+
+                              {/* Risk level label */}
+                              <div className="text-xs opacity-75 font-medium">
                                 {riskLabels[index]}
                               </div>
                             </div>
-                            {selectedRiskOption === option.toString() && (
+
+                            {/* Subtle background pulse for selected state */}
+                            {isSelected && (
                               <div
-                                className={`absolute inset-0 bg-gradient-to-r ${gradients[index]} opacity-20 animate-pulse`}
+                                className={`absolute inset-0 bg-gradient-to-r from-${riskColors[index]}-600/5 to-${riskColors[index]}-500/5 rounded-xl animate-pulse`}
                               ></div>
                             )}
                           </button>
@@ -507,18 +745,41 @@ const TradingCalculator: React.FC = () => {
                             handleInputChange('riskPercentage', '');
                           }
                         }}
-                        className={`py-3 px-2 text-xs font-bold rounded-xl border-2 transition-all duration-500 relative overflow-hidden ${
+                        className={`group relative py-4 px-2 text-xs font-bold rounded-xl border-2 transition-all duration-500 hover:scale-105 ${
                           selectedRiskOption === 'custom'
-                            ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white border-cyan-400/50 shadow-lg shadow-cyan-500/30 transform scale-105'
-                            : 'bg-black/30 text-purple-300 border-purple-500/30 hover:bg-purple-500/20 hover:border-purple-400/50 hover:scale-102'
+                            ? 'border-cyan-400 bg-cyan-500/10 shadow-lg shadow-cyan-500/30 text-cyan-300 transform scale-105'
+                            : 'border-purple-500/30 bg-black/30 text-purple-300 hover:border-cyan-400/50 hover:bg-cyan-500/5 hover:text-cyan-300'
                         }`}
                       >
-                        <div className="relative z-10">
-                          <div className="text-lg">⚙️</div>
-                          <div>Custom</div>
-                        </div>
+                        {/* Animated border glow for selected state */}
                         {selectedRiskOption === 'custom' && (
-                          <div className="absolute inset-0 bg-gradient-to-r from-cyan-600 to-blue-600 opacity-20 animate-pulse"></div>
+                          <div className="absolute inset-0 rounded-xl border-2 border-cyan-400 animate-pulse"></div>
+                        )}
+
+                        <div className="relative z-10 flex flex-col items-center">
+                          {/* Icon with rotation animation */}
+                          <div
+                            className={`text-lg mb-1 transition-transform duration-500 ${
+                              selectedRiskOption === 'custom'
+                                ? 'animate-spin'
+                                : 'group-hover:rotate-12'
+                            }`}
+                          >
+                            ⚙️
+                          </div>
+
+                          {/* Label */}
+                          <div className="text-xs font-bold mb-1">CUSTOM</div>
+
+                          {/* Subtitle */}
+                          <div className="text-xs opacity-75 font-medium">
+                            MANUAL
+                          </div>
+                        </div>
+
+                        {/* Subtle background pulse for selected state */}
+                        {selectedRiskOption === 'custom' && (
+                          <div className="absolute inset-0 bg-gradient-to-r from-cyan-600/5 to-blue-600/5 rounded-xl animate-pulse"></div>
                         )}
                       </button>
                     </div>
