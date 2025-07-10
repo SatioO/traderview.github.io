@@ -26,7 +26,6 @@ const TradingCalculator: React.FC = () => {
   const [calculations, setCalculations] = useState<Calculations | null>(null);
   const [warnings, setWarnings] = useState<string[]>([]);
   const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
-  const [isMarketHealthExpanded, setIsMarketHealthExpanded] = useState<boolean>(false);
   const [marketSmithData, setMarketSmithData] = useState<{
     condition: string;
     date: string;
@@ -562,125 +561,178 @@ const TradingCalculator: React.FC = () => {
         }}
       ></div>
 
-      {/* MarketSmith Indicator - Enhanced UI */}
+      {/* Unified Market Outlook Indicator */}
       <div className="absolute top-4 right-6 z-20">
-        {marketSmithData.error ? (
-          <div className="group relative">
-            {/* Error State Card */}
-            <div className="flex items-center space-x-2 bg-gradient-to-r from-red-500/10 to-orange-500/10 backdrop-blur-xl border border-red-400/30 rounded-xl px-3 py-2 cursor-pointer transition-all duration-300 hover:border-red-400/50 hover:shadow-lg hover:shadow-red-500/20">
-              <div className="w-2 h-2 bg-red-400 rounded-full animate-pulse"></div>
-              <div className="text-sm font-medium text-red-300">MarketSmith</div>
-              <div className="text-xs text-red-400/80">●</div>
-            </div>
-            
-            {/* Enhanced Error Tooltip */}
-            <div className="absolute top-full right-0 mt-3 opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none group-hover:pointer-events-auto z-40 transform translate-y-1 group-hover:translate-y-0">
-              <div className="bg-gradient-to-br from-slate-900/95 to-slate-800/95 backdrop-blur-xl border border-red-400/20 rounded-2xl p-4 shadow-2xl min-w-64">
-                <div className="flex items-center space-x-2 mb-3">
-                  <div className="w-3 h-3 bg-red-400 rounded-full"></div>
-                  <div className="text-sm font-semibold text-red-300">Connection Failed</div>
-                </div>
-                <div className="text-xs text-gray-300 mb-4 leading-relaxed">
-                  Unable to fetch MarketSmith data. Check your internet connection or try again.
-                </div>
-                <button
-                  onClick={fetchMarketSmithData}
-                  className="w-full px-4 py-2 bg-gradient-to-r from-red-500/20 to-orange-500/20 hover:from-red-500/30 hover:to-orange-500/30 border border-red-400/30 hover:border-red-400/50 rounded-lg text-sm font-medium text-red-300 transition-all duration-300 hover:text-red-200 hover:shadow-lg"
-                >
-                  🔄 Retry Connection
-                </button>
+        <div className="group relative">
+          {/* Current Market Outlook Display */}
+          <div className={`flex items-center space-x-3 backdrop-blur-xl border rounded-xl px-4 py-2 cursor-pointer transition-all duration-300 hover:scale-105 ${
+            getMarketHealthInfo(formData.marketHealth).color === 'emerald' 
+              ? 'bg-gradient-to-r from-emerald-500/10 via-cyan-500/10 to-blue-500/10 border-emerald-400/30 hover:border-emerald-400/50 hover:shadow-lg hover:shadow-emerald-500/20'
+              : getMarketHealthInfo(formData.marketHealth).color === 'yellow'
+              ? 'bg-gradient-to-r from-yellow-500/10 via-orange-500/10 to-amber-500/10 border-yellow-400/30 hover:border-yellow-400/50 hover:shadow-lg hover:shadow-yellow-500/20'
+              : getMarketHealthInfo(formData.marketHealth).color === 'orange'
+              ? 'bg-gradient-to-r from-orange-500/10 via-red-500/10 to-pink-500/10 border-orange-400/30 hover:border-orange-400/50 hover:shadow-lg hover:shadow-orange-500/20'
+              : 'bg-gradient-to-r from-red-500/10 via-rose-500/10 to-pink-500/10 border-red-400/30 hover:border-red-400/50 hover:shadow-lg hover:shadow-red-500/20'
+          }`}>
+            <div className="flex items-center space-x-2">
+              <div className={`w-2 h-2 rounded-full animate-pulse ${
+                getMarketHealthInfo(formData.marketHealth).color === 'emerald' ? 'bg-emerald-400' :
+                getMarketHealthInfo(formData.marketHealth).color === 'yellow' ? 'bg-yellow-400' :
+                getMarketHealthInfo(formData.marketHealth).color === 'orange' ? 'bg-orange-400' :
+                'bg-red-400'
+              }`}></div>
+              <div className="text-sm font-medium text-white">
+                {getMarketHealthInfo(formData.marketHealth).icon} Market Outlook
               </div>
-              
-              {/* Enhanced Arrow */}
-              <div className="absolute -top-2 right-6 w-4 h-4 bg-gradient-to-br from-slate-900/95 to-slate-800/95 border-l border-t border-red-400/20 transform rotate-45"></div>
+            </div>
+            <div className="text-xs text-gray-400/60">|</div>
+            <div className="text-xs font-medium text-gray-300">
+              {getMarketHealthInfo(formData.marketHealth).label}
+            </div>
+            <div className="text-xs text-gray-400/60">|</div>
+            <div className="text-xs font-medium text-blue-300">
+              {getMarketHealthInfo(formData.marketHealth).adjustment} sizing
             </div>
           </div>
-        ) : marketSmithData.condition ? (
-          <div className="group relative">
-            {/* Success State Card */}
-            <div className="flex items-center space-x-3 bg-gradient-to-r from-emerald-500/10 via-cyan-500/10 to-blue-500/10 backdrop-blur-xl border border-emerald-400/30 rounded-xl px-4 py-2 cursor-pointer transition-all duration-300 hover:border-emerald-400/50 hover:shadow-lg hover:shadow-emerald-500/20 hover:scale-105">
-              <div className="flex items-center space-x-2">
-                <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
-                <div className="text-sm font-medium text-emerald-300">MarketSmith</div>
+          
+          {/* Invisible hover bridge */}
+          <div className="absolute top-full right-0 w-full h-4 opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto z-40"></div>
+          
+          {/* Enhanced Unified Tooltip */}
+          <div className="absolute top-full right-0 mt-1 opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none group-hover:pointer-events-auto z-40 transform translate-y-1 group-hover:translate-y-0">
+            <div className="bg-gradient-to-br from-slate-900/95 to-slate-800/95 backdrop-blur-xl border border-purple-400/20 rounded-2xl p-5 shadow-2xl min-w-80">
+              
+              {/* Header */}
+              <div className="flex items-center space-x-3 mb-4">
+                <div className="w-8 h-8 bg-gradient-to-r from-purple-400 to-blue-400 rounded-lg flex items-center justify-center">
+                  <span className="text-sm">📊</span>
+                </div>
+                <div>
+                  <div className="text-sm font-semibold text-purple-300">Market Outlook Control</div>
+                  <div className="text-xs text-gray-400">Position Sizing Strategy</div>
+                </div>
               </div>
-              <div className="text-xs text-emerald-400/60">|</div>
-              <div className="text-xs font-medium text-gray-300">{marketSmithData.condition}</div>
-            </div>
-            
-            {/* Enhanced Success Tooltip */}
-            <div className="absolute top-full right-0 mt-3 opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none group-hover:pointer-events-auto z-40 transform translate-y-1 group-hover:translate-y-0">
-              <div className="bg-gradient-to-br from-slate-900/95 to-slate-800/95 backdrop-blur-xl border border-emerald-400/20 rounded-2xl p-5 shadow-2xl min-w-72">
-                <div className="flex items-center space-x-3 mb-4">
-                  <div className="w-8 h-8 bg-gradient-to-r from-emerald-400 to-cyan-400 rounded-lg flex items-center justify-center">
-                    <span className="text-sm">📈</span>
-                  </div>
-                  <div>
-                    <div className="text-sm font-semibold text-emerald-300">MarketSmith Analysis</div>
-                    <div className="text-xs text-gray-400">Professional Market Outlook</div>
+              
+              {/* Current Setting */}
+              <div className="mb-4 p-3 bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-purple-400/20 rounded-lg">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="text-xs text-purple-300 font-medium">CURRENT SETTING</div>
+                  <div className={`text-xs px-2 py-1 rounded-full ${
+                    getMarketHealthInfo(formData.marketHealth).color === 'emerald' ? 'bg-emerald-500/20 text-emerald-300' :
+                    getMarketHealthInfo(formData.marketHealth).color === 'yellow' ? 'bg-yellow-500/20 text-yellow-300' :
+                    getMarketHealthInfo(formData.marketHealth).color === 'orange' ? 'bg-orange-500/20 text-orange-300' :
+                    'bg-red-500/20 text-red-300'
+                  }`}>
+                    {getMarketHealthInfo(formData.marketHealth).adjustment} sizing
                   </div>
                 </div>
-                
+                <div className="text-sm font-medium text-white">{getMarketHealthInfo(formData.marketHealth).label}</div>
+              </div>
+
+              {/* MarketSmith Comparison */}
+              {marketSmithData.condition && (
                 <div className="mb-4 p-3 bg-gradient-to-r from-emerald-500/10 to-cyan-500/10 border border-emerald-400/20 rounded-lg">
-                  <div className="text-sm font-medium text-white mb-1">{marketSmithData.condition}</div>
-                  <div className="text-xs text-gray-400">Last updated: {marketSmithData.date}</div>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="text-xs text-emerald-300 font-medium">MARKETSMITH SUGGESTS</div>
+                    <div className="flex items-center space-x-1">
+                      <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
+                      <div className="text-xs text-gray-400">{marketSmithData.date}</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="text-sm font-medium text-white">{marketSmithData.condition}</div>
+                    {mapMarketSmithToHealth(marketSmithData.condition) !== formData.marketHealth && (
+                      <button
+                        onClick={() => {
+                          const suggestedHealth = mapMarketSmithToHealth(marketSmithData.condition);
+                          handleMarketHealthChange(suggestedHealth);
+                        }}
+                        className="px-3 py-1 bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/30 hover:border-emerald-400/50 rounded text-xs font-medium text-emerald-300 transition-all duration-300"
+                      >
+                        ✨ Apply
+                      </button>
+                    )}
+                  </div>
+                  {mapMarketSmithToHealth(marketSmithData.condition) === formData.marketHealth && (
+                    <div className="mt-2 text-xs text-emerald-400">✅ Already applied</div>
+                  )}
                 </div>
-                
-                <div className="text-xs text-gray-300 mb-4 leading-relaxed">
-                  Apply this professional market rating to automatically adjust your position sizing strategy.
+              )}
+
+              {/* Manual Selection Grid */}
+              <div className="mb-4">
+                <div className="text-xs text-gray-400 mb-3 font-medium">MANUAL OVERRIDE</div>
+                <div className="grid grid-cols-2 gap-2">
+                  {(['confirmed-uptrend', 'uptrend-under-pressure', 'rally-attempt', 'downtrend'] as const).map((health) => {
+                    const healthInfo = getMarketHealthInfo(health);
+                    const isSelected = formData.marketHealth === health;
+                    
+                    return (
+                      <button
+                        key={health}
+                        onClick={() => handleMarketHealthChange(health)}
+                        className={`p-2 rounded-lg border transition-all duration-300 text-left ${
+                          isSelected
+                            ? `border-${healthInfo.color}-400 bg-${healthInfo.color}-500/10 text-${healthInfo.color}-300`
+                            : 'border-gray-600/30 bg-gray-500/5 text-gray-400 hover:border-gray-500/50 hover:text-gray-300'
+                        }`}
+                      >
+                        <div className="flex items-center space-x-2">
+                          <div className="text-sm">{healthInfo.icon}</div>
+                          <div>
+                            <div className="text-xs font-medium">{healthInfo.label}</div>
+                            <div className="text-xs opacity-75">{healthInfo.adjustment} sizing</div>
+                          </div>
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
-                
-                <button
-                  onClick={() => {
-                    const suggestedHealth = mapMarketSmithToHealth(marketSmithData.condition);
-                    handleMarketHealthChange(suggestedHealth);
-                  }}
-                  className="w-full px-4 py-2 bg-gradient-to-r from-emerald-500/20 to-cyan-500/20 hover:from-emerald-500/30 hover:to-cyan-500/30 border border-emerald-400/30 hover:border-emerald-400/50 rounded-lg text-sm font-medium text-emerald-300 transition-all duration-300 hover:text-emerald-200 hover:shadow-lg"
-                >
-                  ✨ Apply to Market Health
-                </button>
               </div>
-              
-              {/* Enhanced Arrow */}
-              <div className="absolute -top-2 right-8 w-4 h-4 bg-gradient-to-br from-slate-900/95 to-slate-800/95 border-l border-t border-emerald-400/20 transform rotate-45"></div>
-            </div>
-          </div>
-        ) : marketSmithData.isLoading ? (
-          <div className="flex items-center space-x-2 bg-gradient-to-r from-blue-500/10 to-purple-500/10 backdrop-blur-xl border border-blue-400/30 rounded-xl px-3 py-2">
-            <div className="w-2 h-2 bg-blue-400 rounded-full animate-spin"></div>
-            <div className="text-sm font-medium text-blue-300">Loading MarketSmith...</div>
-          </div>
-        ) : (
-          <div className="group relative">
-            {/* No Data State Card */}
-            <div className="flex items-center space-x-2 bg-gradient-to-r from-gray-500/10 to-slate-500/10 backdrop-blur-xl border border-gray-400/30 rounded-xl px-3 py-2 cursor-pointer transition-all duration-300 hover:border-gray-400/50 hover:shadow-lg hover:shadow-gray-500/20">
-              <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
-              <div className="text-sm font-medium text-gray-300">MarketSmith</div>
-              <div className="text-xs text-gray-500">●</div>
+
+              {/* MarketSmith Status */}
+              {marketSmithData.error && (
+                <div className="p-3 bg-red-500/10 border border-red-400/20 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <div className="text-xs text-red-300">📈 MarketSmith connection failed</div>
+                    <button
+                      onClick={fetchMarketSmithData}
+                      className="text-xs text-red-400 hover:text-red-300 underline"
+                    >
+                      Retry
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {marketSmithData.isLoading && (
+                <div className="p-3 bg-blue-500/10 border border-blue-400/20 rounded-lg">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-2 h-2 bg-blue-400 rounded-full animate-spin"></div>
+                    <div className="text-xs text-blue-300">Loading MarketSmith data...</div>
+                  </div>
+                </div>
+              )}
+
+              {!marketSmithData.condition && !marketSmithData.error && !marketSmithData.isLoading && (
+                <div className="p-3 bg-gray-500/10 border border-gray-400/20 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <div className="text-xs text-gray-400">📈 MarketSmith data not loaded</div>
+                    <button
+                      onClick={fetchMarketSmithData}
+                      className="text-xs text-gray-300 hover:text-white underline"
+                    >
+                      Load
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
             
-            {/* Enhanced No Data Tooltip */}
-            <div className="absolute top-full right-0 mt-3 opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none group-hover:pointer-events-auto z-40 transform translate-y-1 group-hover:translate-y-0">
-              <div className="bg-gradient-to-br from-slate-900/95 to-slate-800/95 backdrop-blur-xl border border-gray-400/20 rounded-2xl p-4 shadow-2xl min-w-64">
-                <div className="flex items-center space-x-2 mb-3">
-                  <div className="w-3 h-3 bg-gray-400 rounded-full"></div>
-                  <div className="text-sm font-semibold text-gray-300">No Data Available</div>
-                </div>
-                <div className="text-xs text-gray-300 mb-4 leading-relaxed">
-                  Load professional market analysis from MarketSmith India to enhance your trading decisions.
-                </div>
-                <button
-                  onClick={fetchMarketSmithData}
-                  className="w-full px-4 py-2 bg-gradient-to-r from-gray-500/20 to-slate-500/20 hover:from-gray-500/30 hover:to-slate-500/30 border border-gray-400/30 hover:border-gray-400/50 rounded-lg text-sm font-medium text-gray-300 transition-all duration-300 hover:text-gray-200 hover:shadow-lg"
-                >
-                  📊 Load Market Data
-                </button>
-              </div>
-              
-              {/* Enhanced Arrow */}
-              <div className="absolute -top-2 right-6 w-4 h-4 bg-gradient-to-br from-slate-900/95 to-slate-800/95 border-l border-t border-gray-400/20 transform rotate-45"></div>
-            </div>
+            {/* Enhanced Arrow */}
+            <div className="absolute -top-2 right-8 w-4 h-4 bg-gradient-to-br from-slate-900/95 to-slate-800/95 border-l border-t border-purple-400/20 transform rotate-45"></div>
           </div>
-        )}
+        </div>
       </div>
 
       {/* Main Content */}
@@ -720,127 +772,6 @@ const TradingCalculator: React.FC = () => {
                 </div>
               </div>
 
-              {/* Market Health Indicator - Collapsible */}
-              <div className="mb-6">
-                <div className="bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-2xl border border-blue-500/30 backdrop-blur-sm overflow-hidden">
-                  {/* Collapsible Header - Always Visible */}
-                  <button
-                    onClick={() => setIsMarketHealthExpanded(!isMarketHealthExpanded)}
-                    className="w-full p-4 flex items-center justify-between hover:bg-blue-500/10 transition-all duration-300"
-                  >
-                    <div className="flex items-center space-x-3">
-                      <div className="text-lg">
-                        {getMarketHealthInfo(formData.marketHealth).icon}
-                      </div>
-                      <div>
-                        <div className="text-sm font-bold text-white text-left">
-                          {getMarketHealthInfo(formData.marketHealth).label}
-                        </div>
-                        <div className="text-xs text-blue-300 text-left">
-                          📊 Market Health - {getMarketHealthInfo(formData.marketHealth).adjustment} sizing
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center space-x-2">
-                      {/* Health Level Indicator */}
-                      <div className="w-16 h-2 bg-gray-700 rounded-full overflow-hidden">
-                        <div
-                          className={`h-full bg-gradient-to-r from-${
-                            getMarketHealthInfo(formData.marketHealth).color
-                          }-500 to-${
-                            getMarketHealthInfo(formData.marketHealth).color
-                          }-400 transition-all duration-1000`}
-                          style={{
-                            width: `${
-                              getMarketHealthInfo(formData.marketHealth).healthLevel
-                            }%`,
-                          }}
-                        ></div>
-                      </div>
-                      
-                      {/* Expand/Collapse Icon */}
-                      <div className={`text-blue-300 transition-transform duration-300 ${
-                        isMarketHealthExpanded ? 'rotate-180' : 'rotate-0'
-                      }`}>
-                        ▼
-                      </div>
-                    </div>
-                  </button>
-
-                  {/* Expandable Content */}
-                  <div className={`transition-all duration-500 ease-in-out ${
-                    isMarketHealthExpanded 
-                      ? 'max-h-96 opacity-100' 
-                      : 'max-h-0 opacity-0'
-                  } overflow-hidden`}>
-                    <div className="p-4 pt-0">
-                      <div className="mb-4 text-xs text-blue-300">
-                        Select market condition for position size adjustment:
-                      </div>
-                      
-                      {/* Market Health Options Grid */}
-                      <div className="grid grid-cols-2 gap-3">
-                        {(
-                          [
-                            'confirmed-uptrend',
-                            'uptrend-under-pressure',
-                            'rally-attempt',
-                            'downtrend',
-                          ] as const
-                        ).map((health) => {
-                          const healthInfo = getMarketHealthInfo(health);
-                          const isSelected = formData.marketHealth === health;
-
-                          return (
-                            <button
-                              key={health}
-                              onClick={() => {
-                                handleMarketHealthChange(health);
-                                setIsMarketHealthExpanded(false); // Auto-collapse after selection
-                              }}
-                              className={`group relative p-3 rounded-xl border-2 transition-all duration-300 hover:scale-105 ${
-                                isSelected
-                                  ? `border-${healthInfo.color}-400 bg-${healthInfo.color}-500/10 shadow-lg shadow-${healthInfo.color}-500/30 text-${healthInfo.color}-300 transform scale-105`
-                                  : `border-gray-500/30 bg-black/30 text-gray-300 hover:border-${healthInfo.color}-400/50 hover:bg-${healthInfo.color}-500/5 hover:text-${healthInfo.color}-300`
-                              }`}
-                            >
-                              {/* Selection Indicator */}
-                              {isSelected && (
-                                <div className="absolute top-1 right-1 w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
-                              )}
-                              
-                              <div className="flex items-center space-x-2">
-                                <div className={`text-lg transition-transform duration-300 ${
-                                  isSelected ? 'animate-bounce' : 'group-hover:scale-110'
-                                }`}>
-                                  {healthInfo.icon}
-                                </div>
-                                
-                                <div className="flex-1 text-left">
-                                  <div className="text-xs font-bold mb-1">
-                                    {healthInfo.label}
-                                  </div>
-                                  <div className="text-xs opacity-75">
-                                    {healthInfo.adjustment} sizing
-                                  </div>
-                                </div>
-                              </div>
-                            </button>
-                          );
-                        })}
-                      </div>
-                      
-                      {/* Current Selection Description */}
-                      <div className="mt-4 p-3 bg-black/40 rounded-lg border border-gray-600/30">
-                        <div className="text-xs text-gray-400">
-                          {getMarketHealthInfo(formData.marketHealth).description}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
 
               {/* Gaming Mode Selector */}
               <div className="mb-6">
