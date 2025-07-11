@@ -578,11 +578,11 @@ const TradingCalculator: React.FC = () => {
       ></div>
 
       {/* Enhanced Market Outlook Command Center */}
-      <div className="absolute top-2 right-6 z-20">
+      <div className="absolute top-3 right-6 z-20">
         <div className="group relative">
           {/* Advanced Market Outlook Display */}
           <div
-            className={`relative flex items-center space-x-3 backdrop-blur-xl border-2 rounded-2xl px-6 py-3 cursor-pointer transition-all duration-500 hover:scale-105 overflow-hidden ${
+            className={`relative flex items-center space-x-3 backdrop-blur-xl border-2 rounded-2xl px-6 py-2 cursor-pointer transition-all duration-500 hover:scale-105 overflow-hidden ${
               getMarketSizingInfo(formData.marketHealth).color === 'emerald'
                 ? 'bg-gradient-to-r from-emerald-500/15 via-cyan-500/10 to-blue-500/15 border-emerald-400/40 hover:border-emerald-400/70 hover:shadow-xl hover:shadow-emerald-500/25'
                 : getMarketSizingInfo(formData.marketHealth).color === 'yellow'
@@ -630,10 +630,10 @@ const TradingCalculator: React.FC = () => {
 
               {/* Market Status Text */}
               <div className="flex items-center space-x-2">
-                <div className="text-lg animate-bounce">
+                <div className="text-lg">
                   {getMarketSizingInfo(formData.marketHealth).icon}
                 </div>
-                <div className="text-sm font-bold text-white tracking-wide">
+                <div className="text-xs font-bold text-white tracking-wide">
                   MARKET OUTLOOK
                 </div>
               </div>
@@ -648,7 +648,7 @@ const TradingCalculator: React.FC = () => {
                 CONDITION
               </div>
               <div
-                className={`text-sm font-bold tracking-wide ${
+                className={`text-xs font-bold tracking-wide ${
                   getMarketSizingInfo(formData.marketHealth).color === 'emerald'
                     ? 'text-emerald-300'
                     : getMarketSizingInfo(formData.marketHealth).color ===
@@ -673,7 +673,7 @@ const TradingCalculator: React.FC = () => {
                 SIZING
               </div>
               <div
-                className={`text-sm font-bold tracking-wide ${
+                className={`text-xs font-bold tracking-wide ${
                   getMarketSizingInfo(formData.marketHealth).adjustment ===
                   'Full'
                     ? 'text-green-300'
@@ -736,32 +736,6 @@ const TradingCalculator: React.FC = () => {
                 <div className="flex items-center justify-between mb-3">
                   <div className="text-xs text-purple-300 font-bold tracking-wider">
                     🎯 CURRENT CONFIGURATION
-                  </div>
-                  <div
-                    className={`text-xs px-3 py-1 rounded-full border font-bold ${
-                      getMarketSizingInfo(formData.marketHealth).color ===
-                      'emerald'
-                        ? 'bg-emerald-500/20 text-emerald-300 border-emerald-400/30'
-                        : getMarketSizingInfo(formData.marketHealth).color ===
-                          'yellow'
-                        ? 'bg-yellow-500/20 text-yellow-300 border-yellow-400/30'
-                        : getMarketSizingInfo(formData.marketHealth).color ===
-                          'orange'
-                        ? 'bg-orange-500/20 text-orange-300 border-orange-400/30'
-                        : 'bg-red-500/20 text-red-300 border-red-400/30'
-                    }`}
-                  >
-                    {getMarketSizingInfo(formData.marketHealth).adjustment ===
-                    'Full'
-                      ? '100%'
-                      : getMarketSizingInfo(formData.marketHealth)
-                          .adjustment === '-25%'
-                      ? '75%'
-                      : getMarketSizingInfo(formData.marketHealth)
-                          .adjustment === '-50%'
-                      ? '50%'
-                      : '25%'}{' '}
-                    SIZING
                   </div>
                 </div>
                 <div className="flex items-center space-x-3">
@@ -891,11 +865,7 @@ const TradingCalculator: React.FC = () => {
                             </div>
                             <div className="text-xs opacity-90 font-medium mb-1">
                               <span className="mr-1">💎</span>
-                              {sizingInfo.adjustment} POWER
-                            </div>
-                            <div className="text-xs opacity-70 flex items-center">
-                              <span className="mr-1">🔥</span>
-                              <span>Battle Ready</span>
+                              {sizingInfo.adjustment} Size
                             </div>
                           </div>
                         </div>
