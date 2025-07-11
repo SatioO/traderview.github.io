@@ -351,11 +351,11 @@ const TradingCalculator: React.FC = () => {
       // Return null if riskPercentage is empty
       if (riskPercentage === '') return null;
 
-      const riskAmount = (accountBalance * riskPercentage) / 100;
+      const baseRiskAmount = (accountBalance * riskPercentage) / 100;
       const riskPerShare = entryPrice - stopLoss;
 
       // Calculate position size WITHOUT considering brokerage (pure calculation)
-      const basePositionSize = Math.floor(riskAmount / riskPerShare);
+      const basePositionSize = Math.floor(baseRiskAmount / riskPerShare);
 
       // Apply market sizing adjustment
       const marketSizingAdjustment = getMarketSizingAdjustment(
@@ -363,6 +363,9 @@ const TradingCalculator: React.FC = () => {
       );
       const adjustedPositionSize = basePositionSize * marketSizingAdjustment;
       const positionSize = Math.max(1, Math.floor(adjustedPositionSize)); // Ensure minimum position size of 1
+      
+      // Calculate adjusted risk amount based on market health sizing
+      const riskAmount = baseRiskAmount * marketSizingAdjustment;
 
       // Calculate brokerage for this position size
       const chargesBreakdown = calculateBrokerage(entryPrice, positionSize);
