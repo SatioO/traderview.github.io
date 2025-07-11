@@ -821,11 +821,14 @@ const TradingCalculator: React.FC = () => {
                 </div>
               )}
 
-              {/* Enhanced Manual Selection Grid */}
-              <div className="mb-5">
-                <div className="text-xs text-gray-400 mb-4 font-bold tracking-wider flex items-center">
-                  <span className="mr-2">⚙️</span>
-                  MANUAL OVERRIDE CONTROLS
+              {/* 🎮 LEGENDARY BATTLE STATIONS 🎮 */}
+              <div className="relative mb-5">
+                <div className="text-xs text-gray-400 mb-4 font-bold tracking-wider flex items-center justify-center">
+                  <span className="mr-2 animate-spin">⚙️</span>
+                  <span className="text-purple-300">
+                    TACTICAL OVERRIDE MATRIX
+                  </span>
+                  <span className="ml-2 animate-spin delay-500">⚙️</span>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   {(
@@ -843,36 +846,56 @@ const TradingCalculator: React.FC = () => {
                       <button
                         key={health}
                         onClick={() => handleMarketSizingChange(health)}
-                        className={`group relative p-3 rounded-xl border-2 transition-all duration-500 text-left overflow-hidden hover:scale-105 ${
+                        className={`group relative p-3 rounded-xl border-2 transition-all duration-500 text-left overflow-hidden hover:scale-105 transform  ${
                           isSelected
-                            ? `border-${sizingInfo.color}-400 bg-${sizingInfo.color}-500/15 text-${sizingInfo.color}-300 shadow-lg shadow-${sizingInfo.color}-500/20`
-                            : 'border-gray-600/30 bg-gray-500/5 text-gray-400 hover:border-gray-500/50 hover:text-gray-300 hover:bg-gray-500/10'
+                            ? `border-${sizingInfo.color}-400 bg-${sizingInfo.color}-500/20 text-${sizingInfo.color}-200 shadow-lg shadow-${sizingInfo.color}-500/30 animate-pulse`
+                            : 'border-gray-600/40 bg-gray-500/10 text-gray-400 hover:border-gray-500/60 hover:text-gray-200 hover:bg-gray-500/20'
                         }`}
                       >
-                        {/* Selection indicator */}
+                        {/* Epic Selection Indicator */}
                         {isSelected && (
-                          <div className="absolute top-2 right-2 w-2 h-2 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full animate-pulse"></div>
+                          <>
+                            <div className="absolute top-1 right-1 w-4 h-4 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full animate-bounce flex items-center justify-center">
+                              <span className="text-xs">👑</span>
+                            </div>
+                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-yellow-400 via-orange-400 to-red-400 animate-pulse"></div>
+                            <div className="absolute bottom-0 right-0 w-full h-1 bg-gradient-to-l from-yellow-400 via-orange-400 to-red-400 animate-pulse delay-500"></div>
+                          </>
                         )}
 
-                        {/* Background animation */}
-                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 animate-pulse"></div>
+                        {/* Epic Background Animation */}
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 animate-pulse"></div>
+                        <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-cyan-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
 
                         <div className="relative flex items-center space-x-3">
-                          <div
-                            className={`text-xl transition-transform duration-300 ${
-                              isSelected
-                                ? 'animate-bounce'
-                                : 'group-hover:scale-110'
-                            }`}
-                          >
-                            {sizingInfo.icon}
+                          <div className="relative">
+                            <div
+                              className={`text-2xl transition-transform duration-300 ${
+                                isSelected
+                                  ? 'animate-bounce'
+                                  : 'group-hover:scale-125 group-hover:rotate-12'
+                              }`}
+                            >
+                              {sizingInfo.icon}
+                            </div>
+                            {isSelected && (
+                              <div className="absolute -top-1 -right-1 w-3 h-3 bg-gradient-to-r from-emerald-400 to-cyan-400 rounded-full animate-ping"></div>
+                            )}
                           </div>
                           <div className="flex-1">
-                            <div className="text-sm font-bold mb-1">
+                            <div className="text-sm font-bold mb-1 flex items-center">
+                              <span className="mr-1">
+                                {isSelected ? '⚡' : '🎯'}
+                              </span>
                               {sizingInfo.label}
                             </div>
-                            <div className="text-xs opacity-80 font-medium">
-                              {sizingInfo.adjustment} sizing
+                            <div className="text-xs opacity-90 font-medium mb-1">
+                              <span className="mr-1">💎</span>
+                              {sizingInfo.adjustment} POWER
+                            </div>
+                            <div className="text-xs opacity-70 flex items-center">
+                              <span className="mr-1">🔥</span>
+                              <span>Battle Ready</span>
                             </div>
                           </div>
                         </div>
