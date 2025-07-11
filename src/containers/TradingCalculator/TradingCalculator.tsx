@@ -75,6 +75,7 @@ const TradingCalculator: React.FC = () => {
           accountBalance: prefs.accountBalance || 1000000,
           marketHealth: prefs.marketHealth || 'confirmed-uptrend',
         }));
+        setActiveTab(prefs.activeTab || 'risk');
       } catch (error) {
         console.error('Error loading preferences:', error);
       }
@@ -462,6 +463,7 @@ const TradingCalculator: React.FC = () => {
     const prefs: Preferences = {
       accountBalance: value,
       marketHealth: formData.marketHealth,
+      activeTab: activeTab,
     };
     localStorage.setItem('accountInfo', JSON.stringify(prefs));
   };
@@ -471,6 +473,7 @@ const TradingCalculator: React.FC = () => {
     const prefs: Preferences = {
       accountBalance: formData.accountBalance,
       marketHealth: health,
+      activeTab: activeTab,
     };
     localStorage.setItem('accountInfo', JSON.stringify(prefs));
   };
@@ -895,7 +898,15 @@ const TradingCalculator: React.FC = () => {
                   </div>
 
                   <button
-                    onClick={() => setActiveTab('risk')}
+                    onClick={() => {
+                      setActiveTab('risk');
+                      const prefs: Preferences = {
+                        accountBalance: formData.accountBalance,
+                        marketHealth: formData.marketHealth,
+                        activeTab: 'risk',
+                      };
+                      localStorage.setItem('accountInfo', JSON.stringify(prefs));
+                    }}
                     className={`group flex-1 py-4 px-3 text-sm font-bold rounded-xl transition-all duration-500 relative overflow-hidden ${
                       activeTab === 'risk'
                         ? 'bg-gradient-to-r from-red-500 to-pink-500 text-white shadow-lg shadow-red-500/30 transform scale-105 border-2 border-red-400/50'
@@ -933,7 +944,15 @@ const TradingCalculator: React.FC = () => {
                   </button>
 
                   <button
-                    onClick={() => setActiveTab('allocation')}
+                    onClick={() => {
+                      setActiveTab('allocation');
+                      const prefs: Preferences = {
+                        accountBalance: formData.accountBalance,
+                        marketHealth: formData.marketHealth,
+                        activeTab: 'allocation',
+                      };
+                      localStorage.setItem('accountInfo', JSON.stringify(prefs));
+                    }}
                     className={`group flex-1 py-4 px-3 text-sm font-bold rounded-xl transition-all duration-500 relative overflow-hidden ${
                       activeTab === 'allocation'
                         ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg shadow-blue-500/30 transform scale-105 border-2 border-blue-400/50'
