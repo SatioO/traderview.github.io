@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Info } from 'lucide-react';
+import { initializeApp } from 'firebase/app';
+import { getAnalytics } from 'firebase/analytics';
 import type {
   FormData,
   Calculations,
@@ -9,6 +11,20 @@ import type {
   TabType,
   MarketHealth,
 } from './types';
+
+const firebaseConfig = {
+  apiKey: 'AIzaSyCgaB_xeab-FEImuUNkTX6oYpdXa48Ztjc',
+  authDomain: 'traderview-d3103.firebaseapp.com',
+  projectId: 'traderview-d3103',
+  storageBucket: 'traderview-d3103.firebasestorage.app',
+  messagingSenderId: '902654818714',
+  appId: '1:902654818714:web:4d462e4247dacb2aa4a223',
+  measurementId: 'G-SPLVKEDZHE',
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+getAnalytics(app);
 
 const TradingCalculator: React.FC = () => {
   const [formData, setFormData] = useState<FormData>({
