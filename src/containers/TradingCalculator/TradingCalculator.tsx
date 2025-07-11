@@ -21,7 +21,6 @@ const TradingCalculator: React.FC = () => {
     allocationPercentage: 10.0,
     marketHealth: 'confirmed-uptrend',
   });
-  const [selectedRiskOption, setSelectedRiskOption] = useState<string>('0.25');
   const [activeTab, setActiveTab] = useState<TabType>('risk');
   const [calculations, setCalculations] = useState<Calculations | null>(null);
   const [warnings, setWarnings] = useState<string[]>([]);
@@ -93,7 +92,6 @@ const TradingCalculator: React.FC = () => {
     } else {
       document.documentElement.classList.remove('dark');
     }
-
   }, []);
 
   // Format currency in INR
@@ -195,37 +193,43 @@ const TradingCalculator: React.FC = () => {
 
   // Fetch MarketSmith market condition
   const fetchMarketSmithData = useCallback(async () => {
-    setMarketSmithData(prev => ({ ...prev, isLoading: true, error: null }));
-    
+    setMarketSmithData((prev) => ({ ...prev, isLoading: true, error: null }));
+
     try {
       // Use a CORS proxy since we're accessing an external site
       const proxyUrl = 'https://api.allorigins.win/raw?url=';
-      const targetUrl = 'https://marketsmithindia.com/mstool/marketconditionhistory.jsp';
-      
-      const response = await fetch(`${proxyUrl}${encodeURIComponent(targetUrl)}`);
-      
+      const targetUrl =
+        'https://marketsmithindia.com/mstool/marketconditionhistory.jsp';
+
+      const response = await fetch(
+        `${proxyUrl}${encodeURIComponent(targetUrl)}`
+      );
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+
       const html = await response.text();
-      
+
       // Parse the HTML to extract market condition
       // Look for market condition data in the page
       const parser = new DOMParser();
       const doc = parser.parseFromString(html, 'text/html');
-      
+
       // Try to find market condition - this may need adjustment based on actual page structure
       let condition = 'Unknown';
       let date = new Date().toLocaleDateString();
-      
+
       // Look for common patterns in MarketSmith pages
       const conditionElements = doc.querySelectorAll('td, span, div');
-      
+
       for (const element of conditionElements) {
         const text = element.textContent?.trim().toLowerCase() || '';
-        
-        if (text.includes('confirmed uptrend') || text.includes('confirmed up-trend')) {
+
+        if (
+          text.includes('confirmed uptrend') ||
+          text.includes('confirmed up-trend')
+        ) {
           condition = 'Confirmed Uptrend';
           break;
         } else if (text.includes('uptrend under pressure')) {
@@ -239,48 +243,57 @@ const TradingCalculator: React.FC = () => {
           break;
         }
       }
-      
+
       // Try to extract date if available
       const datePattern = /\d{1,2}[-/]\d{1,2}[-/]\d{2,4}/;
       const dateMatch = html.match(datePattern);
       if (dateMatch) {
         date = dateMatch[0];
       }
-      
+
       setMarketSmithData({
         condition,
         date,
         isLoading: false,
         error: null,
       });
-      
     } catch (error) {
       console.error('Error fetching MarketSmith data:', error);
-      setMarketSmithData(prev => ({
+      setMarketSmithData((prev) => ({
         ...prev,
         isLoading: false,
-        error: 'Unable to fetch MarketSmith data. Please check your internet connection or try again later.',
+        error:
+          'Unable to fetch MarketSmith data. Please check your internet connection or try again later.',
       }));
     }
   }, []);
 
   // Map MarketSmith condition to our market health
-  const mapMarketSmithToHealth = useCallback((condition: string): MarketHealth => {
-    const lowerCondition = condition.toLowerCase();
-    
-    if (lowerCondition.includes('confirmed uptrend') || lowerCondition.includes('confirmed up-trend')) {
+  const mapMarketSmithToHealth = useCallback(
+    (condition: string): MarketHealth => {
+      const lowerCondition = condition.toLowerCase();
+
+      if (
+        lowerCondition.includes('confirmed uptrend') ||
+        lowerCondition.includes('confirmed up-trend')
+      ) {
+        return 'confirmed-uptrend';
+      } else if (lowerCondition.includes('uptrend under pressure')) {
+        return 'uptrend-under-pressure';
+      } else if (lowerCondition.includes('rally attempt')) {
+        return 'rally-attempt';
+      } else if (
+        lowerCondition.includes('downtrend') ||
+        lowerCondition.includes('down trend')
+      ) {
+        return 'downtrend';
+      }
+
+      // Default to confirmed uptrend if unknown
       return 'confirmed-uptrend';
-    } else if (lowerCondition.includes('uptrend under pressure')) {
-      return 'uptrend-under-pressure';
-    } else if (lowerCondition.includes('rally attempt')) {
-      return 'rally-attempt';
-    } else if (lowerCondition.includes('downtrend') || lowerCondition.includes('down trend')) {
-      return 'downtrend';
-    }
-    
-    // Default to confirmed uptrend if unknown
-    return 'confirmed-uptrend';
-  }, []);
+    },
+    []
+  );
 
   // Auto-fetch MarketSmith data on mount
   useEffect(() => {
@@ -565,22 +578,31 @@ const TradingCalculator: React.FC = () => {
       <div className="absolute top-4 right-6 z-20">
         <div className="group relative">
           {/* Current Market Outlook Display */}
-          <div className={`flex items-center space-x-3 backdrop-blur-xl border rounded-xl px-4 py-2 cursor-pointer transition-all duration-300 hover:scale-105 ${
-            getMarketHealthInfo(formData.marketHealth).color === 'emerald' 
-              ? 'bg-gradient-to-r from-emerald-500/10 via-cyan-500/10 to-blue-500/10 border-emerald-400/30 hover:border-emerald-400/50 hover:shadow-lg hover:shadow-emerald-500/20'
-              : getMarketHealthInfo(formData.marketHealth).color === 'yellow'
-              ? 'bg-gradient-to-r from-yellow-500/10 via-orange-500/10 to-amber-500/10 border-yellow-400/30 hover:border-yellow-400/50 hover:shadow-lg hover:shadow-yellow-500/20'
-              : getMarketHealthInfo(formData.marketHealth).color === 'orange'
-              ? 'bg-gradient-to-r from-orange-500/10 via-red-500/10 to-pink-500/10 border-orange-400/30 hover:border-orange-400/50 hover:shadow-lg hover:shadow-orange-500/20'
-              : 'bg-gradient-to-r from-red-500/10 via-rose-500/10 to-pink-500/10 border-red-400/30 hover:border-red-400/50 hover:shadow-lg hover:shadow-red-500/20'
-          }`}>
+          <div
+            className={`flex items-center space-x-3 backdrop-blur-xl border rounded-xl px-4 py-2 cursor-pointer transition-all duration-300 hover:scale-105 ${
+              getMarketHealthInfo(formData.marketHealth).color === 'emerald'
+                ? 'bg-gradient-to-r from-emerald-500/10 via-cyan-500/10 to-blue-500/10 border-emerald-400/30 hover:border-emerald-400/50 hover:shadow-lg hover:shadow-emerald-500/20'
+                : getMarketHealthInfo(formData.marketHealth).color === 'yellow'
+                ? 'bg-gradient-to-r from-yellow-500/10 via-orange-500/10 to-amber-500/10 border-yellow-400/30 hover:border-yellow-400/50 hover:shadow-lg hover:shadow-yellow-500/20'
+                : getMarketHealthInfo(formData.marketHealth).color === 'orange'
+                ? 'bg-gradient-to-r from-orange-500/10 via-red-500/10 to-pink-500/10 border-orange-400/30 hover:border-orange-400/50 hover:shadow-lg hover:shadow-orange-500/20'
+                : 'bg-gradient-to-r from-red-500/10 via-rose-500/10 to-pink-500/10 border-red-400/30 hover:border-red-400/50 hover:shadow-lg hover:shadow-red-500/20'
+            }`}
+          >
             <div className="flex items-center space-x-2">
-              <div className={`w-2 h-2 rounded-full animate-pulse ${
-                getMarketHealthInfo(formData.marketHealth).color === 'emerald' ? 'bg-emerald-400' :
-                getMarketHealthInfo(formData.marketHealth).color === 'yellow' ? 'bg-yellow-400' :
-                getMarketHealthInfo(formData.marketHealth).color === 'orange' ? 'bg-orange-400' :
-                'bg-red-400'
-              }`}></div>
+              <div
+                className={`w-2 h-2 rounded-full animate-pulse ${
+                  getMarketHealthInfo(formData.marketHealth).color === 'emerald'
+                    ? 'bg-emerald-400'
+                    : getMarketHealthInfo(formData.marketHealth).color ===
+                      'yellow'
+                    ? 'bg-yellow-400'
+                    : getMarketHealthInfo(formData.marketHealth).color ===
+                      'orange'
+                    ? 'bg-orange-400'
+                    : 'bg-red-400'
+                }`}
+              ></div>
               <div className="text-sm font-medium text-white">
                 {getMarketHealthInfo(formData.marketHealth).icon} Market Outlook
               </div>
@@ -594,54 +616,79 @@ const TradingCalculator: React.FC = () => {
               {getMarketHealthInfo(formData.marketHealth).adjustment} sizing
             </div>
           </div>
-          
+
           {/* Enhanced Unified Tooltip */}
           <div className="absolute top-full right-0 mt-0 opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none group-hover:pointer-events-auto z-40 transform translate-y-1 group-hover:translate-y-0">
             <div className="bg-gradient-to-br from-slate-900/95 to-slate-800/95 backdrop-blur-xl border border-purple-400/20 rounded-2xl p-5 shadow-2xl min-w-80">
-              
               {/* Header */}
               <div className="flex items-center space-x-3 mb-4">
                 <div className="w-8 h-8 bg-gradient-to-r from-purple-400 to-blue-400 rounded-lg flex items-center justify-center">
                   <span className="text-sm">📊</span>
                 </div>
                 <div>
-                  <div className="text-sm font-semibold text-purple-300">Market Outlook Control</div>
-                  <div className="text-xs text-gray-400">Position Sizing Strategy</div>
+                  <div className="text-sm font-semibold text-purple-300">
+                    Market Outlook Control
+                  </div>
+                  <div className="text-xs text-gray-400">
+                    Position Sizing Strategy
+                  </div>
                 </div>
               </div>
-              
+
               {/* Current Setting */}
               <div className="mb-4 p-3 bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-purple-400/20 rounded-lg">
                 <div className="flex items-center justify-between mb-2">
-                  <div className="text-xs text-purple-300 font-medium">CURRENT SETTING</div>
-                  <div className={`text-xs px-2 py-1 rounded-full ${
-                    getMarketHealthInfo(formData.marketHealth).color === 'emerald' ? 'bg-emerald-500/20 text-emerald-300' :
-                    getMarketHealthInfo(formData.marketHealth).color === 'yellow' ? 'bg-yellow-500/20 text-yellow-300' :
-                    getMarketHealthInfo(formData.marketHealth).color === 'orange' ? 'bg-orange-500/20 text-orange-300' :
-                    'bg-red-500/20 text-red-300'
-                  }`}>
-                    {getMarketHealthInfo(formData.marketHealth).adjustment} sizing
+                  <div className="text-xs text-purple-300 font-medium">
+                    CURRENT SETTING
+                  </div>
+                  <div
+                    className={`text-xs px-2 py-1 rounded-full ${
+                      getMarketHealthInfo(formData.marketHealth).color ===
+                      'emerald'
+                        ? 'bg-emerald-500/20 text-emerald-300'
+                        : getMarketHealthInfo(formData.marketHealth).color ===
+                          'yellow'
+                        ? 'bg-yellow-500/20 text-yellow-300'
+                        : getMarketHealthInfo(formData.marketHealth).color ===
+                          'orange'
+                        ? 'bg-orange-500/20 text-orange-300'
+                        : 'bg-red-500/20 text-red-300'
+                    }`}
+                  >
+                    {getMarketHealthInfo(formData.marketHealth).adjustment}{' '}
+                    sizing
                   </div>
                 </div>
-                <div className="text-sm font-medium text-white">{getMarketHealthInfo(formData.marketHealth).label}</div>
+                <div className="text-sm font-medium text-white">
+                  {getMarketHealthInfo(formData.marketHealth).label}
+                </div>
               </div>
 
               {/* MarketSmith Comparison */}
               {marketSmithData.condition && (
                 <div className="mb-4 p-3 bg-gradient-to-r from-emerald-500/10 to-cyan-500/10 border border-emerald-400/20 rounded-lg">
                   <div className="flex items-center justify-between mb-2">
-                    <div className="text-xs text-emerald-300 font-medium">MARKETSMITH SUGGESTS</div>
+                    <div className="text-xs text-emerald-300 font-medium">
+                      MARKETSMITH SUGGESTS
+                    </div>
                     <div className="flex items-center space-x-1">
                       <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
-                      <div className="text-xs text-gray-400">{marketSmithData.date}</div>
+                      <div className="text-xs text-gray-400">
+                        {marketSmithData.date}
+                      </div>
                     </div>
                   </div>
                   <div className="flex items-center justify-between">
-                    <div className="text-sm font-medium text-white">{marketSmithData.condition}</div>
-                    {mapMarketSmithToHealth(marketSmithData.condition) !== formData.marketHealth && (
+                    <div className="text-sm font-medium text-white">
+                      {marketSmithData.condition}
+                    </div>
+                    {mapMarketSmithToHealth(marketSmithData.condition) !==
+                      formData.marketHealth && (
                       <button
                         onClick={() => {
-                          const suggestedHealth = mapMarketSmithToHealth(marketSmithData.condition);
+                          const suggestedHealth = mapMarketSmithToHealth(
+                            marketSmithData.condition
+                          );
                           handleMarketHealthChange(suggestedHealth);
                         }}
                         className="px-3 py-1 bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/30 hover:border-emerald-400/50 rounded text-xs font-medium text-emerald-300 transition-all duration-300"
@@ -650,20 +697,32 @@ const TradingCalculator: React.FC = () => {
                       </button>
                     )}
                   </div>
-                  {mapMarketSmithToHealth(marketSmithData.condition) === formData.marketHealth && (
-                    <div className="mt-2 text-xs text-emerald-400">✅ Already applied</div>
+                  {mapMarketSmithToHealth(marketSmithData.condition) ===
+                    formData.marketHealth && (
+                    <div className="mt-2 text-xs text-emerald-400">
+                      ✅ Already applied
+                    </div>
                   )}
                 </div>
               )}
 
               {/* Manual Selection Grid */}
               <div className="mb-4">
-                <div className="text-xs text-gray-400 mb-3 font-medium">MANUAL OVERRIDE</div>
+                <div className="text-xs text-gray-400 mb-3 font-medium">
+                  MANUAL OVERRIDE
+                </div>
                 <div className="grid grid-cols-2 gap-2">
-                  {(['confirmed-uptrend', 'uptrend-under-pressure', 'rally-attempt', 'downtrend'] as const).map((health) => {
+                  {(
+                    [
+                      'confirmed-uptrend',
+                      'uptrend-under-pressure',
+                      'rally-attempt',
+                      'downtrend',
+                    ] as const
+                  ).map((health) => {
                     const healthInfo = getMarketHealthInfo(health);
                     const isSelected = formData.marketHealth === health;
-                    
+
                     return (
                       <button
                         key={health}
@@ -677,8 +736,12 @@ const TradingCalculator: React.FC = () => {
                         <div className="flex items-center space-x-2">
                           <div className="text-sm">{healthInfo.icon}</div>
                           <div>
-                            <div className="text-xs font-medium">{healthInfo.label}</div>
-                            <div className="text-xs opacity-75">{healthInfo.adjustment} sizing</div>
+                            <div className="text-xs font-medium">
+                              {healthInfo.label}
+                            </div>
+                            <div className="text-xs opacity-75">
+                              {healthInfo.adjustment} sizing
+                            </div>
                           </div>
                         </div>
                       </button>
@@ -691,7 +754,9 @@ const TradingCalculator: React.FC = () => {
               {marketSmithData.error && (
                 <div className="p-3 bg-red-500/10 border border-red-400/20 rounded-lg">
                   <div className="flex items-center justify-between">
-                    <div className="text-xs text-red-300">📈 MarketSmith connection failed</div>
+                    <div className="text-xs text-red-300">
+                      📈 MarketSmith connection failed
+                    </div>
                     <button
                       onClick={fetchMarketSmithData}
                       className="text-xs text-red-400 hover:text-red-300 underline"
@@ -706,26 +771,32 @@ const TradingCalculator: React.FC = () => {
                 <div className="p-3 bg-blue-500/10 border border-blue-400/20 rounded-lg">
                   <div className="flex items-center space-x-2">
                     <div className="w-2 h-2 bg-blue-400 rounded-full animate-spin"></div>
-                    <div className="text-xs text-blue-300">Loading MarketSmith data...</div>
+                    <div className="text-xs text-blue-300">
+                      Loading MarketSmith data...
+                    </div>
                   </div>
                 </div>
               )}
 
-              {!marketSmithData.condition && !marketSmithData.error && !marketSmithData.isLoading && (
-                <div className="p-3 bg-gray-500/10 border border-gray-400/20 rounded-lg">
-                  <div className="flex items-center justify-between">
-                    <div className="text-xs text-gray-400">📈 MarketSmith data not loaded</div>
-                    <button
-                      onClick={fetchMarketSmithData}
-                      className="text-xs text-gray-300 hover:text-white underline"
-                    >
-                      Load
-                    </button>
+              {!marketSmithData.condition &&
+                !marketSmithData.error &&
+                !marketSmithData.isLoading && (
+                  <div className="p-3 bg-gray-500/10 border border-gray-400/20 rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <div className="text-xs text-gray-400">
+                        📈 MarketSmith data not loaded
+                      </div>
+                      <button
+                        onClick={fetchMarketSmithData}
+                        className="text-xs text-gray-300 hover:text-white underline"
+                      >
+                        Load
+                      </button>
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
             </div>
-            
+
             {/* Enhanced Arrow */}
             <div className="absolute -top-2 right-8 w-4 h-4 bg-gradient-to-br from-slate-900/95 to-slate-800/95 border-l border-t border-purple-400/20 transform rotate-45"></div>
           </div>
@@ -738,14 +809,60 @@ const TradingCalculator: React.FC = () => {
           {/* Gaming Control Panel */}
           <div className="lg:col-span-1">
             <div className="bg-black/40 backdrop-blur-xl rounded-3xl p-6 shadow-2xl border border-cyan-500/30 sticky top-8 hover:border-cyan-400/50 transition-all duration-500 hover:shadow-cyan-500/20 hover:shadow-2xl">
-              {/* Gaming Wallet Display */}
+              {/* Enhanced Gaming Wallet Display */}
               <div className="mb-6">
-                <div className="bg-gradient-to-r from-emerald-500/20 to-green-500/20 rounded-2xl p-4 border border-emerald-500/30 backdrop-blur-sm">
+                <div className="group relative bg-gradient-to-br from-emerald-500/20 via-green-500/20 to-teal-500/20 rounded-2xl p-4 border border-emerald-500/30 backdrop-blur-sm hover:border-emerald-400/50 transition-all duration-500 overflow-hidden">
+                  {/* Animated background particles */}
+                  <div className="absolute inset-0 overflow-hidden">
+                    <div className="absolute top-2 left-4 w-1 h-1 bg-emerald-400 rounded-full animate-ping opacity-60"></div>
+                    <div className="absolute top-8 right-6 w-1 h-1 bg-green-400 rounded-full animate-ping opacity-40 delay-1000"></div>
+                    <div className="absolute bottom-6 left-8 w-1 h-1 bg-teal-400 rounded-full animate-ping opacity-50 delay-2000"></div>
+                  </div>
+
+                  {/* Wallet Health Meter */}
+                  <div className="absolute top-3 right-3 flex items-center space-x-1">
+                    <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
+                    <div className="text-xs text-emerald-300 font-bold">
+                      ACTIVE
+                    </div>
+                  </div>
+
                   <div className="relative">
-                    <label className="block text-sm font-medium text-emerald-300 mb-2">
+                    <label className="block text-sm font-medium text-emerald-300 mb-2 flex items-center">
+                      <span className="mr-2">💳</span>
                       Trading Capital
-                      <Info className="inline w-4 h-4 ml-1 text-emerald-400 cursor-help" />
+                      <Info className="inline w-4 h-4 ml-2 text-emerald-400 cursor-help" />
                     </label>
+
+                    {/* Capital Power Gauge */}
+                    <div className="mb-3">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs text-emerald-300">
+                          POWER LEVEL
+                        </span>
+                        <span className="text-xs text-emerald-400 font-bold">
+                          {formData.accountBalance >= 10000000
+                            ? 'ELITE'
+                            : formData.accountBalance >= 1000000
+                            ? 'ADVANCED'
+                            : formData.accountBalance >= 100000
+                            ? 'INTERMEDIATE'
+                            : 'BEGINNER'}
+                        </span>
+                      </div>
+                      <div className="h-2 bg-black/40 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-gradient-to-r from-emerald-400 via-green-400 to-teal-400 rounded-full transition-all duration-1000 ease-out"
+                          style={{
+                            width: `${Math.min(
+                              (formData.accountBalance / 10000000) * 100,
+                              100
+                            )}%`,
+                          }}
+                        ></div>
+                      </div>
+                    </div>
+
                     <div className="relative">
                       <input
                         type="number"
@@ -753,15 +870,15 @@ const TradingCalculator: React.FC = () => {
                         onChange={(e) =>
                           handleAccountBalanceChange(parseFloat(e.target.value))
                         }
-                        className="w-full px-4 py-3 pl-10 bg-black/30 border-2 border-emerald-500/50 rounded-xl focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20 text-white placeholder-emerald-300/50 font-mono text-lg transition-all duration-300 focus:shadow-lg focus:shadow-emerald-500/20"
+                        className="w-full px-4 py-3 pl-10 bg-black/30 border-2 border-emerald-500/50 rounded-xl focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20 text-white placeholder-emerald-300/50 font-mono text-lg transition-all duration-300 focus:shadow-lg focus:shadow-emerald-500/20 group-hover:border-emerald-400/70"
                         min="0"
                         step="10000"
                         placeholder="Enter credits..."
                       />
-                      <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-emerald-400">
+                      <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-emerald-400 animate-pulse">
                         ₹
                       </div>
-                      <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-emerald-400 text-sm">
+                      <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-emerald-400 text-sm font-bold">
                         {formatCurrencyWithSuffix(formData.accountBalance)}
                       </div>
                     </div>
@@ -769,42 +886,87 @@ const TradingCalculator: React.FC = () => {
                 </div>
               </div>
 
-
-              {/* Gaming Mode Selector */}
+              {/* Enhanced Gaming Mode Selector */}
               <div className="mb-6">
-                <div className="flex space-x-3 bg-black/30 p-2 rounded-2xl backdrop-blur-sm border border-purple-500/30">
+                <div className="relative flex space-x-3 bg-black/30 p-2 rounded-2xl backdrop-blur-sm border border-purple-500/30 overflow-hidden">
+                  {/* Mode switching particle trail */}
+                  <div className="absolute inset-0 overflow-hidden">
+                    <div className="absolute top-1/2 left-1/2 w-32 h-32 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-full blur-xl animate-pulse transform -translate-x-1/2 -translate-y-1/2"></div>
+                  </div>
+
                   <button
                     onClick={() => setActiveTab('risk')}
-                    className={`flex-1 py-4 px-3 text-sm font-bold rounded-xl transition-all duration-500 relative overflow-hidden ${
+                    className={`group flex-1 py-4 px-3 text-sm font-bold rounded-xl transition-all duration-500 relative overflow-hidden ${
                       activeTab === 'risk'
                         ? 'bg-gradient-to-r from-red-500 to-pink-500 text-white shadow-lg shadow-red-500/30 transform scale-105 border-2 border-red-400/50'
                         : 'text-purple-300 hover:bg-purple-500/20 hover:text-white hover:scale-102 border-2 border-transparent hover:border-purple-400/30'
                     }`}
                   >
+                    {/* Achievement badge */}
+                    {activeTab === 'risk' && (
+                      <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full flex items-center justify-center">
+                        <span className="text-xs">🏆</span>
+                      </div>
+                    )}
+
                     <div className="relative z-10 flex flex-col items-center">
-                      <span className="text-lg mb-1">⚡</span>
+                      <span
+                        className={`text-lg mb-1 transition-transform duration-300 ${
+                          activeTab === 'risk'
+                            ? 'animate-bounce'
+                            : 'group-hover:scale-110'
+                        }`}
+                      >
+                        ⚡
+                      </span>
                       <span>RISK MODE</span>
                       <span className="text-xs opacity-80">High Stakes</span>
                     </div>
+
+                    {/* Enhanced background effects */}
                     {activeTab === 'risk' && (
-                      <div className="absolute inset-0 bg-gradient-to-r from-red-600 to-pink-600 opacity-20 animate-pulse"></div>
+                      <>
+                        <div className="absolute inset-0 bg-gradient-to-r from-red-600 to-pink-600 opacity-20 animate-pulse"></div>
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-pulse"></div>
+                      </>
                     )}
                   </button>
+
                   <button
                     onClick={() => setActiveTab('allocation')}
-                    className={`flex-1 py-4 px-3 text-sm font-bold rounded-xl transition-all duration-500 relative overflow-hidden ${
+                    className={`group flex-1 py-4 px-3 text-sm font-bold rounded-xl transition-all duration-500 relative overflow-hidden ${
                       activeTab === 'allocation'
                         ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg shadow-blue-500/30 transform scale-105 border-2 border-blue-400/50'
                         : 'text-purple-300 hover:bg-purple-500/20 hover:text-white hover:scale-102 border-2 border-transparent hover:border-purple-400/30'
                     }`}
                   >
+                    {/* Achievement badge */}
+                    {activeTab === 'allocation' && (
+                      <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-r from-blue-400 to-cyan-400 rounded-full flex items-center justify-center">
+                        <span className="text-xs">🎯</span>
+                      </div>
+                    )}
+
                     <div className="relative z-10 flex flex-col items-center">
-                      <span className="text-lg mb-1">🎯</span>
+                      <span
+                        className={`text-lg mb-1 transition-transform duration-300 ${
+                          activeTab === 'allocation'
+                            ? 'animate-bounce'
+                            : 'group-hover:scale-110'
+                        }`}
+                      >
+                        🎯
+                      </span>
                       <span>ALLOCATION MODE</span>
                       <span className="text-xs opacity-80">Strategic</span>
                     </div>
+
+                    {/* Enhanced background effects */}
                     {activeTab === 'allocation' && (
-                      <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-cyan-600 opacity-20 animate-pulse"></div>
+                      <>
+                        <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-cyan-600 opacity-20 animate-pulse"></div>
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-pulse"></div>
+                      </>
                     )}
                   </button>
                 </div>
@@ -812,47 +974,89 @@ const TradingCalculator: React.FC = () => {
 
               {/* Gaming Battle Setup */}
               <div className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-2xl p-4 border border-purple-500/30 backdrop-blur-sm">
-                {/* Risk-Based Sizing Tab */}
+                {/* Enhanced Risk-Based Sizing Tab */}
                 {activeTab === 'risk' && (
-                  <div>
-                    <label className="block text-sm font-medium text-purple-300 mb-3">
-                      ⚡ Risk Level
-                      <Info
-                        className="inline w-4 h-4 ml-1 text-purple-400 cursor-help"
-                        xlinkTitle="Strategic allocation of your portfolio to this trade"
-                      />
-                    </label>
+                  <div className="relative overflow-hidden">
+                    {/* Risk Level Header with Dynamic Meter */}
+                    <div className="flex items-center justify-between mb-4">
+                      <label className="text-sm font-medium text-purple-300 flex items-center">
+                        <span className="mr-2">⚡</span>
+                        Risk Level
+                        <Info
+                          className="inline w-4 h-4 ml-2 text-purple-400 cursor-help"
+                          xlinkTitle="Strategic allocation of your portfolio to this trade"
+                        />
+                      </label>
 
-                    {/* Gaming Risk Level Buttons */}
-                    <div className="grid grid-cols-5 gap-2 mb-4">
+                      {/* Real-time Risk Meter */}
+                      <div className="flex items-center space-x-4">
+                        <div className="text-xs text-purple-300">
+                          THREAT LEVEL
+                        </div>
+                        <div className="relative w-16 h-2 bg-black/40 rounded-full overflow-hidden">
+                          <div
+                            className="absolute left-0 top-0 h-full bg-gradient-to-r from-green-400 via-yellow-400 to-red-400 rounded-full transition-all duration-500"
+                            style={{
+                              width: `${Math.min(
+                                ((Number(formData.riskPercentage) || 0) * 100) /
+                                  3,
+                                100
+                              )}%`,
+                            }}
+                          ></div>
+                        </div>
+                        <div
+                          className={`text-xs font-bold ${
+                            (Number(formData.riskPercentage) || 0) >= 3
+                              ? 'text-red-400 animate-pulse'
+                              : (Number(formData.riskPercentage) || 0) > 2
+                              ? 'text-orange-400'
+                              : (Number(formData.riskPercentage) || 0) > 1
+                              ? 'text-yellow-400'
+                              : 'text-green-400'
+                          }`}
+                        >
+                          {(Number(formData.riskPercentage) || 0) >= 3
+                            ? 'EXTREME'
+                            : (Number(formData.riskPercentage) || 0) > 2
+                            ? 'HIGH'
+                            : (Number(formData.riskPercentage) || 0) > 1
+                            ? 'MED'
+                            : 'LOW'}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Enhanced Gaming Risk Level Buttons */}
+                    <div className="grid grid-cols-4 gap-2 mb-4 p-2">
                       {[0.25, 0.5, 0.75, 1].map((option, index) => {
                         const riskIcons = ['🌱', '🔥', '⚡', '💀'];
-                        const riskLabels = [
-                          'SAFE',
-                          'MODERATE',
-                          'AGGRESSIVE',
-                          'EXTREME',
-                        ];
+
                         const riskColors = [
                           'emerald',
                           'yellow',
                           'orange',
                           'red',
                         ];
+                        const riskDescriptions = [
+                          'Conservative play',
+                          'Balanced approach',
+                          'Bold strategy',
+                          'Maximum risk',
+                        ];
                         const isSelected =
-                          selectedRiskOption === option.toString();
+                          Number(formData.riskPercentage) === option;
 
                         return (
                           <button
                             key={option}
                             onClick={() => {
-                              setSelectedRiskOption(option.toString());
                               handleInputChange(
                                 'riskPercentage',
                                 option.toString()
                               );
                             }}
-                            className={`group relative py-4 px-2 text-xs font-bold rounded-xl border-2 transition-all duration-500 hover:scale-105 ${
+                            className={`group relative py-4 px-2 text-xs font-bold rounded-xl border-2 transition-all duration-500 hover:scale-105 overflow-hidden ${
                               isSelected
                                 ? `border-${riskColors[index]}-400 bg-${riskColors[index]}-500/10 shadow-lg shadow-${riskColors[index]}-500/30 text-${riskColors[index]}-300 transform scale-105`
                                 : `border-purple-500/30 bg-black/30 text-purple-300 hover:border-${riskColors[index]}-400/50 hover:bg-${riskColors[index]}-500/5 hover:text-${riskColors[index]}-300`
@@ -865,144 +1069,324 @@ const TradingCalculator: React.FC = () => {
                               ></div>
                             )}
 
+                            {/* Achievement unlock effect */}
+                            {isSelected && (
+                              <div className="absolute top-1 right-1 w-3 h-3 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full animate-ping"></div>
+                            )}
+
                             <div className="relative z-10 flex flex-col items-center">
-                              {/* Icon with bounce animation */}
+                              {/* Icon with enhanced animations */}
                               <div
                                 className={`text-lg mb-1 transition-transform duration-300 ${
                                   isSelected
                                     ? 'animate-bounce'
-                                    : 'group-hover:scale-110'
+                                    : 'group-hover:scale-110 group-hover:rotate-12'
                                 }`}
                               >
                                 {riskIcons[index]}
                               </div>
 
-                              {/* Percentage */}
-                              <div className="text-sm font-bold mb-1">
+                              {/* Percentage with power level effect */}
+                              <div
+                                className={`text-sm font-bold mb-1 ${
+                                  isSelected ? 'animate-pulse' : ''
+                                }`}
+                              >
                                 {option}%
                               </div>
 
-                              {/* Risk level label */}
-                              <div className="text-xs opacity-75 font-medium">
-                                {riskLabels[index]}
+                              {/* Tooltip description */}
+                              <div className="text-xs opacity-60 text-center leading-tight">
+                                {riskDescriptions[index]}
                               </div>
                             </div>
 
-                            {/* Subtle background pulse for selected state */}
+                            {/* Enhanced background effects */}
                             {isSelected && (
-                              <div
-                                className={`absolute inset-0 bg-gradient-to-r from-${riskColors[index]}-600/5 to-${riskColors[index]}-500/5 rounded-xl animate-pulse`}
-                              ></div>
+                              <>
+                                <div
+                                  className={`absolute inset-0 bg-gradient-to-r from-${riskColors[index]}-600/5 to-${riskColors[index]}-500/5 rounded-xl animate-pulse`}
+                                ></div>
+                                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-pulse"></div>
+                              </>
                             )}
                           </button>
                         );
                       })}
-
-                      {/* Custom Option */}
-                      <button
-                        onClick={() => {
-                          setSelectedRiskOption('custom');
-                          if (
-                            formData.riskPercentage === '' ||
-                            [0.25, 0.5, 0.75, 1].includes(
-                              Number(formData.riskPercentage)
-                            )
-                          ) {
-                            handleInputChange('riskPercentage', '');
-                          }
-                        }}
-                        className={`group relative py-4 px-2 text-xs font-bold rounded-xl border-2 transition-all duration-500 hover:scale-105 ${
-                          selectedRiskOption === 'custom'
-                            ? 'border-cyan-400 bg-cyan-500/10 shadow-lg shadow-cyan-500/30 text-cyan-300 transform scale-105'
-                            : 'border-purple-500/30 bg-black/30 text-purple-300 hover:border-cyan-400/50 hover:bg-cyan-500/5 hover:text-cyan-300'
-                        }`}
-                      >
-                        {/* Animated border glow for selected state */}
-                        {selectedRiskOption === 'custom' && (
-                          <div className="absolute inset-0 rounded-xl border-2 border-cyan-400 animate-pulse"></div>
-                        )}
-
-                        <div className="relative z-10 flex flex-col items-center">
-                          {/* Icon with rotation animation */}
-                          <div
-                            className={`text-lg mb-1 transition-transform duration-500 ${
-                              selectedRiskOption === 'custom'
-                                ? 'animate-spin'
-                                : 'group-hover:rotate-12'
-                            }`}
-                          >
-                            ⚙️
-                          </div>
-
-                          {/* Label */}
-                          <div className="text-xs font-bold mb-1">CUSTOM</div>
-
-                          {/* Subtitle */}
-                          <div className="text-xs opacity-75 font-medium">
-                            MANUAL
-                          </div>
-                        </div>
-
-                        {/* Subtle background pulse for selected state */}
-                        {selectedRiskOption === 'custom' && (
-                          <div className="absolute inset-0 bg-gradient-to-r from-cyan-600/5 to-blue-600/5 rounded-xl animate-pulse"></div>
-                        )}
-                      </button>
                     </div>
 
-                    {/* Custom Input Field */}
-                    {selectedRiskOption === 'custom' && (
-                      <div className="animate-fadeIn">
-                        <input
-                          type="number"
-                          value={
-                            formData.riskPercentage === ''
-                              ? ''
-                              : formData.riskPercentage
-                          }
-                          onChange={(e) => {
-                            handleInputChange('riskPercentage', e.target.value);
-                          }}
-                          className="w-full px-4 py-3 bg-black/40 border-2 border-cyan-500/50 rounded-xl focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 text-white placeholder-cyan-300/50 font-mono transition-all duration-300 focus:shadow-lg focus:shadow-cyan-500/20"
-                          min="0.25"
-                          max="10"
-                          step="0.25"
-                          placeholder="Enter custom risk %..."
-                        />
-                      </div>
-                    )}
+                    {/* Enhanced Input Field - Always Visible */}
+                    <div className="relative">
+                      <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-xl blur-sm"></div>
+                      <input
+                        type="number"
+                        value={
+                          formData.riskPercentage === ''
+                            ? ''
+                            : formData.riskPercentage
+                        }
+                        onChange={(e) => {
+                          handleInputChange('riskPercentage', e.target.value);
+                        }}
+                        className="relative w-full px-4 py-3 bg-black/40 border-2 border-purple-500/50 rounded-xl focus:border-purple-400 focus:ring-2 focus:ring-purple-400/20 text-white placeholder-purple-300/50 font-mono text-lg transition-all duration-300 focus:shadow-lg focus:shadow-purple-500/20"
+                        min="0.25"
+                        max="10"
+                        step="0.25"
+                        placeholder="Enter risk %..."
+                      />
+                    </div>
+
+                    {/* Risk Assessment - Always Visible */}
+                    {formData.riskPercentage !== '' &&
+                      Number(formData.riskPercentage) > 0 && (
+                        <div className="mt-4 p-3 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-xl border border-purple-500/20">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-xs text-purple-300">
+                              Risk Assessment:
+                            </span>
+                            <span className="text-xs text-purple-400 font-bold">
+                              {formatCurrency(
+                                (formData.accountBalance *
+                                  (Number(formData.riskPercentage) || 0)) /
+                                  100
+                              )}{' '}
+                              at risk
+                            </span>
+                          </div>
+
+                          {/* Visual risk level representation */}
+                          <div className="flex items-center space-x-2">
+                            <div className="w-16 h-3 bg-gray-700 rounded-full overflow-hidden">
+                              <div
+                                className={`h-full transition-all duration-500 ${
+                                  Number(formData.riskPercentage) >= 3
+                                    ? 'bg-gradient-to-r from-red-500 to-red-700 animate-pulse'
+                                    : Number(formData.riskPercentage) > 2
+                                    ? 'bg-gradient-to-r from-orange-400 to-red-400'
+                                    : Number(formData.riskPercentage) > 1
+                                    ? 'bg-gradient-to-r from-yellow-400 to-orange-400'
+                                    : 'bg-gradient-to-r from-green-400 to-emerald-400'
+                                }`}
+                                style={{
+                                  width: `${Math.min(
+                                    (Number(formData.riskPercentage) * 100) / 3,
+                                    100
+                                  )}%`,
+                                }}
+                              ></div>
+                            </div>
+                            <div
+                              className={`text-xs font-bold ${
+                                Number(formData.riskPercentage) >= 3
+                                  ? 'text-red-400 animate-pulse'
+                                  : Number(formData.riskPercentage) > 2
+                                  ? 'text-orange-400'
+                                  : Number(formData.riskPercentage) > 1
+                                  ? 'text-yellow-400'
+                                  : 'text-green-400'
+                              }`}
+                            >
+                              {Number(formData.riskPercentage) >= 3
+                                ? 'EXTREME'
+                                : Number(formData.riskPercentage) > 2
+                                ? 'HIGH'
+                                : Number(formData.riskPercentage) > 1
+                                ? 'MEDIUM'
+                                : 'LOW'}
+                            </div>
+                          </div>
+                        </div>
+                      )}
                   </div>
                 )}
 
-                {/* Allocation-Based Sizing Tab */}
+                {/* Enhanced Allocation-Based Sizing Tab */}
                 {activeTab === 'allocation' && (
-                  <div>
-                    <label className="block text-sm font-medium text-purple-300 mb-3">
-                      🎯 Portfolio Allocation Level
-                      <Info
-                        className="inline w-4 h-4 ml-1 text-purple-400 cursor-help"
-                        xlinkTitle="Strategic allocation of your portfolio to this trade"
+                  <div className="relative overflow-hidden">
+                    {/* Allocation Header with Portfolio Visualization */}
+                    <div className="flex items-center justify-between mb-4">
+                      <label className="text-sm font-medium text-purple-300 flex items-center">
+                        <span className="mr-2">🎯</span>
+                        Portfolio Allocation Level
+                        <Info
+                          className="inline w-4 h-4 ml-2 text-purple-400 cursor-help"
+                          xlinkTitle="Strategic allocation of your portfolio to this trade"
+                        />
+                      </label>
+
+                      {/* Real-time Allocation Meter */}
+                      <div className="flex items-center space-x-2">
+                        <div className="text-xs text-blue-300">ALLOCATION</div>
+                        <div className="relative w-16 h-2 bg-black/40 rounded-full overflow-hidden">
+                          <div
+                            className="absolute left-0 top-0 h-full bg-gradient-to-r from-blue-400 via-cyan-400 to-purple-400 rounded-full transition-all duration-500"
+                            style={{
+                              width: `${Math.min(
+                                Number(formData.allocationPercentage) || 0,
+                                100
+                              )}%`,
+                            }}
+                          ></div>
+                        </div>
+                        <div
+                          className={`text-xs font-bold ${
+                            (Number(formData.allocationPercentage) || 0) > 50
+                              ? 'text-red-400'
+                              : (Number(formData.allocationPercentage) || 0) >
+                                25
+                              ? 'text-yellow-400'
+                              : 'text-green-400'
+                          }`}
+                        >
+                          {(Number(formData.allocationPercentage) || 0) > 50
+                            ? 'HIGH'
+                            : (Number(formData.allocationPercentage) || 0) > 25
+                            ? 'MED'
+                            : 'LOW'}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Quick Allocation Buttons */}
+                    <div className="grid grid-cols-4 gap-2 mb-4 p-2">
+                      {[10, 20, 30, 40].map((allocation, index) => {
+                        const allocationColors = [
+                          'emerald',
+                          'blue',
+                          'orange',
+                          'red',
+                        ];
+                        const allocationLabels = [
+                          'Conservative',
+                          'Balanced',
+                          'High',
+                          'Extreme',
+                        ];
+                        const isSelected =
+                          Number(formData.allocationPercentage) === allocation;
+
+                        return (
+                          <button
+                            key={allocation}
+                            onClick={() =>
+                              handleInputChange(
+                                'allocationPercentage',
+                                allocation.toString()
+                              )
+                            }
+                            className={`group relative py-3 px-2 text-xs font-bold rounded-lg border-2 transition-all duration-300 hover:scale-105 ${
+                              isSelected
+                                ? `border-${allocationColors[index]}-400 bg-${allocationColors[index]}-500/10 shadow-lg shadow-${allocationColors[index]}-500/30 text-${allocationColors[index]}-300 transform scale-105`
+                                : `border-purple-500/30 bg-black/30 text-purple-300 hover:border-${allocationColors[index]}-400/50 hover:bg-${allocationColors[index]}-500/5 hover:text-${allocationColors[index]}-300`
+                            }`}
+                          >
+                            <div className="text-sm font-bold mb-1">
+                              {allocation}%
+                            </div>
+                            <div className="text-xs opacity-75">
+                              {allocationLabels[index]}
+                            </div>
+
+                            {isSelected && (
+                              <div className="absolute top-1 right-1 w-2 h-2 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full animate-pulse"></div>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {/* Enhanced Input Field */}
+                    <div className="relative">
+                      <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-cyan-500/10 rounded-xl blur-sm"></div>
+                      <input
+                        type="number"
+                        value={
+                          formData.allocationPercentage === ''
+                            ? ''
+                            : formData.allocationPercentage
+                        }
+                        onChange={(e) =>
+                          handleInputChange(
+                            'allocationPercentage',
+                            e.target.value
+                          )
+                        }
+                        className="relative w-full px-4 py-3 bg-black/40 border-2 border-blue-500/50 rounded-xl focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 text-white placeholder-blue-300/50 font-mono text-lg transition-all duration-300 focus:shadow-lg focus:shadow-blue-500/20"
+                        min="5"
+                        max="100"
+                        step="5"
+                        placeholder="Enter allocation %..."
                       />
-                    </label>
-                    <input
-                      type="number"
-                      value={
-                        formData.allocationPercentage === ''
-                          ? ''
-                          : formData.allocationPercentage
-                      }
-                      onChange={(e) =>
-                        handleInputChange(
-                          'allocationPercentage',
-                          e.target.value
-                        )
-                      }
-                      className="w-full px-4 py-3 bg-black/40 border-2 border-blue-500/50 rounded-xl focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 text-white placeholder-blue-300/50 font-mono text-lg transition-all duration-300 focus:shadow-lg focus:shadow-blue-500/20"
-                      min="5"
-                      max="100"
-                      step="5"
-                      placeholder="Enter allocation %..."
-                    />
+                    </div>
+
+                    {/* Risk Assessment Visualization */}
+                    {formData.allocationPercentage !== '' &&
+                      Number(formData.allocationPercentage) > 0 &&
+                      calculations && (
+                        <div className="mt-4 p-3 bg-gradient-to-r from-blue-500/10 to-cyan-500/10 rounded-xl border border-blue-500/20">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-xs text-blue-300">
+                              Risk Assessment:
+                            </span>
+                            <span className="text-xs text-blue-400 font-bold">
+                              {formatCurrency(calculations.riskAmount)} at risk
+                            </span>
+                          </div>
+
+                          {/* Visual risk level representation */}
+                          <div className="flex items-center space-x-2">
+                            <div className="w-16 h-3 bg-gray-700 rounded-full overflow-hidden">
+                              <div
+                                className={`h-full transition-all duration-500 ${
+                                  (Number(formData.allocationPercentage) || 0) >
+                                  30
+                                    ? 'bg-gradient-to-r from-red-500 to-red-700 animate-pulse'
+                                    : (Number(formData.allocationPercentage) ||
+                                        0) > 20
+                                    ? 'bg-gradient-to-r from-orange-400 to-red-400'
+                                    : (Number(formData.allocationPercentage) ||
+                                        0) > 10
+                                    ? 'bg-gradient-to-r from-yellow-400 to-orange-400'
+                                    : 'bg-gradient-to-r from-green-400 to-emerald-400'
+                                }`}
+                                style={{
+                                  width: `${Math.min(
+                                    ((Number(formData.allocationPercentage) ||
+                                      0) *
+                                      100) /
+                                      30,
+                                    100
+                                  )}%`,
+                                }}
+                              ></div>
+                            </div>
+                            <div
+                              className={`text-xs font-bold ${
+                                (Number(formData.allocationPercentage) || 0) >
+                                30
+                                  ? 'text-red-400 animate-pulse'
+                                  : (Number(formData.allocationPercentage) ||
+                                      0) > 20
+                                  ? 'text-orange-400'
+                                  : (Number(formData.allocationPercentage) ||
+                                      0) > 10
+                                  ? 'text-yellow-400'
+                                  : 'text-green-400'
+                              }`}
+                            >
+                              {(Number(formData.allocationPercentage) || 0) > 30
+                                ? 'EXTREME'
+                                : (Number(formData.allocationPercentage) || 0) >
+                                  20
+                                ? 'HIGH'
+                                : (Number(formData.allocationPercentage) || 0) >
+                                  10
+                                ? 'MEDIUM'
+                                : 'LOW'}
+                            </div>
+                          </div>
+                        </div>
+                      )}
                   </div>
                 )}
 
@@ -1249,7 +1633,8 @@ const TradingCalculator: React.FC = () => {
                             {formatCurrency(calculations.riskAmount)}
                           </div>
                           <div className="text-xs text-red-200">
-                            {calculations.riskPercentage.toFixed(2)}% portfolio impact
+                            {calculations.riskPercentage.toFixed(2)}% portfolio
+                            impact
                           </div>
                         </div>
 
