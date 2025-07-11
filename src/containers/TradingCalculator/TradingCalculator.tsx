@@ -2,11 +2,12 @@ import { useState, useEffect, useCallback } from 'react';
 import { Info } from 'lucide-react';
 import { initializeApp } from 'firebase/app';
 import { getAnalytics } from 'firebase/analytics';
+import SettingsButton from '../../components/Settings/SettingsButton';
+import { useTradingSettings } from '../../hooks/useTradingSettings';
 import type {
   FormData,
   Calculations,
   Target,
-  Preferences,
   ChargesBreakdown,
   TabType,
   MarketHealth,
@@ -53,6 +54,19 @@ const TradingCalculator: React.FC = () => {
     error: null,
   });
 
+  // Settings integration
+  const {
+    getRiskLevels,
+    handleAccountBalanceChange: updateAccountBalance,
+    handleMarketHealthChange: updateMarketHealth,
+    handleActiveTabChange: updateActiveTab,
+    handleRiskLevelChange: updateRiskLevel
+  } = useTradingSettings({
+    setFormData,
+    setActiveTab,
+    setIsDarkMode
+  });
+
   // Calculate brokerage automatically for delivery equity (buy only)
   const calculateBrokerage = useCallback(
     (buyPrice: number, positionSize: number): ChargesBreakdown => {
@@ -80,36 +94,14 @@ const TradingCalculator: React.FC = () => {
     []
   );
 
-  // Load preferences and dark mode on mount
+  // Apply dark mode to document when it changes
   useEffect(() => {
-    const saved = localStorage.getItem('accountInfo');
-    if (saved) {
-      try {
-        const prefs: Preferences = JSON.parse(saved);
-        setFormData((prev) => ({
-          ...prev,
-          accountBalance: prefs.accountBalance || 1000000,
-          marketHealth: prefs.marketHealth || 'confirmed-uptrend',
-        }));
-        setActiveTab(prefs.activeTab || 'risk');
-      } catch (error) {
-        console.error('Error loading preferences:', error);
-      }
-    }
-
-    // Load dark mode preference
-    const savedDarkMode = localStorage.getItem('darkMode');
-    const darkMode =
-      savedDarkMode === 'true' ||
-      (savedDarkMode === null &&
-        window.matchMedia('(prefers-color-scheme: dark)').matches);
-    setIsDarkMode(darkMode);
-    if (darkMode) {
+    if (isDarkMode) {
       document.documentElement.classList.add('dark');
     } else {
       document.documentElement.classList.remove('dark');
     }
-  }, []);
+  }, [isDarkMode]);
 
   // Format currency in INR
   const formatCurrency = useCallback((amount: number): string => {
@@ -479,22 +471,12 @@ const TradingCalculator: React.FC = () => {
 
   const handleAccountBalanceChange = (value: number) => {
     setFormData({ ...formData, accountBalance: value });
-    const prefs: Preferences = {
-      accountBalance: value,
-      marketHealth: formData.marketHealth,
-      activeTab: activeTab,
-    };
-    localStorage.setItem('accountInfo', JSON.stringify(prefs));
+    updateAccountBalance(value);
   };
 
   const handleMarketSizingChange = (health: MarketHealth) => {
     setFormData({ ...formData, marketHealth: health });
-    const prefs: Preferences = {
-      accountBalance: formData.accountBalance,
-      marketHealth: health,
-      activeTab: activeTab,
-    };
-    localStorage.setItem('accountInfo', JSON.stringify(prefs));
+    updateMarketHealth(health);
   };
 
   // Handle input changes with automatic calculations
@@ -595,6 +577,11 @@ const TradingCalculator: React.FC = () => {
           backgroundSize: '50px 50px',
         }}
       ></div>
+
+      {/* Settings Button */}
+      <div className="absolute top-3 left-6 z-20">
+        <SettingsButton />
+      </div>
 
       {/* Enhanced Market Outlook Command Center */}
       <div className="absolute top-3 right-6 z-20">
@@ -1041,15 +1028,7 @@ const TradingCalculator: React.FC = () => {
                   <button
                     onClick={() => {
                       setActiveTab('risk');
-                      const prefs: Preferences = {
-                        accountBalance: formData.accountBalance,
-                        marketHealth: formData.marketHealth,
-                        activeTab: 'risk',
-                      };
-                      localStorage.setItem(
-                        'accountInfo',
-                        JSON.stringify(prefs)
-                      );
+                      updateActiveTab('risk');
                     }}
                     className={`group flex-1 py-4 px-3 text-sm font-bold rounded-xl transition-all duration-500 relative overflow-hidden ${
                       activeTab === 'risk'
@@ -1090,15 +1069,7 @@ const TradingCalculator: React.FC = () => {
                   <button
                     onClick={() => {
                       setActiveTab('allocation');
-                      const prefs: Preferences = {
-                        accountBalance: formData.accountBalance,
-                        marketHealth: formData.marketHealth,
-                        activeTab: 'allocation',
-                      };
-                      localStorage.setItem(
-                        'accountInfo',
-                        JSON.stringify(prefs)
-                      );
+                      updateActiveTab('allocation');
                     }}
                     className={`group flex-1 py-4 px-3 text-sm font-bold rounded-xl transition-all duration-500 relative overflow-hidden ${
                       activeTab === 'allocation'
@@ -1193,45 +1164,32 @@ const TradingCalculator: React.FC = () => {
                       </div>
                     </div>
 
-                    {/* Enhanced Gaming Risk Level Buttons */}
-                    <div className="grid grid-cols-4 gap-2 mb-4 p-2">
-                      {[0.25, 0.5, 0.75, 1].map((option, index) => {
-                        const riskIcons = ['🌱', '🔥', '⚡', '💀'];
-
-                        const riskColors = [
-                          'emerald',
-                          'yellow',
-                          'orange',
-                          'red',
-                        ];
-                        const riskDescriptions = [
-                          'Conservative play',
-                          'Balanced approach',
-                          'Bold strategy',
-                          'Maximum risk',
-                        ];
-                        const isSelected =
-                          Number(formData.riskPercentage) === option;
+                    {/* Enhanced Gaming Risk Level Buttons - Dynamic */}
+                    <div className={`grid gap-2 mb-4 p-2 ${getRiskLevels().length <= 4 ? 'grid-cols-4' : 'grid-cols-2'}`}>
+                      {getRiskLevels().map((riskLevel) => {
+                        const isSelected = Number(formData.riskPercentage) === riskLevel.percentage;
+                        const colorClass = riskLevel.id === 'conservative' ? 'emerald' :
+                                         riskLevel.id === 'balanced' ? 'yellow' :
+                                         riskLevel.id === 'bold' ? 'orange' : 'red';
 
                         return (
                           <button
-                            key={option}
+                            key={riskLevel.id}
                             onClick={() => {
-                              handleInputChange(
-                                'riskPercentage',
-                                option.toString()
-                              );
+                              handleInputChange('riskPercentage', riskLevel.percentage.toString());
+                              updateRiskLevel(riskLevel.id);
                             }}
                             className={`group relative py-4 px-2 text-xs font-bold rounded-xl border-2 transition-all duration-500 hover:scale-105 overflow-hidden ${
                               isSelected
-                                ? `border-${riskColors[index]}-400 bg-${riskColors[index]}-500/10 shadow-lg shadow-${riskColors[index]}-500/30 text-${riskColors[index]}-300 transform scale-105`
-                                : `border-purple-500/30 bg-black/30 text-purple-300 hover:border-${riskColors[index]}-400/50 hover:bg-${riskColors[index]}-500/5 hover:text-${riskColors[index]}-300`
+                                ? `border-${colorClass}-400 bg-${colorClass}-500/10 shadow-lg shadow-${colorClass}-500/30 text-${colorClass}-300 transform scale-105`
+                                : `border-purple-500/30 bg-black/30 text-purple-300 hover:border-${colorClass}-400/50 hover:bg-${colorClass}-500/5 hover:text-${colorClass}-300`
                             }`}
+                            title={riskLevel.description}
                           >
                             {/* Animated border glow for selected state */}
                             {isSelected && (
                               <div
-                                className={`absolute inset-0 rounded-xl border-2 border-${riskColors[index]}-400 animate-pulse`}
+                                className={`absolute inset-0 rounded-xl border-2 border-${colorClass}-400 animate-pulse`}
                               ></div>
                             )}
 
@@ -1249,7 +1207,7 @@ const TradingCalculator: React.FC = () => {
                                     : 'group-hover:scale-110 group-hover:rotate-12'
                                 }`}
                               >
-                                {riskIcons[index]}
+                                {riskLevel.icon}
                               </div>
 
                               {/* Percentage with power level effect */}
@@ -1258,12 +1216,12 @@ const TradingCalculator: React.FC = () => {
                                   isSelected ? 'animate-pulse' : ''
                                 }`}
                               >
-                                {option}%
+                                {riskLevel.percentage}%
                               </div>
 
-                              {/* Tooltip description */}
+                              {/* Name */}
                               <div className="text-xs opacity-60 text-center leading-tight">
-                                {riskDescriptions[index]}
+                                {riskLevel.name}
                               </div>
                             </div>
 
@@ -1271,7 +1229,7 @@ const TradingCalculator: React.FC = () => {
                             {isSelected && (
                               <>
                                 <div
-                                  className={`absolute inset-0 bg-gradient-to-r from-${riskColors[index]}-600/5 to-${riskColors[index]}-500/5 rounded-xl animate-pulse`}
+                                  className={`absolute inset-0 bg-gradient-to-r from-${colorClass}-600/5 to-${colorClass}-500/5 rounded-xl animate-pulse`}
                                 ></div>
                                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-pulse"></div>
                               </>
