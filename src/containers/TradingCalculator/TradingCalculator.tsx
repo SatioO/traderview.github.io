@@ -595,11 +595,8 @@ const TradingCalculator: React.FC = () => {
             </div>
           </div>
           
-          {/* Invisible hover bridge */}
-          <div className="absolute top-full right-0 w-full h-4 opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto z-40"></div>
-          
           {/* Enhanced Unified Tooltip */}
-          <div className="absolute top-full right-0 mt-1 opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none group-hover:pointer-events-auto z-40 transform translate-y-1 group-hover:translate-y-0">
+          <div className="absolute top-full right-0 mt-0 opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none group-hover:pointer-events-auto z-40 transform translate-y-1 group-hover:translate-y-0">
             <div className="bg-gradient-to-br from-slate-900/95 to-slate-800/95 backdrop-blur-xl border border-purple-400/20 rounded-2xl p-5 shadow-2xl min-w-80">
               
               {/* Header */}
@@ -1252,7 +1249,7 @@ const TradingCalculator: React.FC = () => {
                             {formatCurrency(calculations.riskAmount)}
                           </div>
                           <div className="text-xs text-red-200">
-                            {calculations.riskPercentage}% portfolio impact
+                            {calculations.riskPercentage.toFixed(2)}% portfolio impact
                           </div>
                         </div>
 
