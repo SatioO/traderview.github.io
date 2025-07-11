@@ -123,7 +123,7 @@ const TradingCalculator: React.FC = () => {
   }, []);
 
   // Get market health adjustment factor
-  const getMarketHealthAdjustment = useCallback(
+  const getMarketSizingAdjustment = useCallback(
     (marketHealth: MarketHealth): number => {
       switch (marketHealth) {
         case 'confirmed-uptrend':
@@ -142,7 +142,7 @@ const TradingCalculator: React.FC = () => {
   );
 
   // Get market health display info
-  const getMarketHealthInfo = useCallback((marketHealth: MarketHealth) => {
+  const getMarketSizingInfo = useCallback((marketHealth: MarketHealth) => {
     switch (marketHealth) {
       case 'confirmed-uptrend':
         return {
@@ -150,8 +150,8 @@ const TradingCalculator: React.FC = () => {
           icon: '🚀',
           color: 'emerald',
           description: 'Strong bullish momentum - Full position sizing',
-          healthLevel: 100,
-          adjustment: 'Full',
+          sizingLevel: 100,
+          adjustment: '100%',
         };
       case 'uptrend-under-pressure':
         return {
@@ -159,8 +159,8 @@ const TradingCalculator: React.FC = () => {
           icon: '🔥',
           color: 'yellow',
           description: 'Weakening momentum - Reduced position sizing',
-          healthLevel: 75,
-          adjustment: '-25%',
+          sizingLevel: 75,
+          adjustment: '75%',
         };
       case 'rally-attempt':
         return {
@@ -168,8 +168,8 @@ const TradingCalculator: React.FC = () => {
           icon: '⚖️',
           color: 'orange',
           description: 'Uncertain direction - Conservative sizing',
-          healthLevel: 50,
-          adjustment: '-50%',
+          sizingLevel: 50,
+          adjustment: '50%',
         };
       case 'downtrend':
         return {
@@ -177,8 +177,8 @@ const TradingCalculator: React.FC = () => {
           icon: '🩸',
           color: 'red',
           description: 'Bearish conditions - Minimal position sizing',
-          healthLevel: 25,
-          adjustment: '-75%',
+          sizingLevel: 25,
+          adjustment: '25%',
         };
       default:
         return {
@@ -186,8 +186,8 @@ const TradingCalculator: React.FC = () => {
           icon: '❓',
           color: 'gray',
           description: 'Market status unclear',
-          healthLevel: 50,
-          adjustment: '0%',
+          sizingLevel: 50,
+          adjustment: '50%',
         };
     }
   }, []);
@@ -269,7 +269,7 @@ const TradingCalculator: React.FC = () => {
     }
   }, []);
 
-  // Map MarketSmith condition to our market health
+  // Map MarketSmith condition to our market sizing
   const mapMarketSmithToHealth = useCallback(
     (condition: string): MarketHealth => {
       const lowerCondition = condition.toLowerCase();
@@ -341,11 +341,11 @@ const TradingCalculator: React.FC = () => {
       // Calculate position size WITHOUT considering brokerage (pure calculation)
       const basePositionSize = Math.floor(riskAmount / riskPerShare);
 
-      // Apply market health adjustment
-      const marketHealthAdjustment = getMarketHealthAdjustment(
+      // Apply market sizing adjustment
+      const marketSizingAdjustment = getMarketSizingAdjustment(
         formData.marketHealth
       );
-      const adjustedPositionSize = basePositionSize * marketHealthAdjustment;
+      const adjustedPositionSize = basePositionSize * marketSizingAdjustment;
       const positionSize = Math.max(1, Math.floor(adjustedPositionSize)); // Ensure minimum position size of 1
 
       // Calculate brokerage for this position size
@@ -377,7 +377,7 @@ const TradingCalculator: React.FC = () => {
       formData,
       validateInputs,
       calculateBrokerage,
-      getMarketHealthAdjustment,
+      getMarketSizingAdjustment,
     ]);
 
   // Calculate position size based on allocation-based sizing
@@ -397,11 +397,11 @@ const TradingCalculator: React.FC = () => {
       const allocationAmount = (accountBalance * allocationPercentage) / 100;
       const basePositionSize = Math.floor(allocationAmount / entryPrice);
 
-      // Apply market health adjustment
-      const marketHealthAdjustment = getMarketHealthAdjustment(
+      // Apply market sizing adjustment
+      const marketSizingAdjustment = getMarketSizingAdjustment(
         formData.marketHealth
       );
-      const adjustedPositionSize = basePositionSize * marketHealthAdjustment;
+      const adjustedPositionSize = basePositionSize * marketSizingAdjustment;
       const positionSize = Math.max(1, Math.floor(adjustedPositionSize)); // Ensure minimum position size of 1
 
       // Calculate brokerage for this position size
@@ -438,7 +438,7 @@ const TradingCalculator: React.FC = () => {
       formData,
       validateInputs,
       calculateBrokerage,
-      getMarketHealthAdjustment,
+      getMarketSizingAdjustment,
     ]);
 
   // Calculate position size based on active tab
@@ -468,7 +468,7 @@ const TradingCalculator: React.FC = () => {
     localStorage.setItem('accountInfo', JSON.stringify(prefs));
   };
 
-  const handleMarketHealthChange = (health: MarketHealth) => {
+  const handleMarketSizingChange = (health: MarketHealth) => {
     setFormData({ ...formData, marketHealth: health });
     const prefs: Preferences = {
       accountBalance: formData.accountBalance,
@@ -577,93 +577,205 @@ const TradingCalculator: React.FC = () => {
         }}
       ></div>
 
-      {/* Unified Market Outlook Indicator */}
-      <div className="absolute top-4 right-6 z-20">
+      {/* Enhanced Market Outlook Command Center */}
+      <div className="absolute top-2 right-6 z-20">
         <div className="group relative">
-          {/* Current Market Outlook Display */}
+          {/* Advanced Market Outlook Display */}
           <div
-            className={`flex items-center space-x-3 backdrop-blur-xl border rounded-xl px-4 py-2 cursor-pointer transition-all duration-300 hover:scale-105 ${
-              getMarketHealthInfo(formData.marketHealth).color === 'emerald'
-                ? 'bg-gradient-to-r from-emerald-500/10 via-cyan-500/10 to-blue-500/10 border-emerald-400/30 hover:border-emerald-400/50 hover:shadow-lg hover:shadow-emerald-500/20'
-                : getMarketHealthInfo(formData.marketHealth).color === 'yellow'
-                ? 'bg-gradient-to-r from-yellow-500/10 via-orange-500/10 to-amber-500/10 border-yellow-400/30 hover:border-yellow-400/50 hover:shadow-lg hover:shadow-yellow-500/20'
-                : getMarketHealthInfo(formData.marketHealth).color === 'orange'
-                ? 'bg-gradient-to-r from-orange-500/10 via-red-500/10 to-pink-500/10 border-orange-400/30 hover:border-orange-400/50 hover:shadow-lg hover:shadow-orange-500/20'
-                : 'bg-gradient-to-r from-red-500/10 via-rose-500/10 to-pink-500/10 border-red-400/30 hover:border-red-400/50 hover:shadow-lg hover:shadow-red-500/20'
+            className={`relative flex items-center space-x-3 backdrop-blur-xl border-2 rounded-2xl px-6 py-3 cursor-pointer transition-all duration-500 hover:scale-105 overflow-hidden ${
+              getMarketSizingInfo(formData.marketHealth).color === 'emerald'
+                ? 'bg-gradient-to-r from-emerald-500/15 via-cyan-500/10 to-blue-500/15 border-emerald-400/40 hover:border-emerald-400/70 hover:shadow-xl hover:shadow-emerald-500/25'
+                : getMarketSizingInfo(formData.marketHealth).color === 'yellow'
+                ? 'bg-gradient-to-r from-yellow-500/15 via-orange-500/10 to-amber-500/15 border-yellow-400/40 hover:border-yellow-400/70 hover:shadow-xl hover:shadow-yellow-500/25'
+                : getMarketSizingInfo(formData.marketHealth).color === 'orange'
+                ? 'bg-gradient-to-r from-orange-500/15 via-red-500/10 to-pink-500/15 border-orange-400/40 hover:border-orange-400/70 hover:shadow-xl hover:shadow-orange-500/25'
+                : 'bg-gradient-to-r from-red-500/15 via-rose-500/10 to-pink-500/15 border-red-400/40 hover:border-red-400/70 hover:shadow-xl hover:shadow-red-500/25'
             }`}
           >
-            <div className="flex items-center space-x-2">
-              <div
-                className={`w-2 h-2 rounded-full animate-pulse ${
-                  getMarketHealthInfo(formData.marketHealth).color === 'emerald'
-                    ? 'bg-emerald-400'
-                    : getMarketHealthInfo(formData.marketHealth).color ===
-                      'yellow'
-                    ? 'bg-yellow-400'
-                    : getMarketHealthInfo(formData.marketHealth).color ===
-                      'orange'
-                    ? 'bg-orange-400'
-                    : 'bg-red-400'
-                }`}
-              ></div>
-              <div className="text-sm font-medium text-white">
-                {getMarketHealthInfo(formData.marketHealth).icon} Market Outlook
+            {/* Animated background glow */}
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-pulse opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+
+            {/* Market Status Icon with Animation */}
+            <div className="relative flex items-center space-x-3">
+              <div className="relative">
+                <div
+                  className={`w-3 h-3 rounded-full animate-pulse ${
+                    getMarketSizingInfo(formData.marketHealth).color ===
+                    'emerald'
+                      ? 'bg-emerald-400 shadow-lg shadow-emerald-400/50'
+                      : getMarketSizingInfo(formData.marketHealth).color ===
+                        'yellow'
+                      ? 'bg-yellow-400 shadow-lg shadow-yellow-400/50'
+                      : getMarketSizingInfo(formData.marketHealth).color ===
+                        'orange'
+                      ? 'bg-orange-400 shadow-lg shadow-orange-400/50'
+                      : 'bg-red-400 shadow-lg shadow-red-400/50'
+                  }`}
+                ></div>
+                <div
+                  className={`absolute inset-0 w-3 h-3 rounded-full animate-ping ${
+                    getMarketSizingInfo(formData.marketHealth).color ===
+                    'emerald'
+                      ? 'bg-emerald-400'
+                      : getMarketSizingInfo(formData.marketHealth).color ===
+                        'yellow'
+                      ? 'bg-yellow-400'
+                      : getMarketSizingInfo(formData.marketHealth).color ===
+                        'orange'
+                      ? 'bg-orange-400'
+                      : 'bg-red-400'
+                  }`}
+                ></div>
+              </div>
+
+              {/* Market Status Text */}
+              <div className="flex items-center space-x-2">
+                <div className="text-lg animate-bounce">
+                  {getMarketSizingInfo(formData.marketHealth).icon}
+                </div>
+                <div className="text-sm font-bold text-white tracking-wide">
+                  MARKET OUTLOOK
+                </div>
               </div>
             </div>
-            <div className="text-xs text-gray-400/60">|</div>
-            <div className="text-xs font-medium text-gray-300">
-              {getMarketHealthInfo(formData.marketHealth).label}
+
+            {/* Separator with pulse effect */}
+            <div className="w-px h-6 bg-gradient-to-b from-transparent via-gray-400/60 to-transparent animate-pulse"></div>
+
+            {/* Market Condition */}
+            <div className="flex flex-col items-center">
+              <div className="text-xs text-gray-400 font-medium tracking-wider">
+                CONDITION
+              </div>
+              <div
+                className={`text-sm font-bold tracking-wide ${
+                  getMarketSizingInfo(formData.marketHealth).color === 'emerald'
+                    ? 'text-emerald-300'
+                    : getMarketSizingInfo(formData.marketHealth).color ===
+                      'yellow'
+                    ? 'text-yellow-300'
+                    : getMarketSizingInfo(formData.marketHealth).color ===
+                      'orange'
+                    ? 'text-orange-300'
+                    : 'text-red-300'
+                }`}
+              >
+                {getMarketSizingInfo(formData.marketHealth).label}
+              </div>
             </div>
-            <div className="text-xs text-gray-400/60">|</div>
-            <div className="text-xs font-medium text-blue-300">
-              {getMarketHealthInfo(formData.marketHealth).adjustment} sizing
+
+            {/* Separator */}
+            <div className="w-px h-6 bg-gradient-to-b from-transparent via-gray-400/60 to-transparent animate-pulse"></div>
+
+            {/* Position Sizing Impact */}
+            <div className="flex flex-col items-center">
+              <div className="text-xs text-gray-400 font-medium tracking-wider">
+                SIZING
+              </div>
+              <div
+                className={`text-sm font-bold tracking-wide ${
+                  getMarketSizingInfo(formData.marketHealth).adjustment ===
+                  'Full'
+                    ? 'text-green-300'
+                    : getMarketSizingInfo(formData.marketHealth).adjustment ===
+                      '-25%'
+                    ? 'text-yellow-300'
+                    : getMarketSizingInfo(formData.marketHealth).adjustment ===
+                      '-50%'
+                    ? 'text-orange-300'
+                    : 'text-red-300'
+                }`}
+              >
+                {getMarketSizingInfo(formData.marketHealth).adjustment}
+              </div>
+            </div>
+
+            {/* Chevron indicator */}
+            <div className="text-gray-400 group-hover:text-white transition-colors duration-300">
+              <svg
+                className="w-4 h-4 transform group-hover:rotate-180 transition-transform duration-300"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 9l-7 7-7-7"
+                />
+              </svg>
             </div>
           </div>
 
-          {/* Enhanced Unified Tooltip */}
-          <div className="absolute top-full right-0 mt-0 opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none group-hover:pointer-events-auto z-40 transform translate-y-1 group-hover:translate-y-0">
-            <div className="bg-gradient-to-br from-slate-900/95 to-slate-800/95 backdrop-blur-xl border border-purple-400/20 rounded-2xl p-5 shadow-2xl min-w-80">
-              {/* Header */}
-              <div className="flex items-center space-x-3 mb-4">
-                <div className="w-8 h-8 bg-gradient-to-r from-purple-400 to-blue-400 rounded-lg flex items-center justify-center">
-                  <span className="text-sm">📊</span>
-                </div>
-                <div>
-                  <div className="text-sm font-semibold text-purple-300">
-                    Market Outlook Control
+          {/* Enhanced Command Center Tooltip */}
+          <div className="absolute top-full right-0 mt-2 opacity-0 group-hover:opacity-100 transition-all duration-500 pointer-events-none group-hover:pointer-events-auto z-40 transform translate-y-2 group-hover:translate-y-0">
+            <div className="bg-gradient-to-br from-slate-900/98 to-slate-800/98 backdrop-blur-xl border-2 border-purple-400/30 rounded-3xl p-6 shadow-2xl min-w-96 max-w-md">
+              {/* Enhanced Header */}
+              <div className="flex items-center space-x-4 mb-6">
+                <div className="relative">
+                  <div className="w-10 h-10 bg-gradient-to-r from-purple-400 via-blue-400 to-cyan-400 rounded-xl flex items-center justify-center shadow-lg">
+                    <span className="text-lg">📊</span>
                   </div>
-                  <div className="text-xs text-gray-400">
-                    Position Sizing Strategy
+                  <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-r from-green-400 to-emerald-400 rounded-full animate-pulse"></div>
+                </div>
+                <div className="flex-1">
+                  <div className="text-lg font-bold text-transparent bg-gradient-to-r from-purple-300 via-blue-300 to-cyan-300 bg-clip-text">
+                    Market Command Center
+                  </div>
+                  <div className="text-xs text-gray-400 flex items-center space-x-2">
+                    <span>Position Sizing Intelligence</span>
+                    <div className="w-1 h-1 bg-gray-500 rounded-full"></div>
+                    <span className="text-green-400">ACTIVE</span>
                   </div>
                 </div>
               </div>
 
-              {/* Current Setting */}
-              <div className="mb-4 p-3 bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-purple-400/20 rounded-lg">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="text-xs text-purple-300 font-medium">
-                    CURRENT SETTING
+              {/* Current Setting with Enhanced Design */}
+              <div className="mb-5 p-4 bg-gradient-to-r from-purple-500/15 to-blue-500/15 border border-purple-400/30 rounded-xl backdrop-blur-sm">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="text-xs text-purple-300 font-bold tracking-wider">
+                    🎯 CURRENT CONFIGURATION
                   </div>
                   <div
-                    className={`text-xs px-2 py-1 rounded-full ${
-                      getMarketHealthInfo(formData.marketHealth).color ===
+                    className={`text-xs px-3 py-1 rounded-full border font-bold ${
+                      getMarketSizingInfo(formData.marketHealth).color ===
                       'emerald'
-                        ? 'bg-emerald-500/20 text-emerald-300'
-                        : getMarketHealthInfo(formData.marketHealth).color ===
+                        ? 'bg-emerald-500/20 text-emerald-300 border-emerald-400/30'
+                        : getMarketSizingInfo(formData.marketHealth).color ===
                           'yellow'
-                        ? 'bg-yellow-500/20 text-yellow-300'
-                        : getMarketHealthInfo(formData.marketHealth).color ===
+                        ? 'bg-yellow-500/20 text-yellow-300 border-yellow-400/30'
+                        : getMarketSizingInfo(formData.marketHealth).color ===
                           'orange'
-                        ? 'bg-orange-500/20 text-orange-300'
-                        : 'bg-red-500/20 text-red-300'
+                        ? 'bg-orange-500/20 text-orange-300 border-orange-400/30'
+                        : 'bg-red-500/20 text-red-300 border-red-400/30'
                     }`}
                   >
-                    {getMarketHealthInfo(formData.marketHealth).adjustment}{' '}
-                    sizing
+                    {getMarketSizingInfo(formData.marketHealth).adjustment ===
+                    'Full'
+                      ? '100%'
+                      : getMarketSizingInfo(formData.marketHealth)
+                          .adjustment === '-25%'
+                      ? '75%'
+                      : getMarketSizingInfo(formData.marketHealth)
+                          .adjustment === '-50%'
+                      ? '50%'
+                      : '25%'}{' '}
+                    SIZING
                   </div>
                 </div>
-                <div className="text-sm font-medium text-white">
-                  {getMarketHealthInfo(formData.marketHealth).label}
+                <div className="flex items-center space-x-3">
+                  <div className="text-2xl">
+                    {getMarketSizingInfo(formData.marketHealth).icon}
+                  </div>
+                  <div>
+                    <div className="text-sm font-bold text-white">
+                      {getMarketSizingInfo(formData.marketHealth).label}
+                    </div>
+                    <div className="text-xs text-gray-400">
+                      {getMarketSizingInfo(formData.marketHealth).description}
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -692,7 +804,7 @@ const TradingCalculator: React.FC = () => {
                           const suggestedHealth = mapMarketSmithToHealth(
                             marketSmithData.condition
                           );
-                          handleMarketHealthChange(suggestedHealth);
+                          handleMarketSizingChange(suggestedHealth);
                         }}
                         className="px-3 py-1 bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/30 hover:border-emerald-400/50 rounded text-xs font-medium text-emerald-300 transition-all duration-300"
                       >
@@ -709,12 +821,13 @@ const TradingCalculator: React.FC = () => {
                 </div>
               )}
 
-              {/* Manual Selection Grid */}
-              <div className="mb-4">
-                <div className="text-xs text-gray-400 mb-3 font-medium">
-                  MANUAL OVERRIDE
+              {/* Enhanced Manual Selection Grid */}
+              <div className="mb-5">
+                <div className="text-xs text-gray-400 mb-4 font-bold tracking-wider flex items-center">
+                  <span className="mr-2">⚙️</span>
+                  MANUAL OVERRIDE CONTROLS
                 </div>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 gap-3">
                   {(
                     [
                       'confirmed-uptrend',
@@ -723,27 +836,43 @@ const TradingCalculator: React.FC = () => {
                       'downtrend',
                     ] as const
                   ).map((health) => {
-                    const healthInfo = getMarketHealthInfo(health);
+                    const sizingInfo = getMarketSizingInfo(health);
                     const isSelected = formData.marketHealth === health;
 
                     return (
                       <button
                         key={health}
-                        onClick={() => handleMarketHealthChange(health)}
-                        className={`p-2 rounded-lg border transition-all duration-300 text-left ${
+                        onClick={() => handleMarketSizingChange(health)}
+                        className={`group relative p-3 rounded-xl border-2 transition-all duration-500 text-left overflow-hidden hover:scale-105 ${
                           isSelected
-                            ? `border-${healthInfo.color}-400 bg-${healthInfo.color}-500/10 text-${healthInfo.color}-300`
-                            : 'border-gray-600/30 bg-gray-500/5 text-gray-400 hover:border-gray-500/50 hover:text-gray-300'
+                            ? `border-${sizingInfo.color}-400 bg-${sizingInfo.color}-500/15 text-${sizingInfo.color}-300 shadow-lg shadow-${sizingInfo.color}-500/20`
+                            : 'border-gray-600/30 bg-gray-500/5 text-gray-400 hover:border-gray-500/50 hover:text-gray-300 hover:bg-gray-500/10'
                         }`}
                       >
-                        <div className="flex items-center space-x-2">
-                          <div className="text-sm">{healthInfo.icon}</div>
-                          <div>
-                            <div className="text-xs font-medium">
-                              {healthInfo.label}
+                        {/* Selection indicator */}
+                        {isSelected && (
+                          <div className="absolute top-2 right-2 w-2 h-2 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full animate-pulse"></div>
+                        )}
+
+                        {/* Background animation */}
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 animate-pulse"></div>
+
+                        <div className="relative flex items-center space-x-3">
+                          <div
+                            className={`text-xl transition-transform duration-300 ${
+                              isSelected
+                                ? 'animate-bounce'
+                                : 'group-hover:scale-110'
+                            }`}
+                          >
+                            {sizingInfo.icon}
+                          </div>
+                          <div className="flex-1">
+                            <div className="text-sm font-bold mb-1">
+                              {sizingInfo.label}
                             </div>
-                            <div className="text-xs opacity-75">
-                              {healthInfo.adjustment} sizing
+                            <div className="text-xs opacity-80 font-medium">
+                              {sizingInfo.adjustment} sizing
                             </div>
                           </div>
                         </div>
@@ -800,8 +929,8 @@ const TradingCalculator: React.FC = () => {
                 )}
             </div>
 
-            {/* Enhanced Arrow */}
-            <div className="absolute -top-2 right-8 w-4 h-4 bg-gradient-to-br from-slate-900/95 to-slate-800/95 border-l border-t border-purple-400/20 transform rotate-45"></div>
+            {/* Enhanced Arrow with Glow */}
+            <div className="absolute -top-2 right-12 w-4 h-4 bg-gradient-to-br from-slate-900/98 to-slate-800/98 border-l-2 border-t-2 border-purple-400/30 transform rotate-45 shadow-lg"></div>
           </div>
         </div>
       </div>
@@ -905,7 +1034,10 @@ const TradingCalculator: React.FC = () => {
                         marketHealth: formData.marketHealth,
                         activeTab: 'risk',
                       };
-                      localStorage.setItem('accountInfo', JSON.stringify(prefs));
+                      localStorage.setItem(
+                        'accountInfo',
+                        JSON.stringify(prefs)
+                      );
                     }}
                     className={`group flex-1 py-4 px-3 text-sm font-bold rounded-xl transition-all duration-500 relative overflow-hidden ${
                       activeTab === 'risk'
@@ -951,7 +1083,10 @@ const TradingCalculator: React.FC = () => {
                         marketHealth: formData.marketHealth,
                         activeTab: 'allocation',
                       };
-                      localStorage.setItem('accountInfo', JSON.stringify(prefs));
+                      localStorage.setItem(
+                        'accountInfo',
+                        JSON.stringify(prefs)
+                      );
                     }}
                     className={`group flex-1 py-4 px-3 text-sm font-bold rounded-xl transition-all duration-500 relative overflow-hidden ${
                       activeTab === 'allocation'
