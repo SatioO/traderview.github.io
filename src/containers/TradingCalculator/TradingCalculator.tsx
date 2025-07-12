@@ -60,11 +60,11 @@ const TradingCalculator: React.FC = () => {
     handleAccountBalanceChange: updateAccountBalance,
     handleMarketHealthChange: updateMarketHealth,
     handleActiveTabChange: updateActiveTab,
-    handleRiskLevelChange: updateRiskLevel
+    handleRiskLevelChange: updateRiskLevel,
   } = useTradingSettings({
     setFormData,
     setActiveTab,
-    setIsDarkMode
+    setIsDarkMode,
   });
 
   // Calculate brokerage automatically for delivery equity (buy only)
@@ -355,7 +355,7 @@ const TradingCalculator: React.FC = () => {
       );
       const adjustedPositionSize = basePositionSize * marketSizingAdjustment;
       const positionSize = Math.max(1, Math.floor(adjustedPositionSize)); // Ensure minimum position size of 1
-      
+
       // Calculate adjusted risk amount based on market health sizing
       const riskAmount = baseRiskAmount * marketSizingAdjustment;
 
@@ -959,7 +959,7 @@ const TradingCalculator: React.FC = () => {
                   </div>
 
                   <div className="relative">
-                    <label className="block text-sm font-medium text-emerald-300 mb-2 flex items-center">
+                    <label className="text-sm font-medium text-emerald-300 mb-2 items-center">
                       <span className="mr-2">💳</span>
                       Trading Capital
                       <Info className="inline w-4 h-4 ml-2 text-emerald-400 cursor-help" />
@@ -1165,18 +1165,34 @@ const TradingCalculator: React.FC = () => {
                     </div>
 
                     {/* Enhanced Gaming Risk Level Buttons - Dynamic */}
-                    <div className={`grid gap-2 mb-4 p-2 ${getRiskLevels().length <= 4 ? 'grid-cols-4' : 'grid-cols-2'}`}>
+                    <div
+                      className={`grid gap-2 mb-4 p-2 ${
+                        getRiskLevels().length <= 4
+                          ? 'grid-cols-4'
+                          : 'grid-cols-2'
+                      }`}
+                    >
                       {getRiskLevels().map((riskLevel) => {
-                        const isSelected = Number(formData.riskPercentage) === riskLevel.percentage;
-                        const colorClass = riskLevel.id === 'conservative' ? 'emerald' :
-                                         riskLevel.id === 'balanced' ? 'yellow' :
-                                         riskLevel.id === 'bold' ? 'orange' : 'red';
+                        const isSelected =
+                          Number(formData.riskPercentage) ===
+                          riskLevel.percentage;
+                        const colorClass =
+                          riskLevel.id === 'conservative'
+                            ? 'emerald'
+                            : riskLevel.id === 'balanced'
+                            ? 'yellow'
+                            : riskLevel.id === 'bold'
+                            ? 'orange'
+                            : 'red';
 
                         return (
                           <button
                             key={riskLevel.id}
                             onClick={() => {
-                              handleInputChange('riskPercentage', riskLevel.percentage.toString());
+                              handleInputChange(
+                                'riskPercentage',
+                                riskLevel.percentage.toString()
+                              );
                               updateRiskLevel(riskLevel.id);
                             }}
                             className={`group relative py-4 px-2 text-xs font-bold rounded-xl border-2 transition-all duration-500 hover:scale-105 overflow-hidden ${

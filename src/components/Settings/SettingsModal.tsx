@@ -7,6 +7,9 @@ import {
   Zap,
   Target,
   Activity,
+  ChevronLeft,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 import { useSettings, type RiskLevel } from '../../contexts/SettingsContext';
 
@@ -29,6 +32,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
   const [shakeAnimations, setShakeAnimations] = useState<
     Record<string, boolean>
   >({});
+  const [orderConflicts, setOrderConflicts] = useState<
+    Record<string, { type: 'decrease' | 'increase'; conflictWith: string }>
+  >({});
 
   if (!isOpen) return null;
 
@@ -37,6 +43,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
     const duplicates: string[] = [];
     const values: number[] = [];
     const processedValues: { [key: string]: number } = {};
+    const conflicts: Record<string, { type: 'decrease' | 'increase'; conflictWith: string }> = {};
 
     try {
       // Get all risk level values (including unchanged ones)
@@ -110,11 +117,40 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
           });
         }
       }
+
+      // Check ascending order with bidirectional conflict tracking
+      const orderedLevels = ['conservative', 'balanced', 'bold', 'maximum'];
+      const orderedValues: { id: string; value: number }[] = [];
+      
+      orderedLevels.forEach(levelId => {
+        if (processedValues[levelId] !== undefined) {
+          orderedValues.push({ id: levelId, value: processedValues[levelId] });
+        }
+      });
+
+      // Validate ascending order with creative conflict handling
+      for (let i = 1; i < orderedValues.length; i++) {
+        const current = orderedValues[i];
+        const previous = orderedValues[i - 1];
+        
+        if (current.value <= previous.value) {
+          // Instead of just erroring the current field, track conflicts for both
+          if (!errors[current.id] && !errors[previous.id]) {
+            // Left tile (previous) should DECREASE to be less than right
+            conflicts[previous.id] = { type: 'decrease', conflictWith: current.id };
+            // Right tile (current) should INCREASE to be greater than left
+            conflicts[current.id] = { type: 'increase', conflictWith: previous.id };
+            
+            // Still add traditional error message for footer counting
+            errors[current.id] = `Must be greater than ${previous.value}%`;
+          }
+        }
+      }
     } catch (error) {
       console.error('Error in validateRiskLevels:', error);
     }
 
-    return { errors, duplicates };
+    return { errors, duplicates, conflicts };
   };
 
   const validateCapital = (value: string) => {
@@ -153,14 +189,15 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
       setEditedLevels(newLevels);
 
       // Validate all risk levels
-      const { errors, duplicates } = validateRiskLevels(newLevels);
+      const { errors, duplicates, conflicts } = validateRiskLevels(newLevels);
 
-      // Update validation errors
+      // Update validation errors and order conflicts
       setValidationErrors((prev) => ({
         ...prev,
         riskLevels: errors,
         duplicates,
       }));
+      setOrderConflicts(conflicts);
 
       // Trigger shake animation for errors
       if (errors[levelId] || duplicates.includes(levelId)) {
@@ -282,14 +319,15 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
             if (error && typeof error === 'string') {
               const level = defaultRiskLevels.find((l) => l.id === levelId);
               const isDuplicate = error.includes('Duplicate');
-              const isRange =
-                error.includes('Maximum') || error.includes('Must be greater');
+              const isMaximumRange = error.includes('Maximum value is 3%');
+              const isOrderError = error.includes('Must be greater than') && error.includes('%');
+              const isRange = isMaximumRange || error.includes('Must be greater than 0');
 
               errors.push({
-                type: isDuplicate ? 'duplicate' : isRange ? 'range' : 'invalid',
+                type: isDuplicate ? 'duplicate' : isOrderError ? 'order' : isRange ? 'range' : 'invalid',
                 message: error,
                 field: level?.name || levelId,
-                severity: isDuplicate ? 'medium' : isRange ? 'high' : 'low',
+                severity: isDuplicate ? 'medium' : isOrderError ? 'high' : isRange ? 'high' : 'low',
               });
             }
           }
@@ -312,8 +350,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
     capital: errorSummary?.filter((e) => e.type === 'capital').length || 0,
     risk:
       errorSummary?.filter(
-        (e) => e.type !== 'capital' && e.type !== 'duplicate'
+        (e) => e.type !== 'capital' && e.type !== 'duplicate' && e.type !== 'order'
       ).length || 0,
+    order: errorSummary?.filter((e) => e.type === 'order').length || 0,
     duplicates: errorSummary?.filter((e) => e.type === 'duplicate').length || 0,
   };
 
@@ -447,8 +486,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
 
         {/* Premium Content */}
         <div className="p-6 space-y-6">
-          {/* Premium Trading Capital */}
+          {/* Trading Capital - Aligned with Main Screen */}
           <div className="relative">
+            {/* Single Title with Icon */}
             <div className="flex items-center space-x-3 mb-4">
               <div className="p-1.5 bg-gradient-to-r from-emerald-500/20 to-teal-500/20 border border-emerald-500/30 rounded-lg">
                 <TrendingUp className="w-4 h-4 text-emerald-400" />
@@ -456,15 +496,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
               <span className="text-sm font-bold bg-gradient-to-r from-emerald-300 to-teal-300 bg-clip-text text-transparent tracking-wider">
                 Trading Capital
               </span>
-              <div
-                className={`px-2 py-1 rounded-md text-xs font-bold border transition-all duration-300 ${
-                  hasCapitalChanged
-                    ? 'bg-gradient-to-r from-blue-500/20 to-cyan-500/20 border-blue-500/40 text-blue-300'
-                    : 'bg-slate-700/50 border-slate-600/50 text-slate-400'
-                }`}
-              >
-                {hasCapitalChanged ? '● MODIFIED' : '○ UNCHANGED'}
-              </div>
             </div>
 
             <div
@@ -492,27 +523,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                 <div className="absolute bottom-4 left-8 w-1 h-1 bg-gradient-to-r from-violet-400 to-purple-400 rounded-full animate-ping opacity-35 delay-2000"></div>
               </div>
 
-              {/* Sophisticated Capital Header */}
-              <div className="relative flex items-center justify-between mb-4">
-                <div className="flex items-center space-x-3">
-                  <div className="flex items-center space-x-2">
-                    <Activity className="w-4 h-4 text-slate-300" />
-                    <span className="text-sm font-medium text-slate-300">
-                      Current Balance
-                    </span>
-                  </div>
-                  <span className="text-xs text-slate-500">
-                    ₹{formatCurrency(settings.accountBalance)}
-                  </span>
-                </div>
-                <div
-                  className={`px-3 py-1.5 rounded-lg border text-xs font-bold ${capitalInfo.badgeColor}`}
-                >
-                  {capitalInfo.level}
-                </div>
-              </div>
-
-              {/* Elegant Power Level Bar */}
+              {/* Power Level Section - Show Badge Instead of Progress */}
               <div className="mb-4">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center space-x-2">
@@ -521,11 +532,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                       POWER LEVEL
                     </span>
                   </div>
-                  <span
-                    className={`text-xs font-bold ${capitalInfo.textColor}`}
+                  <div
+                    className={`px-3 py-1.5 rounded-lg border text-xs font-bold ${capitalInfo.badgeColor}`}
                   >
-                    {capitalInfo.progress}%
-                  </span>
+                    {capitalInfo.level}
+                  </div>
                 </div>
                 <div className="h-2 bg-slate-800/60 rounded-full overflow-hidden border border-slate-700/50">
                   <div
@@ -535,9 +546,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                 </div>
               </div>
 
-              {/* Premium Capital Input */}
+              {/* Capital Input */}
               <div className="relative">
-                <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 font-bold text-lg">
+                <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-emerald-400 font-bold text-lg animate-pulse">
                   ₹
                 </div>
                 <input
@@ -551,8 +562,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                     validationErrors.capital
                       ? 'bg-gradient-to-r from-red-900/60 to-red-800/60 border-red-400/80 focus:border-red-300/90 focus:ring-2 focus:ring-red-400/40 shadow-lg shadow-red-500/10'
                       : hasCapitalChanged
-                      ? 'bg-gradient-to-r from-slate-800/60 to-slate-700/60 border-emerald-500/50 focus:border-emerald-400/70 focus:ring-2 focus:ring-emerald-500/20'
-                      : 'bg-gradient-to-r from-slate-800/60 to-slate-700/60 border-slate-600/50 focus:border-slate-500/70 focus:ring-2 focus:ring-slate-500/20'
+                      ? 'bg-black/30 border-2 border-emerald-500/50 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20 focus:shadow-lg focus:shadow-emerald-500/20'
+                      : 'bg-black/30 border-2 border-slate-600/50 focus:border-slate-500/70 focus:ring-2 focus:ring-slate-500/20'
                   }`}
                   style={{
                     animation: validationErrors.capital
@@ -563,7 +574,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                 />
                 <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
                   <span
-                    className={`text-xs font-bold px-2 py-1 rounded ${capitalInfo.textColor}`}
+                    className={`text-sm font-bold ${capitalInfo.textColor}`}
                   >
                     {formatCurrency(
                       Number(getDisplayCapital()) || settings.accountBalance
@@ -585,16 +596,20 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
               </span>
             </div>
 
-            {/* Single Row Card Layout with Input Boxes */}
-            <div className="grid grid-cols-4 gap-3">
-              {defaultRiskLevels.map((level) => {
+            {/* Risk Level Cards with Visual Order Indicators */}
+            <div className="flex items-stretch justify-center space-x-1">
+              {defaultRiskLevels.map((level, index) => {
                 const displayValue = getDisplayValue(level);
                 const hasError = validationErrors.riskLevels?.[level.id];
                 const isShaking = shakeAnimations[level.id];
+                const orderConflict = orderConflicts[level.id];
+                const hasOrderConflict = !!orderConflict;
                 const errorType = hasError?.includes('Duplicate')
                   ? 'duplicate'
                   : hasError?.includes('Maximum')
                   ? 'high'
+                  : hasOrderConflict
+                  ? 'order'
                   : hasError
                   ? 'invalid'
                   : null;
@@ -643,7 +658,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                   levelColors['conservative'];
 
                 return (
-                  <div key={level.id} className="relative">
+                  <React.Fragment key={level.id}>
+                    <div className="relative w-full">
                     {/* Card with Input Box Instead of Percentage */}
                     <div
                       className={`group relative bg-gradient-to-br ${
@@ -654,6 +670,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                             ? 'ring-2 ring-purple-500/60 border-purple-500/70 shadow-lg shadow-purple-500/20 bg-purple-500/10'
                             : errorType === 'high'
                             ? 'ring-2 ring-red-500/60 border-red-500/70 shadow-lg shadow-red-500/20 bg-red-500/10'
+                            : errorType === 'order'
+                            ? orderConflict?.type === 'decrease'
+                              ? 'ring-2 ring-amber-500/60 border-amber-500/70 shadow-lg shadow-amber-500/20 bg-amber-500/10'
+                              : 'ring-2 ring-cyan-500/60 border-cyan-500/70 shadow-lg shadow-cyan-500/20 bg-cyan-500/10'
                             : 'ring-2 ring-orange-500/60 border-orange-500/70 shadow-lg shadow-orange-500/20 bg-orange-500/10'
                           : colors.border
                       }`}
@@ -665,6 +685,22 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                           : undefined,
                       }}
                     >
+                      {/* Creative Order Conflict Indicator */}
+                      {hasOrderConflict && (
+                        <div className="absolute -top-2 -right-2 z-10">
+                          <div className={`p-1.5 rounded-full shadow-lg animate-bounce ${
+                            orderConflict?.type === 'decrease' 
+                              ? 'bg-gradient-to-r from-amber-500/80 to-orange-500/80 border border-amber-400/90' 
+                              : 'bg-gradient-to-r from-cyan-500/80 to-blue-500/80 border border-cyan-400/90'
+                          }`}>
+                            {orderConflict?.type === 'decrease' ? (
+                              <ChevronDown className="w-3 h-3 text-white" />
+                            ) : (
+                              <ChevronUp className="w-3 h-3 text-white" />
+                            )}
+                          </div>
+                        </div>
+                      )}
                       {/* Card Content - Icon, Input, Label */}
                       <div className="flex flex-col items-center text-center space-y-2">
                         <div className="text-2xl">{colors.icon}</div>
@@ -686,6 +722,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                                   ? 'bg-gradient-to-r from-purple-900/60 to-violet-800/60 border-purple-400/80 text-purple-200 focus:border-purple-300/90 focus:ring-2 focus:ring-purple-400/40 shadow-lg shadow-purple-500/10'
                                   : errorType === 'high'
                                   ? 'bg-gradient-to-r from-red-900/60 to-red-800/60 border-red-400/80 text-red-200 focus:border-red-300/90 focus:ring-2 focus:ring-red-400/40 shadow-lg shadow-red-500/10'
+                                  : errorType === 'order'
+                                  ? orderConflict?.type === 'decrease'
+                                    ? 'bg-gradient-to-r from-amber-900/60 to-orange-800/60 border-amber-400/80 text-amber-200 focus:border-amber-300/90 focus:ring-2 focus:ring-amber-400/40 shadow-lg shadow-amber-500/10'
+                                    : 'bg-gradient-to-r from-cyan-900/60 to-blue-800/60 border-cyan-400/80 text-cyan-200 focus:border-cyan-300/90 focus:ring-2 focus:ring-cyan-400/40 shadow-lg shadow-cyan-500/10'
                                   : 'bg-gradient-to-r from-orange-900/60 to-yellow-800/60 border-orange-400/80 text-orange-200 focus:border-orange-300/90 focus:ring-2 focus:ring-orange-400/40 shadow-lg shadow-orange-500/10'
                                 : `${colors.inputBg} ${colors.inputBorder} ${colors.accent} focus:border-current/80 focus:ring-2 focus:ring-current/20 hover:${colors.inputBorder}/60`
                             }`}
@@ -710,7 +750,22 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                         </div>
                       </div>
                     </div>
-                  </div>
+                    </div>
+                    
+                    {/* Enhanced Visual Separator - Chevron between cards */}
+                    {index < defaultRiskLevels.length - 1 && (
+                      <div className="flex items-center justify-center px-3 py-2">
+                        <div className="relative group">
+                          <div className="p-2 bg-gradient-to-r from-slate-700/30 to-slate-600/30 border border-slate-600/40 rounded-lg transition-all duration-300 group-hover:from-slate-600/40 group-hover:to-slate-500/40 group-hover:border-slate-500/60 group-hover:scale-110">
+                            <ChevronLeft className="w-4 h-4 text-slate-400 group-hover:text-slate-300 transform rotate-180 transition-all duration-300" />
+                          </div>
+                          <div className="absolute inset-0 p-2 opacity-30">
+                            <ChevronLeft className="w-4 h-4 text-slate-500 animate-pulse transform rotate-180" />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </React.Fragment>
                 );
               })}
             </div>
