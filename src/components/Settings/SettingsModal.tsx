@@ -451,7 +451,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
 
   return (
     <div
-      className="fixed inset-0 bg-gradient-to-br from-indigo-950/96 via-purple-900/94 via-slate-900/96 to-emerald-950/96 backdrop-blur-xl flex items-center justify-center z-[9999] p-4 animate-gradient-shift"
+      className="fixed inset-0 bg-gradient-to-br from-indigo-950/96 via-purple-900/94 via-slate-900/96 to-emerald-950/96 backdrop-blur-xl flex items-center justify-center z-[10000] p-4 animate-gradient-shift"
       onClick={(e) => {
         // Close modal if clicking on backdrop
         if (e.target === e.currentTarget) {

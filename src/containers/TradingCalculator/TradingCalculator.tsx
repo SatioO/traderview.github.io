@@ -28,6 +28,7 @@ const app = initializeApp(firebaseConfig);
 getAnalytics(app);
 
 const TradingCalculator: React.FC = () => {
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     accountBalance: 1000000,
     riskPercentage: 0.25,
@@ -580,11 +581,15 @@ const TradingCalculator: React.FC = () => {
 
       {/* Settings Button */}
       <div className="absolute top-3 left-6 z-20">
-        <SettingsButton />
+        <SettingsButton 
+          isSettingsOpen={isSettingsOpen}
+          onSettingsToggle={setIsSettingsOpen}
+        />
       </div>
 
       {/* Enhanced Market Outlook Command Center */}
-      <div className="absolute top-3 right-6 z-20">
+      {!isSettingsOpen && (
+        <div className="absolute top-3 right-6 z-20">
         <div className="group relative">
           {/* Advanced Market Outlook Display */}
           <div
@@ -932,7 +937,8 @@ const TradingCalculator: React.FC = () => {
             <div className="absolute -top-2 right-12 w-4 h-4 bg-gradient-to-br from-slate-900/98 to-slate-800/98 border-l-2 border-t-2 border-purple-400/30 transform rotate-45 shadow-lg"></div>
           </div>
         </div>
-      </div>
+        </div>
+      )}
 
       {/* Main Content */}
       <main className="relative z-10 mx-auto px-4 sm:px-6 lg:px-8 py-8">

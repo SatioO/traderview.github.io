@@ -1,16 +1,22 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Settings } from 'lucide-react';
 import SettingsModal from './SettingsModal';
 
-const SettingsButton: React.FC = () => {
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+interface SettingsButtonProps {
+  isSettingsOpen: boolean;
+  onSettingsToggle: (open: boolean) => void;
+}
 
+const SettingsButton: React.FC<SettingsButtonProps> = ({ 
+  isSettingsOpen, 
+  onSettingsToggle 
+}) => {
   return (
     <>
       <div className="group relative">
         {/* Premium Settings Button */}
         <button
-          onClick={() => setIsSettingsOpen(true)}
+          onClick={() => onSettingsToggle(true)}
           className="relative flex items-center space-x-4 backdrop-blur-2xl border rounded-2xl px-6 py-3 cursor-pointer transition-all duration-500 hover:scale-[1.02] overflow-hidden bg-gradient-to-r from-cyan-500/10 via-blue-500/8 to-purple-500/10 border-cyan-400/30 hover:border-cyan-400/50 hover:shadow-xl hover:shadow-cyan-500/20"
           title="Settings"
         >
@@ -55,7 +61,7 @@ const SettingsButton: React.FC = () => {
 
       <SettingsModal 
         isOpen={isSettingsOpen} 
-        onClose={() => setIsSettingsOpen(false)} 
+        onClose={() => onSettingsToggle(false)} 
       />
     </>
   );
