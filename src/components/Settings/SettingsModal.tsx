@@ -43,7 +43,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
     const duplicates: string[] = [];
     const values: number[] = [];
     const processedValues: { [key: string]: number } = {};
-    const conflicts: Record<string, { type: 'decrease' | 'increase'; conflictWith: string }> = {};
+    const conflicts: Record<
+      string,
+      { type: 'decrease' | 'increase'; conflictWith: string }
+    > = {};
 
     try {
       // Get all risk level values (including unchanged ones)
@@ -121,8 +124,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
       // Check ascending order with bidirectional conflict tracking
       const orderedLevels = ['conservative', 'balanced', 'bold', 'maximum'];
       const orderedValues: { id: string; value: number }[] = [];
-      
-      orderedLevels.forEach(levelId => {
+
+      orderedLevels.forEach((levelId) => {
         if (processedValues[levelId] !== undefined) {
           orderedValues.push({ id: levelId, value: processedValues[levelId] });
         }
@@ -132,15 +135,21 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
       for (let i = 1; i < orderedValues.length; i++) {
         const current = orderedValues[i];
         const previous = orderedValues[i - 1];
-        
+
         if (current.value <= previous.value) {
           // Instead of just erroring the current field, track conflicts for both
           if (!errors[current.id] && !errors[previous.id]) {
             // Left tile (previous) should DECREASE to be less than right
-            conflicts[previous.id] = { type: 'decrease', conflictWith: current.id };
+            conflicts[previous.id] = {
+              type: 'decrease',
+              conflictWith: current.id,
+            };
             // Right tile (current) should INCREASE to be greater than left
-            conflicts[current.id] = { type: 'increase', conflictWith: previous.id };
-            
+            conflicts[current.id] = {
+              type: 'increase',
+              conflictWith: previous.id,
+            };
+
             // Still add traditional error message for footer counting
             errors[current.id] = `Must be greater than ${previous.value}%`;
           }
@@ -320,14 +329,28 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
               const level = defaultRiskLevels.find((l) => l.id === levelId);
               const isDuplicate = error.includes('Duplicate');
               const isMaximumRange = error.includes('Maximum value is 3%');
-              const isOrderError = error.includes('Must be greater than') && error.includes('%');
-              const isRange = isMaximumRange || error.includes('Must be greater than 0');
+              const isOrderError =
+                error.includes('Must be greater than') && error.includes('%');
+              const isRange =
+                isMaximumRange || error.includes('Must be greater than 0');
 
               errors.push({
-                type: isDuplicate ? 'duplicate' : isOrderError ? 'order' : isRange ? 'range' : 'invalid',
+                type: isDuplicate
+                  ? 'duplicate'
+                  : isOrderError
+                  ? 'order'
+                  : isRange
+                  ? 'range'
+                  : 'invalid',
                 message: error,
                 field: level?.name || levelId,
-                severity: isDuplicate ? 'medium' : isOrderError ? 'high' : isRange ? 'high' : 'low',
+                severity: isDuplicate
+                  ? 'medium'
+                  : isOrderError
+                  ? 'high'
+                  : isRange
+                  ? 'high'
+                  : 'low',
               });
             }
           }
@@ -350,7 +373,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
     capital: errorSummary?.filter((e) => e.type === 'capital').length || 0,
     risk:
       errorSummary?.filter(
-        (e) => e.type !== 'capital' && e.type !== 'duplicate' && e.type !== 'order'
+        (e) =>
+          e.type !== 'capital' && e.type !== 'duplicate' && e.type !== 'order'
       ).length || 0,
     order: errorSummary?.filter((e) => e.type === 'order').length || 0,
     duplicates: errorSummary?.filter((e) => e.type === 'duplicate').length || 0,
@@ -585,189 +609,260 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
             </div>
           </div>
 
-          {/* Premium Risk Matrix */}
+          {/* Enhanced Risk Matrix */}
           <div className="relative">
-            <div className="flex items-center space-x-3 mb-4">
-              <div className="p-1.5 bg-gradient-to-r from-orange-500/20 to-red-500/20 border border-orange-500/30 rounded-lg">
-                <Target className="w-4 h-4 text-orange-400" />
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center space-x-3">
+                <div className="p-1.5 bg-gradient-to-r from-orange-500/20 to-red-500/20 border border-orange-500/30 rounded-lg">
+                  <Target className="w-4 h-4 text-orange-400" />
+                </div>
+                <span className="text-sm font-bold bg-gradient-to-r from-orange-300 to-red-300 bg-clip-text text-transparent tracking-wider">
+                  Risk Tolerance Matrix
+                </span>
               </div>
-              <span className="text-sm font-bold bg-gradient-to-r from-orange-300 to-red-300 bg-clip-text text-transparent tracking-wider">
-                Risk Levels
-              </span>
+
+              {/* Live Risk Range Indicator */}
+              <div className="flex items-center space-x-2">
+                <div className="text-xs text-slate-400 font-medium">RANGE</div>
+                <div className="px-3 py-1 bg-gradient-to-r from-emerald-500/20 to-red-500/20 border border-slate-600/50 rounded-lg">
+                  <span className="text-xs font-bold text-slate-300">
+                    {Math.min(
+                      ...defaultRiskLevels.map(
+                        (l) => Number(getDisplayValue(l)) || 0
+                      )
+                    ).toFixed(2)}
+                    % -{' '}
+                    {Math.max(
+                      ...defaultRiskLevels.map(
+                        (l) => Number(getDisplayValue(l)) || 0
+                      )
+                    ).toFixed(2)}
+                    %
+                  </span>
+                </div>
+              </div>
             </div>
 
-            {/* Risk Level Cards with Visual Order Indicators */}
-            <div className="flex items-stretch justify-center space-x-1">
-              {defaultRiskLevels.map((level, index) => {
-                const displayValue = getDisplayValue(level);
-                const hasError = validationErrors.riskLevels?.[level.id];
-                const isShaking = shakeAnimations[level.id];
-                const orderConflict = orderConflicts[level.id];
-                const hasOrderConflict = !!orderConflict;
-                const errorType = hasError?.includes('Duplicate')
-                  ? 'duplicate'
-                  : hasError?.includes('Maximum')
-                  ? 'high'
-                  : hasOrderConflict
-                  ? 'order'
-                  : hasError
-                  ? 'invalid'
-                  : null;
+            {/* Progressive Risk Level Cards */}
+            <div className="relative">
+              {/* Background Gradient Track */}
+              <div className="absolute inset-x-0 top-1/2 transform -translate-y-1/2 h-1 bg-gradient-to-r from-emerald-500/30 via-amber-500/30 via-orange-500/30 to-red-500/30 rounded-full"></div>
 
-                const levelColors = {
-                  conservative: {
-                    bg: 'from-emerald-500/10 via-green-500/5 to-teal-500/10',
-                    border: 'border-emerald-400/30 hover:border-emerald-400/50',
-                    text: 'text-emerald-300',
-                    accent: 'text-emerald-400',
-                    inputBg: 'bg-emerald-500/10',
-                    inputBorder: 'border-emerald-400/40',
-                    icon: '🌱',
-                  },
-                  balanced: {
-                    bg: 'from-amber-500/10 via-yellow-500/5 to-orange-500/10',
-                    border: 'border-amber-400/30 hover:border-amber-400/50',
-                    text: 'text-amber-300',
-                    accent: 'text-amber-400',
-                    inputBg: 'bg-amber-500/10',
-                    inputBorder: 'border-amber-400/40',
-                    icon: '🔥',
-                  },
-                  bold: {
-                    bg: 'from-orange-500/10 via-red-500/5 to-pink-500/10',
-                    border: 'border-orange-400/30 hover:border-orange-400/50',
-                    text: 'text-orange-300',
-                    accent: 'text-orange-400',
-                    inputBg: 'bg-orange-500/10',
-                    inputBorder: 'border-orange-400/40',
-                    icon: '⚡',
-                  },
-                  maximum: {
-                    bg: 'from-red-500/10 via-pink-500/5 to-rose-500/10',
-                    border: 'border-red-400/30 hover:border-red-400/50',
-                    text: 'text-red-300',
-                    accent: 'text-red-400',
-                    inputBg: 'bg-red-500/10',
-                    inputBorder: 'border-red-400/40',
-                    icon: '💀',
-                  },
-                };
+              <div className="relative flex items-center justify-center space-x-2">
+                {defaultRiskLevels.map((level, index) => {
+                  const displayValue = getDisplayValue(level);
+                  const hasError = validationErrors.riskLevels?.[level.id];
+                  const isShaking = shakeAnimations[level.id];
+                  const orderConflict = orderConflicts[level.id];
+                  const hasOrderConflict = !!orderConflict;
+                  const errorType = hasError?.includes('Duplicate')
+                    ? 'duplicate'
+                    : hasError?.includes('Maximum')
+                    ? 'high'
+                    : hasOrderConflict
+                    ? 'order'
+                    : hasError
+                    ? 'invalid'
+                    : null;
 
-                const colors =
-                  levelColors[level.id as keyof typeof levelColors] ||
-                  levelColors['conservative'];
+                  const levelColors = {
+                    conservative: {
+                      bg: 'from-emerald-500/10 via-green-500/5 to-teal-500/10',
+                      border:
+                        'border-emerald-400/30 hover:border-emerald-400/50',
+                      text: 'text-emerald-300',
+                      accent: 'text-emerald-400',
+                      inputBg: 'bg-emerald-500/10',
+                      inputBorder: 'border-emerald-400/40',
+                      icon: '🌱',
+                    },
+                    balanced: {
+                      bg: 'from-amber-500/10 via-yellow-500/5 to-orange-500/10',
+                      border: 'border-amber-400/30 hover:border-amber-400/50',
+                      text: 'text-amber-300',
+                      accent: 'text-amber-400',
+                      inputBg: 'bg-amber-500/10',
+                      inputBorder: 'border-amber-400/40',
+                      icon: '🔥',
+                    },
+                    bold: {
+                      bg: 'from-orange-500/10 via-red-500/5 to-pink-500/10',
+                      border: 'border-orange-400/30 hover:border-orange-400/50',
+                      text: 'text-orange-300',
+                      accent: 'text-orange-400',
+                      inputBg: 'bg-orange-500/10',
+                      inputBorder: 'border-orange-400/40',
+                      icon: '⚡',
+                    },
+                    maximum: {
+                      bg: 'from-red-500/10 via-pink-500/5 to-rose-500/10',
+                      border: 'border-red-400/30 hover:border-red-400/50',
+                      text: 'text-red-300',
+                      accent: 'text-red-400',
+                      inputBg: 'bg-red-500/10',
+                      inputBorder: 'border-red-400/40',
+                      icon: '💀',
+                    },
+                  };
 
-                return (
-                  <React.Fragment key={level.id}>
-                    <div className="relative w-full">
-                    {/* Card with Input Box Instead of Percentage */}
-                    <div
-                      className={`group relative bg-gradient-to-br ${
-                        colors.bg
-                      } rounded-xl p-3 border transition-all duration-300 hover:scale-105 overflow-hidden ${
-                        hasError
-                          ? errorType === 'duplicate'
-                            ? 'ring-2 ring-purple-500/60 border-purple-500/70 shadow-lg shadow-purple-500/20 bg-purple-500/10'
-                            : errorType === 'high'
-                            ? 'ring-2 ring-red-500/60 border-red-500/70 shadow-lg shadow-red-500/20 bg-red-500/10'
-                            : errorType === 'order'
-                            ? orderConflict?.type === 'decrease'
-                              ? 'ring-2 ring-amber-500/60 border-amber-500/70 shadow-lg shadow-amber-500/20 bg-amber-500/10'
-                              : 'ring-2 ring-cyan-500/60 border-cyan-500/70 shadow-lg shadow-cyan-500/20 bg-cyan-500/10'
-                            : 'ring-2 ring-orange-500/60 border-orange-500/70 shadow-lg shadow-orange-500/20 bg-orange-500/10'
-                          : colors.border
-                      }`}
-                      style={{
-                        animation: isShaking
-                          ? 'shake 0.6s ease-in-out'
-                          : hasError
-                          ? 'pulse-error 2s ease-in-out infinite'
-                          : undefined,
-                      }}
-                    >
-                      {/* Creative Order Conflict Indicator */}
-                      {hasOrderConflict && (
-                        <div className="absolute -top-2 -right-2 z-10">
-                          <div className={`p-1.5 rounded-full shadow-lg animate-bounce ${
-                            orderConflict?.type === 'decrease' 
-                              ? 'bg-gradient-to-r from-amber-500/80 to-orange-500/80 border border-amber-400/90' 
-                              : 'bg-gradient-to-r from-cyan-500/80 to-blue-500/80 border border-cyan-400/90'
-                          }`}>
-                            {orderConflict?.type === 'decrease' ? (
-                              <ChevronDown className="w-3 h-3 text-white" />
-                            ) : (
-                              <ChevronUp className="w-3 h-3 text-white" />
-                            )}
+                  const colors =
+                    levelColors[level.id as keyof typeof levelColors] ||
+                    levelColors['conservative'];
+
+                  return (
+                    <React.Fragment key={level.id}>
+                      {/* Risk Level Card */}
+                      <div className="relative flex-shrink-0">
+                        {/* Enhanced Risk Level Card */}
+                        <div
+                          className={`group relative bg-gradient-to-br ${
+                            colors.bg
+                          } rounded-xl p-3 border transition-all duration-300 hover:scale-105 overflow-hidden w-32 h-36 ${
+                            hasError
+                              ? errorType === 'duplicate'
+                                ? 'ring-2 ring-purple-500/60 border-purple-500/70 shadow-lg shadow-purple-500/20 bg-purple-500/10'
+                                : errorType === 'high'
+                                ? 'ring-2 ring-red-500/60 border-red-500/70 shadow-lg shadow-red-500/20 bg-red-500/10'
+                                : errorType === 'order'
+                                ? orderConflict?.type === 'decrease'
+                                  ? 'ring-2 ring-amber-500/60 border-amber-500/70 shadow-lg shadow-amber-500/20 bg-amber-500/10'
+                                  : 'ring-2 ring-cyan-500/60 border-cyan-500/70 shadow-lg shadow-cyan-500/20 bg-cyan-500/10'
+                                : 'ring-2 ring-orange-500/60 border-orange-500/70 shadow-lg shadow-orange-500/20 bg-orange-500/10'
+                              : colors.border
+                          }`}
+                          style={{
+                            animation: isShaking
+                              ? 'shake 0.6s ease-in-out'
+                              : hasError
+                              ? 'pulse-error 2s ease-in-out infinite'
+                              : undefined,
+                          }}
+                        >
+                          {/* Creative Order Conflict Indicator */}
+                          {hasOrderConflict && (
+                            <div className="absolute -top-2 -right-2 z-10">
+                              <div
+                                className={`p-1.5 rounded-full shadow-lg animate-bounce ${
+                                  orderConflict?.type === 'decrease'
+                                    ? 'bg-gradient-to-r from-amber-500/80 to-orange-500/80 border border-amber-400/90'
+                                    : 'bg-gradient-to-r from-cyan-500/80 to-blue-500/80 border border-cyan-400/90'
+                                }`}
+                              >
+                                {orderConflict?.type === 'decrease' ? (
+                                  <ChevronDown className="w-3 h-3 text-white" />
+                                ) : (
+                                  <ChevronUp className="w-3 h-3 text-white" />
+                                )}
+                              </div>
+                            </div>
+                          )}
+                          {/* Card Content - Icon, Input, Label */}
+                          <div className="flex flex-col items-center justify-center text-center space-y-2 h-full">
+                            {/* Enhanced Icon with Pulse */}
+                            <div className="relative">
+                              <div className="text-3xl transform transition-transform duration-300 group-hover:scale-110">
+                                {colors.icon}
+                              </div>
+                              {hasError && (
+                                <div className="absolute -inset-1 bg-gradient-to-r from-red-500/20 to-orange-500/20 rounded-full animate-pulse"></div>
+                              )}
+                            </div>
+
+                            {/* Advanced Input with Visual Feedback */}
+                            <div className="relative group">
+                              <input
+                                type="number"
+                                min="0.01"
+                                max="3"
+                                step="0.01"
+                                value={displayValue}
+                                onChange={(e) =>
+                                  handlePercentageChange(
+                                    level.id,
+                                    e.target.value
+                                  )
+                                }
+                                className={`w-16 h-8 border-2 rounded-xl px-2 pr-5 text-center font-bold text-sm focus:outline-none transition-all duration-300 backdrop-blur-sm ${
+                                  hasError
+                                    ? errorType === 'duplicate'
+                                      ? 'bg-purple-900/40 border-purple-400/80 text-purple-200 focus:border-purple-300/90 focus:ring-2 focus:ring-purple-400/40 shadow-lg shadow-purple-500/20'
+                                      : errorType === 'high'
+                                      ? 'bg-red-900/40 border-red-400/80 text-red-200 focus:border-red-300/90 focus:ring-2 focus:ring-red-400/40 shadow-lg shadow-red-500/20'
+                                      : errorType === 'order'
+                                      ? orderConflict?.type === 'decrease'
+                                        ? 'bg-amber-900/40 border-amber-400/80 text-amber-200 focus:border-amber-300/90 focus:ring-2 focus:ring-amber-400/40 shadow-lg shadow-amber-500/20'
+                                        : 'bg-cyan-900/40 border-cyan-400/80 text-cyan-200 focus:border-cyan-300/90 focus:ring-2 focus:ring-cyan-400/40 shadow-lg shadow-cyan-500/20'
+                                      : 'bg-orange-900/40 border-orange-400/80 text-orange-200 focus:border-orange-300/90 focus:ring-2 focus:ring-orange-400/40 shadow-lg shadow-orange-500/20'
+                                    : `bg-black/20 ${colors.inputBorder} ${colors.accent} focus:border-current/90 focus:ring-2 focus:ring-current/30 hover:bg-black/30 group-hover:border-current/70`
+                                }`}
+                                style={{
+                                  animation: hasError
+                                    ? 'pulse-error 2s ease-in-out infinite'
+                                    : undefined,
+                                }}
+                                placeholder="0.25"
+                              />
+                              <div
+                                className={`absolute right-1.5 top-1/2 transform -translate-y-1/2 text-xs font-bold ${colors.accent} opacity-70 pointer-events-none transition-opacity group-hover:opacity-90`}
+                              >
+                                %
+                              </div>
+
+                              {/* Input Enhancement Glow */}
+                              <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-transparent via-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+                            </div>
+
+                            {/* Enhanced Label with Dynamic State */}
+                            <div className="space-y-1">
+                              <div
+                                className={`text-xs font-medium ${colors.text} leading-tight px-1 transition-colors duration-300`}
+                              >
+                                {level.name}
+                              </div>
+
+                              {/* Live Value Preview */}
+                              <div className="flex items-center justify-center space-x-1">
+                                <div
+                                  className={`w-1 h-1 rounded-full ${colors.accent.replace(
+                                    'text-',
+                                    'bg-'
+                                  )} opacity-60`}
+                                ></div>
+                                <span
+                                  className={`text-xs font-bold ${colors.accent} opacity-80`}
+                                >
+                                  {Number(displayValue) > 0
+                                    ? `${Number(displayValue).toFixed(2)}%`
+                                    : '--'}
+                                </span>
+                                <div
+                                  className={`w-1 h-1 rounded-full ${colors.accent.replace(
+                                    'text-',
+                                    'bg-'
+                                  )} opacity-60`}
+                                ></div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Compact Connection Node */}
+                      {index < defaultRiskLevels.length - 1 && (
+                        <div className="relative flex items-center justify-center px-1">
+                          {/* Directional Node */}
+                          <div className="relative z-10 group">
+                            <div className="w-4 h-4 bg-gradient-to-r from-slate-800/90 to-slate-700/90 border border-slate-600/60 rounded-full flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:border-slate-500/80">
+                              <ChevronLeft className="w-2 h-2 text-slate-400 group-hover:text-slate-300" />
+                            </div>
+                            <div className="absolute inset-0 w-4 h-4 bg-gradient-to-r from-slate-700/30 to-slate-600/30 rounded-full animate-ping opacity-20"></div>
                           </div>
                         </div>
                       )}
-                      {/* Card Content - Icon, Input, Label */}
-                      <div className="flex flex-col items-center text-center space-y-2">
-                        <div className="text-2xl">{colors.icon}</div>
-
-                        {/* Stylish Input Box */}
-                        <div className="relative">
-                          <input
-                            type="number"
-                            min="0.01"
-                            max="3"
-                            step="0.01"
-                            value={displayValue}
-                            onChange={(e) =>
-                              handlePercentageChange(level.id, e.target.value)
-                            }
-                            className={`w-16 h-8 border rounded-lg px-2 pr-4 text-center font-bold text-sm focus:outline-none transition-all duration-300 ${
-                              hasError
-                                ? errorType === 'duplicate'
-                                  ? 'bg-gradient-to-r from-purple-900/60 to-violet-800/60 border-purple-400/80 text-purple-200 focus:border-purple-300/90 focus:ring-2 focus:ring-purple-400/40 shadow-lg shadow-purple-500/10'
-                                  : errorType === 'high'
-                                  ? 'bg-gradient-to-r from-red-900/60 to-red-800/60 border-red-400/80 text-red-200 focus:border-red-300/90 focus:ring-2 focus:ring-red-400/40 shadow-lg shadow-red-500/10'
-                                  : errorType === 'order'
-                                  ? orderConflict?.type === 'decrease'
-                                    ? 'bg-gradient-to-r from-amber-900/60 to-orange-800/60 border-amber-400/80 text-amber-200 focus:border-amber-300/90 focus:ring-2 focus:ring-amber-400/40 shadow-lg shadow-amber-500/10'
-                                    : 'bg-gradient-to-r from-cyan-900/60 to-blue-800/60 border-cyan-400/80 text-cyan-200 focus:border-cyan-300/90 focus:ring-2 focus:ring-cyan-400/40 shadow-lg shadow-cyan-500/10'
-                                  : 'bg-gradient-to-r from-orange-900/60 to-yellow-800/60 border-orange-400/80 text-orange-200 focus:border-orange-300/90 focus:ring-2 focus:ring-orange-400/40 shadow-lg shadow-orange-500/10'
-                                : `${colors.inputBg} ${colors.inputBorder} ${colors.accent} focus:border-current/80 focus:ring-2 focus:ring-current/20 hover:${colors.inputBorder}/60`
-                            }`}
-                            style={{
-                              animation: hasError
-                                ? 'pulse-error 2s ease-in-out infinite'
-                                : undefined,
-                            }}
-                            placeholder="0.01"
-                          />
-                          <div
-                            className={`absolute right-1 top-1/2 transform -translate-y-1/2 text-xs font-bold ${colors.accent} opacity-80 pointer-events-none`}
-                          >
-                            %
-                          </div>
-                        </div>
-
-                        <div
-                          className={`text-xs font-medium ${colors.text} leading-tight px-1`}
-                        >
-                          {level.name}
-                        </div>
-                      </div>
-                    </div>
-                    </div>
-                    
-                    {/* Enhanced Visual Separator - Chevron between cards */}
-                    {index < defaultRiskLevels.length - 1 && (
-                      <div className="flex items-center justify-center px-3 py-2">
-                        <div className="relative group">
-                          <div className="p-2 bg-gradient-to-r from-slate-700/30 to-slate-600/30 border border-slate-600/40 rounded-lg transition-all duration-300 group-hover:from-slate-600/40 group-hover:to-slate-500/40 group-hover:border-slate-500/60 group-hover:scale-110">
-                            <ChevronLeft className="w-4 h-4 text-slate-400 group-hover:text-slate-300 transform rotate-180 transition-all duration-300" />
-                          </div>
-                          <div className="absolute inset-0 p-2 opacity-30">
-                            <ChevronLeft className="w-4 h-4 text-slate-500 animate-pulse transform rotate-180" />
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </React.Fragment>
-                );
-              })}
+                    </React.Fragment>
+                  );
+                })}
+              </div>
             </div>
           </div>
 
