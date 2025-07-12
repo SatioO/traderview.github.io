@@ -7,7 +7,6 @@ import {
   Zap,
   Target,
   Activity,
-  CheckCircle,
 } from 'lucide-react';
 import { useSettings, type RiskLevel } from '../../contexts/SettingsContext';
 
@@ -446,62 +445,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
           </div>
         </div>
 
-        {/* Gamified Success State */}
-        {hasChanges && !hasValidationErrors && (
-          <div className="mx-6 mt-4 relative">
-            {/* Animated success background */}
-            <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/10 via-green-500/15 to-emerald-500/10 rounded-2xl animate-pulse"></div>
-
-            <div className="relative p-3 bg-gradient-to-br from-emerald-900/30 via-green-800/20 to-emerald-900/30 backdrop-blur-sm border border-emerald-500/40 rounded-2xl shadow-lg shadow-emerald-500/10">
-              {/* Success particles */}
-              <div className="absolute inset-0 overflow-hidden pointer-events-none rounded-2xl">
-                <div className="absolute top-2 left-4 w-1 h-1 bg-emerald-400 rounded-full animate-ping opacity-60"></div>
-                <div className="absolute top-3 right-6 w-1 h-1 bg-green-400 rounded-full animate-ping opacity-40 delay-500"></div>
-                <div className="absolute bottom-3 left-8 w-1 h-1 bg-emerald-300 rounded-full animate-ping opacity-50 delay-1000"></div>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className="relative">
-                    <div className="p-2 bg-gradient-to-r from-emerald-500/30 to-green-500/30 border border-emerald-500/50 rounded-xl">
-                      <CheckCircle className="w-5 h-5 text-emerald-300" />
-                    </div>
-                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-gradient-to-r from-emerald-400 to-green-400 rounded-full animate-pulse"></div>
-                  </div>
-                  <div>
-                    <div className="flex items-center space-x-2">
-                      <span className="text-sm font-bold bg-gradient-to-r from-emerald-300 to-green-300 bg-clip-text text-transparent">
-                        ✅ VALIDATION PASSED
-                      </span>
-                      <div className="px-2 py-0.5 bg-gradient-to-r from-emerald-500/40 to-green-500/40 border border-emerald-400/60 rounded-full">
-                        <span className="text-xs font-bold text-emerald-200">
-                          READY
-                        </span>
-                      </div>
-                    </div>
-                    <span className="text-xs text-emerald-400/80">
-                      🚀 Ready to save changes
-                    </span>
-                  </div>
-                </div>
-
-                {/* Success progress bar */}
-                <div className="flex items-center space-x-2">
-                  <span className="text-xs text-emerald-400 font-medium">
-                    VALIDATION
-                  </span>
-                  <div className="w-16 h-2 bg-slate-800/60 rounded-full overflow-hidden border border-emerald-500/30">
-                    <div className="h-full bg-gradient-to-r from-emerald-500 to-green-500 animate-pulse transition-all duration-500 w-full" />
-                  </div>
-                  <span className="text-xs text-emerald-300 font-bold">
-                    PASSED
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* Premium Content */}
         <div className="p-6 space-y-6">
           {/* Premium Trading Capital */}
@@ -529,7 +472,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                 capitalInfo.bgGradient
               } rounded-2xl p-5 border transition-all duration-500 overflow-hidden ${
                 validationErrors.capital
-                  ? 'border-red-500/50 ring-1 ring-red-500/30 shadow-lg shadow-red-500/10'
+                  ? 'border-red-500/60 ring-2 ring-red-500/40 shadow-lg shadow-red-500/20 bg-red-500/5'
                   : hasCapitalChanged
                   ? `${capitalInfo.borderColor} shadow-lg shadow-emerald-500/10`
                   : `${capitalInfo.borderColor}`
@@ -537,6 +480,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
               style={{
                 animation: shakeAnimations.capital
                   ? 'shake 0.6s ease-in-out'
+                  : validationErrors.capital
+                  ? 'pulse-error 2s ease-in-out infinite'
                   : undefined,
               }}
             >
@@ -604,11 +549,16 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                   onChange={(e) => handleCapitalChange(e.target.value)}
                   className={`w-full border rounded-xl pl-8 pr-16 py-3 text-white font-bold text-lg focus:outline-none transition-all duration-300 ${
                     validationErrors.capital
-                      ? 'bg-gradient-to-r from-red-900/50 to-red-800/50 border-red-400/60 focus:border-red-300/80 focus:ring-2 focus:ring-red-400/30'
+                      ? 'bg-gradient-to-r from-red-900/60 to-red-800/60 border-red-400/80 focus:border-red-300/90 focus:ring-2 focus:ring-red-400/40 shadow-lg shadow-red-500/10'
                       : hasCapitalChanged
                       ? 'bg-gradient-to-r from-slate-800/60 to-slate-700/60 border-emerald-500/50 focus:border-emerald-400/70 focus:ring-2 focus:ring-emerald-500/20'
                       : 'bg-gradient-to-r from-slate-800/60 to-slate-700/60 border-slate-600/50 focus:border-slate-500/70 focus:ring-2 focus:ring-slate-500/20'
                   }`}
+                  style={{
+                    animation: validationErrors.capital
+                      ? 'pulse-error 2s ease-in-out infinite'
+                      : undefined,
+                  }}
                   placeholder="Enter amount"
                 />
                 <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
@@ -694,31 +644,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
 
                 return (
                   <div key={level.id} className="relative">
-                    {/* Validation Alert */}
-                    {hasError && (
-                      <div className="absolute -top-1 -right-1 z-10">
-                        <div
-                          className={`p-1 border rounded-full animate-bounce ${
-                            errorType === 'duplicate'
-                              ? 'bg-gradient-to-r from-purple-500/30 to-violet-500/30 border-purple-400/60'
-                              : errorType === 'high'
-                              ? 'bg-gradient-to-r from-red-500/30 to-pink-500/30 border-red-400/60'
-                              : 'bg-gradient-to-r from-orange-500/30 to-yellow-500/30 border-orange-400/60'
-                          }`}
-                        >
-                          <AlertTriangle
-                            className={`w-2 h-2 ${
-                              errorType === 'duplicate'
-                                ? 'text-purple-300'
-                                : errorType === 'high'
-                                ? 'text-red-300'
-                                : 'text-orange-300'
-                            }`}
-                          />
-                        </div>
-                      </div>
-                    )}
-
                     {/* Card with Input Box Instead of Percentage */}
                     <div
                       className={`group relative bg-gradient-to-br ${
@@ -726,15 +651,17 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                       } rounded-xl p-3 border transition-all duration-300 hover:scale-105 overflow-hidden ${
                         hasError
                           ? errorType === 'duplicate'
-                            ? 'ring-1 ring-purple-500/50 border-purple-500/40'
+                            ? 'ring-2 ring-purple-500/60 border-purple-500/70 shadow-lg shadow-purple-500/20 bg-purple-500/10'
                             : errorType === 'high'
-                            ? 'ring-1 ring-red-500/50 border-red-500/40'
-                            : 'ring-1 ring-orange-500/50 border-orange-500/40'
+                            ? 'ring-2 ring-red-500/60 border-red-500/70 shadow-lg shadow-red-500/20 bg-red-500/10'
+                            : 'ring-2 ring-orange-500/60 border-orange-500/70 shadow-lg shadow-orange-500/20 bg-orange-500/10'
                           : colors.border
                       }`}
                       style={{
                         animation: isShaking
                           ? 'shake 0.6s ease-in-out'
+                          : hasError
+                          ? 'pulse-error 2s ease-in-out infinite'
                           : undefined,
                       }}
                     >
@@ -756,12 +683,17 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                             className={`w-16 h-8 border rounded-lg px-2 pr-4 text-center font-bold text-sm focus:outline-none transition-all duration-300 ${
                               hasError
                                 ? errorType === 'duplicate'
-                                  ? 'bg-gradient-to-r from-purple-900/50 to-violet-800/50 border-purple-400/60 text-purple-200 focus:border-purple-300/80 focus:ring-2 focus:ring-purple-400/30'
+                                  ? 'bg-gradient-to-r from-purple-900/60 to-violet-800/60 border-purple-400/80 text-purple-200 focus:border-purple-300/90 focus:ring-2 focus:ring-purple-400/40 shadow-lg shadow-purple-500/10'
                                   : errorType === 'high'
-                                  ? 'bg-gradient-to-r from-red-900/50 to-red-800/50 border-red-400/60 text-red-200 focus:border-red-300/80 focus:ring-2 focus:ring-red-400/30'
-                                  : 'bg-gradient-to-r from-orange-900/50 to-yellow-800/50 border-orange-400/60 text-orange-200 focus:border-orange-300/80 focus:ring-2 focus:ring-orange-400/30'
+                                  ? 'bg-gradient-to-r from-red-900/60 to-red-800/60 border-red-400/80 text-red-200 focus:border-red-300/90 focus:ring-2 focus:ring-red-400/40 shadow-lg shadow-red-500/10'
+                                  : 'bg-gradient-to-r from-orange-900/60 to-yellow-800/60 border-orange-400/80 text-orange-200 focus:border-orange-300/90 focus:ring-2 focus:ring-orange-400/40 shadow-lg shadow-orange-500/10'
                                 : `${colors.inputBg} ${colors.inputBorder} ${colors.accent} focus:border-current/80 focus:ring-2 focus:ring-current/20 hover:${colors.inputBorder}/60`
                             }`}
+                            style={{
+                              animation: hasError
+                                ? 'pulse-error 2s ease-in-out infinite'
+                                : undefined,
+                            }}
                             placeholder="0.01"
                           />
                           <div
@@ -860,6 +792,16 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
           0%, 100% { transform: translateX(0); }
           10%, 30%, 50%, 70%, 90% { transform: translateX(-2px); }
           20%, 40%, 60%, 80% { transform: translateX(2px); }
+        }
+        @keyframes pulse-error {
+          0%, 100% { 
+            border-color: rgba(239, 68, 68, 0.6);
+            box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
+          }
+          50% { 
+            border-color: rgba(239, 68, 68, 0.8);
+            box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.2);
+          }
         }
       `}</style>
     </div>
