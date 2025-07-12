@@ -438,7 +438,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
   };
 
   return (
-    <div 
+    <div
       className="fixed inset-0 bg-gradient-to-br from-slate-900/95 via-purple-900/90 to-slate-900/95 backdrop-blur-sm flex items-center justify-center z-[9999] p-4"
       onClick={(e) => {
         // Close modal if clicking on backdrop
@@ -463,7 +463,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
       </div>
 
       {/* Premium Settings Modal */}
-      <div 
+      <div
         className="relative bg-gradient-to-br from-slate-800/80 via-slate-900/90 to-slate-800/80 backdrop-blur-2xl rounded-[2rem] shadow-2xl w-full max-w-2xl border border-slate-700/50 hover:border-slate-600/60 transition-all duration-700 overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
@@ -536,100 +536,114 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
 
         {/* Premium Content */}
         <div className="p-6 space-y-6">
-          {/* Trading Capital - Aligned with Main Screen */}
+          {/* Enhanced Trading Capital Matrix */}
           <div className="relative">
-            {/* Single Title with Icon */}
-            <div className="flex items-center space-x-3 mb-4">
-              <div className="p-1.5 bg-gradient-to-r from-emerald-500/20 to-teal-500/20 border border-emerald-500/30 rounded-lg">
-                <TrendingUp className="w-4 h-4 text-emerald-400" />
+            {/* Sophisticated Header */}
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center space-x-3">
+                <div className="p-1.5 bg-gradient-to-r from-emerald-500/20 to-teal-500/20 border border-emerald-500/30 rounded-lg">
+                  <TrendingUp className="w-4 h-4 text-emerald-400" />
+                </div>
+                <span className="text-sm font-bold bg-gradient-to-r from-emerald-300 to-teal-300 bg-clip-text text-transparent tracking-wider">
+                  Trading Capital Matrix
+                </span>
               </div>
-              <span className="text-sm font-bold bg-gradient-to-r from-emerald-300 to-teal-300 bg-clip-text text-transparent tracking-wider">
-                Trading Capital
-              </span>
             </div>
 
-            <div
-              className={`group relative bg-gradient-to-br ${
-                capitalInfo.bgGradient
-              } rounded-2xl p-5 border transition-all duration-500 overflow-hidden ${
-                validationErrors.capital
-                  ? 'border-red-500/60 ring-2 ring-red-500/40 shadow-lg shadow-red-500/20 bg-red-500/5'
-                  : hasCapitalChanged
-                  ? `${capitalInfo.borderColor} shadow-lg shadow-emerald-500/10`
-                  : `${capitalInfo.borderColor}`
-              }`}
-              style={{
-                animation: shakeAnimations.capital
-                  ? 'shake 0.6s ease-in-out'
-                  : validationErrors.capital
-                  ? 'pulse-error 2s ease-in-out infinite'
-                  : undefined,
-              }}
-            >
-              {/* Elegant floating elements */}
-              <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                <div className="absolute top-3 left-6 w-1 h-1 bg-gradient-to-r from-emerald-400 to-teal-400 rounded-full animate-ping opacity-40"></div>
-                <div className="absolute top-2 right-8 w-1 h-1 bg-gradient-to-r from-cyan-400 to-blue-400 rounded-full animate-ping opacity-30 delay-1000"></div>
-                <div className="absolute bottom-4 left-8 w-1 h-1 bg-gradient-to-r from-violet-400 to-purple-400 rounded-full animate-ping opacity-35 delay-2000"></div>
-              </div>
+            {/* Capital Power Card */}
+            <div className="relative">
+              {/* Dynamic Background Gradient */}
+              <div
+                className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${capitalInfo.bgGradient} opacity-50`}
+              ></div>
 
-              {/* Power Level Section - Show Badge Instead of Progress */}
-              <div className="mb-4">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center space-x-2">
-                    <Zap className="w-3 h-3 text-slate-400" />
-                    <span className="text-xs font-medium text-slate-400 tracking-wide">
-                      POWER LEVEL
-                    </span>
-                  </div>
-                  <div
-                    className={`px-3 py-1.5 rounded-lg border text-xs font-bold ${capitalInfo.badgeColor}`}
-                  >
-                    {capitalInfo.level}
-                  </div>
+              <div
+                className={`group relative bg-gradient-to-br from-slate-800/60 via-slate-900/80 to-slate-800/60 backdrop-blur-xl rounded-2xl p-6 border transition-all duration-500 overflow-hidden ${
+                  validationErrors.capital
+                    ? 'border-red-500/60 ring-2 ring-red-500/40 shadow-lg shadow-red-500/20 bg-red-500/5'
+                    : hasCapitalChanged
+                    ? `${capitalInfo.borderColor} shadow-lg shadow-emerald-500/10`
+                    : `${capitalInfo.borderColor}`
+                }`}
+                style={{
+                  animation: shakeAnimations.capital
+                    ? 'shake 0.6s ease-in-out'
+                    : validationErrors.capital
+                    ? 'pulse-error 2s ease-in-out infinite'
+                    : undefined,
+                }}
+              >
+                {/* Premium Floating Elements */}
+                <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                  <div className="absolute top-4 left-8 w-1 h-1 bg-gradient-to-r from-emerald-400 to-teal-400 rounded-full animate-ping opacity-60"></div>
+                  <div className="absolute top-3 right-10 w-1 h-1 bg-gradient-to-r from-cyan-400 to-blue-400 rounded-full animate-ping opacity-40 delay-1000"></div>
+                  <div className="absolute bottom-5 left-12 w-1 h-1 bg-gradient-to-r from-violet-400 to-purple-400 rounded-full animate-ping opacity-50 delay-2000"></div>
+                  <div className="absolute bottom-4 right-6 w-1 h-1 bg-gradient-to-r from-amber-400 to-orange-400 rounded-full animate-ping opacity-45 delay-3000"></div>
                 </div>
-                <div className="h-2 bg-slate-800/60 rounded-full overflow-hidden border border-slate-700/50">
-                  <div
-                    className={`h-full bg-gradient-to-r ${capitalInfo.color} rounded-full transition-all duration-1000 ease-out shadow-sm`}
-                    style={{ width: `${capitalInfo.progress}%` }}
-                  />
-                </div>
-              </div>
 
-              {/* Capital Input */}
-              <div className="relative">
-                <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-emerald-400 font-bold text-lg animate-pulse">
-                  ₹
-                </div>
-                <input
-                  type="number"
-                  min="10000"
-                  max="100000000"
-                  step="1000"
-                  value={getDisplayCapital()}
-                  onChange={(e) => handleCapitalChange(e.target.value)}
-                  className={`w-full border rounded-xl pl-8 pr-16 py-3 text-white font-bold text-lg focus:outline-none transition-all duration-300 ${
-                    validationErrors.capital
-                      ? 'bg-gradient-to-r from-red-900/60 to-red-800/60 border-red-400/80 focus:border-red-300/90 focus:ring-2 focus:ring-red-400/40 shadow-lg shadow-red-500/10'
-                      : hasCapitalChanged
-                      ? 'bg-black/30 border-2 border-emerald-500/50 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20 focus:shadow-lg focus:shadow-emerald-500/20'
-                      : 'bg-black/30 border-2 border-slate-600/50 focus:border-slate-500/70 focus:ring-2 focus:ring-slate-500/20'
-                  }`}
-                  style={{
-                    animation: validationErrors.capital
-                      ? 'pulse-error 2s ease-in-out infinite'
-                      : undefined,
-                  }}
-                  placeholder="Enter amount"
-                />
-                <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                  <span
-                    className={`text-sm font-bold ${capitalInfo.textColor}`}
-                  >
-                    {formatCurrency(
-                      Number(getDisplayCapital()) || settings.accountBalance
-                    )}
-                  </span>
+                {/* Premium Capital Input */}
+                <div className="relative">
+                  <div className="mb-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-medium text-slate-400">
+                        TRADING CAPITAL AMOUNT
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="relative group">
+                    <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-emerald-400 font-bold text-xl animate-pulse">
+                      ₹
+                    </div>
+                    <input
+                      type="number"
+                      min="10000"
+                      max="100000000"
+                      step="1000"
+                      value={getDisplayCapital()}
+                      onChange={(e) => handleCapitalChange(e.target.value)}
+                      className={`w-full border-2 rounded-xl pl-10 pr-20 py-4 text-white font-bold text-xl focus:outline-none transition-all duration-300 backdrop-blur-sm ${
+                        validationErrors.capital
+                          ? 'bg-red-900/40 border-red-400/80 text-red-200 focus:border-red-300/90 focus:ring-2 focus:ring-red-400/40 shadow-lg shadow-red-500/20'
+                          : hasCapitalChanged
+                          ? 'bg-black/30 border-emerald-500/60 focus:border-emerald-400/80 focus:ring-2 focus:ring-emerald-400/30 focus:shadow-lg focus:shadow-emerald-500/20'
+                          : 'bg-black/20 border-slate-600/50 focus:border-slate-500/70 focus:ring-2 focus:ring-slate-500/20 hover:bg-black/30 group-hover:border-emerald-400/40'
+                      }`}
+                      style={{
+                        animation: validationErrors.capital
+                          ? 'pulse-error 2s ease-in-out infinite'
+                          : undefined,
+                      }}
+                      placeholder="Enter capital amount"
+                    />
+
+                    {/* Live formatted display */}
+                    <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
+                      <div
+                        className={`text-sm font-bold ${capitalInfo.textColor} bg-slate-800/60 px-3 py-1 rounded-lg border border-slate-600/50`}
+                      >
+                        {formatCurrency(
+                          Number(getDisplayCapital()) || settings.accountBalance
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Input enhancement glow */}
+                    <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-transparent via-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+                  </div>
+
+                  {/* Quick amount buttons */}
+                  <div className="mt-4 grid grid-cols-4 gap-2">
+                    {[100000, 500000, 1000000, 5000000].map((amount) => (
+                      <button
+                        key={amount}
+                        onClick={() => handleCapitalChange(amount.toString())}
+                        className="px-3 py-2 bg-gradient-to-r from-slate-700/40 to-slate-600/40 hover:from-emerald-600/30 hover:to-teal-600/30 border border-slate-600/50 hover:border-emerald-500/50 text-slate-300 hover:text-emerald-300 text-xs font-medium rounded-lg transition-all duration-300 hover:scale-105"
+                      >
+                        ₹{formatCurrency(amount)}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
