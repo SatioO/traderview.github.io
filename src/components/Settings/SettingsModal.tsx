@@ -4,10 +4,9 @@ import {
   Settings,
   AlertTriangle,
   TrendingUp,
-  Zap,
   Target,
   Activity,
-  ChevronLeft,
+  ChevronRight,
   ChevronDown,
   ChevronUp,
 } from 'lucide-react';
@@ -893,7 +892,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                           {/* Directional Node */}
                           <div className="relative z-10 group">
                             <div className="w-4 h-4 bg-gradient-to-r from-slate-800/90 to-slate-700/90 border border-slate-600/60 rounded-full flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:border-slate-500/80">
-                              <ChevronLeft className="w-2 h-2 text-slate-400 group-hover:text-slate-300" />
+                              <ChevronRight className="w-2 h-2 text-slate-400 group-hover:text-slate-300" />
                             </div>
                             <div className="absolute inset-0 w-4 h-4 bg-gradient-to-r from-slate-700/30 to-slate-600/30 rounded-full animate-ping opacity-20"></div>
                           </div>
