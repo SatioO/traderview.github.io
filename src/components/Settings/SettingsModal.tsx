@@ -438,7 +438,22 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-gradient-to-br from-slate-900/95 via-purple-900/90 to-slate-900/95 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+    <div 
+      className="fixed inset-0 bg-gradient-to-br from-slate-900/95 via-purple-900/90 to-slate-900/95 backdrop-blur-sm flex items-center justify-center z-[9999] p-4"
+      onClick={(e) => {
+        // Close modal if clicking on backdrop
+        if (e.target === e.currentTarget) {
+          // Reset any unsaved changes before closing
+          setEditedLevels({});
+          setEditedCapital(undefined);
+          setValidationErrors({});
+          setOrderConflicts({});
+          setShakeAnimations({});
+          onClose();
+        }
+      }}
+      style={{ pointerEvents: 'auto' }}
+    >
       {/* Premium Background Effects */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute top-20 left-20 w-96 h-96 bg-gradient-to-r from-violet-500/10 via-purple-500/5 to-fuchsia-500/10 rounded-full blur-3xl animate-pulse"></div>
@@ -448,7 +463,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
       </div>
 
       {/* Premium Settings Modal */}
-      <div className="relative bg-gradient-to-br from-slate-800/80 via-slate-900/90 to-slate-800/80 backdrop-blur-2xl rounded-[2rem] shadow-2xl w-full max-w-2xl border border-slate-700/50 hover:border-slate-600/60 transition-all duration-700 overflow-hidden">
+      <div 
+        className="relative bg-gradient-to-br from-slate-800/80 via-slate-900/90 to-slate-800/80 backdrop-blur-2xl rounded-[2rem] shadow-2xl w-full max-w-2xl border border-slate-700/50 hover:border-slate-600/60 transition-all duration-700 overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Elegant border glow */}
         <div className="absolute inset-0 rounded-[2rem] bg-gradient-to-r from-violet-500/10 via-cyan-500/10 to-emerald-500/10 opacity-0 hover:opacity-100 transition-opacity duration-700"></div>
 
@@ -499,7 +517,15 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                 </div>
               </div>
               <button
-                onClick={onClose}
+                onClick={() => {
+                  // Reset any unsaved changes before closing
+                  setEditedLevels({});
+                  setEditedCapital(undefined);
+                  setValidationErrors({});
+                  setOrderConflicts({});
+                  setShakeAnimations({});
+                  onClose();
+                }}
                 className="group relative p-2.5 bg-gradient-to-r from-slate-700/50 to-slate-600/50 hover:from-red-500/20 hover:to-red-600/20 border border-slate-600/50 hover:border-red-500/50 rounded-xl transition-all duration-300 hover:scale-105"
               >
                 <X className="w-4 h-4 text-slate-400 group-hover:text-red-400 transition-colors" />
@@ -899,12 +925,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
               </div>
             </div>
             <div className="flex items-center space-x-3">
-              <button
-                onClick={onClose}
-                className="px-4 py-2.5 bg-gradient-to-r from-slate-700/50 to-slate-600/50 hover:from-slate-600/50 hover:to-slate-500/50 border border-slate-600/50 hover:border-slate-500/50 text-slate-300 hover:text-white font-medium text-sm rounded-xl transition-all duration-300"
-              >
-                Cancel
-              </button>
               <button
                 onClick={handleSave}
                 disabled={!canSave}
