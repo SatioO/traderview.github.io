@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   X,
   Settings,
@@ -23,6 +23,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
   const [editedCapital, setEditedCapital] = useState<string | undefined>(
     undefined
   );
+  const [localSettings, setLocalSettings] = useState(settings);
   const [validationErrors, setValidationErrors] = useState<{
     capital?: string;
     riskLevels?: Record<string, string>;
@@ -34,6 +35,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
   const [orderConflicts, setOrderConflicts] = useState<
     Record<string, { type: 'decrease' | 'increase'; conflictWith: string }>
   >({});
+
+  // Update local settings when settings prop changes
+  useEffect(() => {
+    setLocalSettings(settings);
+  }, [settings]);
 
   if (!isOpen) return null;
 
@@ -50,7 +56,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
     try {
       // Get all risk level values (including unchanged ones)
       const allLevels = { ...levels };
-      settings.riskLevels.forEach((level) => {
+      localSettings.riskLevels.forEach((level) => {
         if (
           ['conservative', 'balanced', 'bold', 'maximum'].includes(level.id)
         ) {
@@ -249,7 +255,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
     }
 
     // Update risk levels with new percentages
-    settings.riskLevels.forEach((level) => {
+    localSettings.riskLevels.forEach((level) => {
       if (editedLevels[level.id] !== undefined) {
         const updatedLevel: RiskLevel = {
           ...level,
@@ -264,6 +270,13 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
       updateSettings({ accountBalance: Number(editedCapital) });
     }
 
+    // Clear local edits after saving
+    setEditedLevels({});
+    setEditedCapital(undefined);
+    setValidationErrors({});
+    setOrderConflicts({});
+    setShakeAnimations({});
+
     onClose();
   };
 
@@ -277,7 +290,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
   const getDisplayCapital = () => {
     return editedCapital !== undefined
       ? editedCapital
-      : settings.accountBalance.toString();
+      : localSettings.accountBalance.toString();
   };
 
   const hasCapitalChanged = editedCapital !== undefined;
@@ -293,7 +306,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
   const canSave = hasChanges && !hasValidationErrors;
 
   // Get the default risk levels (not custom ones)
-  const defaultRiskLevels = settings.riskLevels.filter((level) =>
+  const defaultRiskLevels = localSettings.riskLevels.filter((level) =>
     ['conservative', 'balanced', 'bold', 'maximum'].includes(level.id)
   );
 
@@ -426,7 +439,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
   };
 
   const capitalInfo = getCapitalLevel(
-    Number(getDisplayCapital()) || settings.accountBalance
+    Number(getDisplayCapital()) || localSettings.accountBalance
   );
 
   const formatCurrency = (amount: number): string => {
@@ -438,7 +451,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
 
   return (
     <div
-      className="fixed inset-0 bg-gradient-to-br from-slate-900/95 via-purple-900/90 to-slate-900/95 backdrop-blur-sm flex items-center justify-center z-[9999] p-4"
+      className="fixed inset-0 bg-gradient-to-br from-indigo-950/96 via-purple-900/94 via-slate-900/96 to-emerald-950/96 backdrop-blur-xl flex items-center justify-center z-[9999] p-4 animate-gradient-shift"
       onClick={(e) => {
         // Close modal if clicking on backdrop
         if (e.target === e.currentTarget) {
@@ -453,83 +466,58 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
       }}
       style={{ pointerEvents: 'auto' }}
     >
-      {/* Premium Background Effects */}
+      {/* Epic Background Effects */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-20 left-20 w-96 h-96 bg-gradient-to-r from-violet-500/10 via-purple-500/5 to-fuchsia-500/10 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute top-20 right-20 w-96 h-96 bg-gradient-to-r from-cyan-500/10 via-blue-500/5 to-indigo-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
-        <div className="absolute bottom-20 left-20 w-96 h-96 bg-gradient-to-r from-emerald-500/10 via-green-500/5 to-teal-500/10 rounded-full blur-3xl animate-pulse delay-2000"></div>
-        <div className="absolute bottom-20 right-20 w-96 h-96 bg-gradient-to-r from-amber-500/10 via-orange-500/5 to-red-500/10 rounded-full blur-3xl animate-pulse delay-3000"></div>
+        {/* Massive animated orbs */}
+        <div className="absolute top-10 left-10 w-[500px] h-[500px] bg-gradient-to-br from-violet-500/12 via-purple-500/8 to-fuchsia-500/12 rounded-full blur-3xl animate-float-slow"></div>
+        <div className="absolute top-10 right-10 w-[400px] h-[400px] bg-gradient-to-br from-cyan-500/12 via-blue-500/8 to-indigo-500/12 rounded-full blur-3xl animate-float-medium"></div>
+        <div className="absolute bottom-10 left-10 w-[450px] h-[450px] bg-gradient-to-br from-emerald-500/12 via-green-500/8 to-teal-500/12 rounded-full blur-3xl animate-float-fast"></div>
+        <div className="absolute bottom-10 right-10 w-[350px] h-[350px] bg-gradient-to-br from-amber-500/12 via-orange-500/8 to-red-500/12 rounded-full blur-3xl animate-float-slow"></div>
+        
+        {/* Floating geometric elements */}
+        <div className="absolute top-1/4 left-1/3 w-16 h-16 border-2 border-violet-400/20 rotate-45 rounded-lg animate-spin-slow"></div>
+        <div className="absolute bottom-1/3 right-1/4 w-12 h-12 border-2 border-cyan-400/20 rotate-12 rounded-lg animate-bounce-subtle"></div>
+        <div className="absolute top-2/3 left-1/4 w-8 h-8 border border-emerald-400/30 rounded-full animate-float-medium"></div>
+        
+        {/* Particle effects */}
+        <div className="absolute top-1/2 left-1/2 w-2 h-2 bg-violet-400/60 rounded-full animate-ping"></div>
+        <div className="absolute top-1/3 right-1/3 w-1 h-1 bg-cyan-400/80 rounded-full animate-pulse delay-1000"></div>
+        <div className="absolute bottom-1/4 left-1/5 w-1.5 h-1.5 bg-emerald-400/70 rounded-full animate-ping delay-2000"></div>
       </div>
 
-      {/* Premium Settings Modal */}
+      {/* Spectacular Settings Modal */}
       <div
-        className="relative bg-gradient-to-br from-slate-800/80 via-slate-900/90 to-slate-800/80 backdrop-blur-2xl rounded-[2rem] shadow-2xl w-full max-w-2xl border border-slate-700/50 hover:border-slate-600/60 transition-all duration-700 overflow-hidden"
+        className="relative bg-gradient-to-br from-slate-800/70 via-indigo-900/80 via-slate-900/85 to-slate-800/70 backdrop-blur-3xl rounded-[2.5rem] shadow-2xl w-full max-w-2xl border border-slate-600/40 transition-all duration-300 overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Elegant border glow */}
-        <div className="absolute inset-0 rounded-[2rem] bg-gradient-to-r from-violet-500/10 via-cyan-500/10 to-emerald-500/10 opacity-0 hover:opacity-100 transition-opacity duration-700"></div>
 
-        {/* Premium Header */}
-        <div className="relative bg-gradient-to-r from-slate-800/60 via-slate-900/80 to-slate-800/60 border-b border-slate-700/50 overflow-hidden">
-          {/* Sophisticated background animation */}
-          <div className="absolute inset-0 bg-gradient-to-r from-violet-500/5 via-transparent to-cyan-500/5 animate-pulse"></div>
-
-          {/* Refined floating elements */}
-          <div className="absolute inset-0 overflow-hidden">
-            <div className="absolute top-3 left-8 w-1 h-1 bg-violet-400/60 rounded-full animate-ping"></div>
-            <div className="absolute top-2 right-12 w-1 h-1 bg-cyan-400/60 rounded-full animate-ping delay-1000"></div>
-            <div className="absolute bottom-3 left-16 w-1 h-1 bg-emerald-400/60 rounded-full animate-ping delay-2000"></div>
-          </div>
-
-          <div className="relative flex items-center justify-between p-6">
-            <div className="flex items-center space-x-4">
-              {/* Elegant status indicator */}
-              <div className="relative">
-                <div className="w-3 h-3 bg-gradient-to-r from-emerald-400 to-cyan-400 rounded-full animate-pulse shadow-lg shadow-emerald-400/30"></div>
-                <div className="absolute inset-0 w-3 h-3 bg-gradient-to-r from-emerald-400 to-cyan-400 rounded-full animate-ping opacity-40"></div>
+        {/* Clean Minimal Header */}
+        <div className="relative border-b border-slate-700/40 backdrop-blur-sm">
+          <div className="flex items-center justify-between px-6 py-4">
+            {/* Left - Simple Title */}
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-slate-800/50 rounded-lg border border-slate-600/50">
+                <Settings className="w-5 h-5 text-slate-300" />
               </div>
-
-              {/* Sophisticated title section */}
-              <div className="flex items-center space-x-3">
-                <div className="p-2 bg-gradient-to-r from-slate-700/50 to-slate-600/50 rounded-xl border border-slate-600/50">
-                  <Settings className="w-5 h-5 text-slate-300" />
-                </div>
-                <div>
-                  <h2 className="text-xl font-bold bg-gradient-to-r from-white via-slate-200 to-slate-300 bg-clip-text text-transparent tracking-wide">
-                    SETTINGS
-                  </h2>
-                  <p className="text-sm text-slate-400 font-medium tracking-wider">
-                    CONFIG CENTER
-                  </p>
-                </div>
-              </div>
+              <h2 className="text-lg font-semibold text-white">
+                Settings
+              </h2>
             </div>
 
-            {/* Refined header actions */}
-            <div className="flex items-center space-x-4">
-              <div className="px-3 py-1.5 bg-gradient-to-r from-emerald-500/20 to-cyan-500/20 border border-emerald-500/30 rounded-lg">
-                <div className="flex items-center space-x-2">
-                  <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
-                  <span className="text-xs font-bold text-emerald-300 tracking-wider">
-                    ACTIVE
-                  </span>
-                </div>
-              </div>
-              <button
-                onClick={() => {
-                  // Reset any unsaved changes before closing
-                  setEditedLevels({});
-                  setEditedCapital(undefined);
-                  setValidationErrors({});
-                  setOrderConflicts({});
-                  setShakeAnimations({});
-                  onClose();
-                }}
-                className="group relative p-2.5 bg-gradient-to-r from-slate-700/50 to-slate-600/50 hover:from-red-500/20 hover:to-red-600/20 border border-slate-600/50 hover:border-red-500/50 rounded-xl transition-all duration-300 hover:scale-105"
-              >
-                <X className="w-4 h-4 text-slate-400 group-hover:text-red-400 transition-colors" />
-              </button>
-            </div>
+            {/* Right - Close Button */}
+            <button
+              onClick={() => {
+                setEditedLevels({});
+                setEditedCapital(undefined);
+                setValidationErrors({});
+                setOrderConflicts({});
+                setShakeAnimations({});
+                onClose();
+              }}
+              className="p-2 hover:bg-slate-700/50 rounded-lg transition-colors duration-200"
+            >
+              <X className="w-5 h-5 text-slate-400 hover:text-white" />
+            </button>
           </div>
         </div>
 
@@ -622,7 +610,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                         className={`text-sm font-bold ${capitalInfo.textColor} bg-slate-800/60 px-3 py-1 rounded-lg border border-slate-600/50`}
                       >
                         {formatCurrency(
-                          Number(getDisplayCapital()) || settings.accountBalance
+                          Number(getDisplayCapital()) || localSettings.accountBalance
                         )}
                       </div>
                     </div>
@@ -905,71 +893,94 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
             </div>
           </div>
 
-          {/* Premium Actions */}
-          <div className="flex items-center justify-between pt-6 border-t border-slate-700/50">
+          {/* Smart Action Center */}
+          <div className="flex items-center justify-between pt-6 border-t border-slate-700/40">
             <div className="flex items-center space-x-3">
-              <div className="flex items-center space-x-2">
-                <div
-                  className={`w-2 h-2 rounded-full animate-pulse ${
-                    hasValidationErrors
-                      ? 'bg-red-400'
-                      : hasChanges
-                      ? 'bg-emerald-400'
-                      : 'bg-slate-500'
-                  }`}
-                ></div>
+              {/* Clear Status Indicator */}
+              <div className="flex items-center space-x-3 px-3 py-2 bg-slate-800/40 border border-slate-600/40 rounded-lg">
+                <div className="relative">
+                  <div
+                    className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                      hasValidationErrors
+                        ? 'bg-red-400 animate-pulse'
+                        : hasChanges
+                        ? 'bg-amber-400 animate-pulse'
+                        : 'bg-slate-500'
+                    }`}
+                  ></div>
+                  {(hasValidationErrors || hasChanges) && (
+                    <div
+                      className={`absolute inset-0 w-2 h-2 rounded-full animate-ping opacity-40 ${
+                        hasValidationErrors ? 'bg-red-400' : 'bg-amber-400'
+                      }`}
+                    ></div>
+                  )}
+                </div>
                 <span
-                  className={`text-xs font-medium tracking-wider ${
+                  className={`text-sm font-medium transition-colors duration-300 ${
                     hasValidationErrors
-                      ? 'text-red-400'
+                      ? 'text-red-300'
                       : hasChanges
-                      ? 'text-emerald-400'
-                      : 'text-slate-500'
+                      ? 'text-amber-300'
+                      : 'text-slate-400'
                   }`}
                 >
                   {hasValidationErrors
-                    ? `${errorCounts.total} VALIDATION ERROR${
-                        errorCounts.total !== 1 ? 'S' : ''
-                      }`
+                    ? `${errorCounts.total} Error${errorCounts.total !== 1 ? 's' : ''} Found`
                     : hasChanges
-                    ? 'CHANGES DETECTED'
-                    : 'NO CHANGES'}
+                    ? 'Unsaved Changes'
+                    : 'All Settings Saved'}
                 </span>
               </div>
             </div>
+            
             <div className="flex items-center space-x-3">
+              {/* Reset Button (only show when there are changes) */}
+              {hasChanges && (
+                <button
+                  onClick={() => {
+                    setEditedLevels({});
+                    setEditedCapital(undefined);
+                    setValidationErrors({});
+                    setOrderConflicts({});
+                    setShakeAnimations({});
+                  }}
+                  className="px-4 py-2 text-sm font-medium text-slate-400 hover:text-slate-300 bg-slate-800/40 hover:bg-slate-700/40 border border-slate-600/40 hover:border-slate-500/60 rounded-lg transition-all duration-200"
+                >
+                  Reset
+                </button>
+              )}
+              
+              {/* Save Button */}
               <button
                 onClick={handleSave}
                 disabled={!canSave}
-                className={`group relative px-6 py-2.5 font-bold text-sm rounded-xl transition-all duration-300 overflow-hidden ${
+                className={`relative px-6 py-2.5 font-semibold text-sm rounded-lg transition-all duration-300 ${
                   canSave
-                    ? 'bg-gradient-to-r from-emerald-600 via-cyan-600 to-blue-600 hover:from-emerald-500 hover:via-cyan-500 hover:to-blue-500 text-white shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/30 hover:scale-105'
+                    ? 'bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 text-white shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/30 hover:scale-105'
                     : hasValidationErrors
-                    ? 'bg-gradient-to-r from-red-700 to-red-600 text-red-200 cursor-not-allowed opacity-50'
-                    : 'bg-gradient-to-r from-slate-700 to-slate-600 text-slate-400 cursor-not-allowed opacity-50'
+                    ? 'bg-red-600/50 text-red-200 cursor-not-allowed border border-red-500/50'
+                    : 'bg-slate-700/50 text-slate-400 cursor-not-allowed border border-slate-600/50'
                 }`}
               >
-                <span className="relative z-10 flex items-center space-x-2">
+                <span className="flex items-center space-x-2">
                   <span>
                     {hasValidationErrors
                       ? 'Fix Errors to Save'
                       : hasChanges
                       ? 'Save Changes'
-                      : 'No Changes'}
+                      : 'Saved'}
                   </span>
                   {canSave && <Activity className="w-4 h-4" />}
                   {hasValidationErrors && <AlertTriangle className="w-4 h-4" />}
                 </span>
-                {canSave && (
-                  <div className="absolute inset-0 bg-gradient-to-r from-emerald-400/10 via-cyan-400/10 to-blue-400/10 animate-pulse"></div>
-                )}
               </button>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Custom CSS for shake animation */}
+      {/* Custom CSS for premium animations */}
       <style>{`
         @keyframes shake {
           0%, 100% { transform: translateX(0); }
@@ -986,6 +997,55 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
             box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.2);
           }
         }
+        @keyframes float-slow {
+          0%, 100% { transform: translateY(0px) rotate(0deg); }
+          33% { transform: translateY(-8px) rotate(120deg); }
+          66% { transform: translateY(-4px) rotate(240deg); }
+        }
+        @keyframes float-medium {
+          0%, 100% { transform: translateY(0px) scale(1); }
+          50% { transform: translateY(-12px) scale(1.1); }
+        }
+        @keyframes float-fast {
+          0%, 100% { transform: translateY(0px) translateX(0px); }
+          25% { transform: translateY(-6px) translateX(3px); }
+          75% { transform: translateY(-3px) translateX(-3px); }
+        }
+        @keyframes spin-slow {
+          from { transform: rotate(45deg); }
+          to { transform: rotate(405deg); }
+        }
+        @keyframes bounce-subtle {
+          0%, 100% { transform: rotate(12deg) translateY(0px); }
+          50% { transform: rotate(12deg) translateY(-4px); }
+        }
+        @keyframes gradient-shift {
+          0%, 100% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+        }
+        @keyframes shimmer {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(100%); }
+        }
+        @keyframes subtle-glow {
+          0%, 100% { 
+            box-shadow: 0 0 40px rgba(139, 92, 246, 0.1), 0 0 80px rgba(139, 92, 246, 0.05); 
+          }
+          50% { 
+            box-shadow: 0 0 50px rgba(139, 92, 246, 0.15), 0 0 100px rgba(139, 92, 246, 0.08); 
+          }
+        }
+        .animate-float-slow { animation: float-slow 6s ease-in-out infinite; }
+        .animate-float-medium { animation: float-medium 4s ease-in-out infinite; }
+        .animate-float-fast { animation: float-fast 2s ease-in-out infinite; }
+        .animate-spin-slow { animation: spin-slow 8s linear infinite; }
+        .animate-bounce-subtle { animation: bounce-subtle 3s ease-in-out infinite; }
+        .animate-gradient-shift { 
+          background-size: 200% 200%; 
+          animation: gradient-shift 3s ease infinite; 
+        }
+        .animate-shimmer { animation: shimmer 2s linear infinite; }
+        .animate-subtle-glow { animation: subtle-glow 4s ease-in-out infinite; }
       `}</style>
     </div>
   );
