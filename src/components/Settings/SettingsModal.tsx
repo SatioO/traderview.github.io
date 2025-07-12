@@ -9,38 +9,117 @@ interface SettingsModalProps {
 
 const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
   const { settings, updateSettings, updateRiskLevel } = useSettings();
-  const [editedLevels, setEditedLevels] = useState<Record<string, number>>({});
-  const [editedCapital, setEditedCapital] = useState<number | undefined>(undefined);
-  const [highRiskWarnings, setHighRiskWarnings] = useState<Record<string, boolean>>({});
-  const [zeroValueWarnings, setZeroValueWarnings] = useState<Record<string, boolean>>({});
+  const [editedLevels, setEditedLevels] = useState<Record<string, string>>({});
+  const [editedCapital, setEditedCapital] = useState<string | undefined>(undefined);
+  const [validationErrors, setValidationErrors] = useState<{
+    capital?: string;
+    riskLevels?: Record<string, string>;
+    duplicates?: string[];
+  }>({});
   const [shakeAnimations, setShakeAnimations] = useState<Record<string, boolean>>({});
 
   if (!isOpen) return null;
 
-  const handlePercentageChange = (levelId: string, value: string) => {
-    const percentage = Number(value);
-    
-    // Allow empty string for clearing input
-    if (value === '') {
-      setEditedLevels(prev => ({ ...prev, [levelId]: 0 }));
-      setZeroValueWarnings(prev => ({ ...prev, [levelId]: true }));
-      setHighRiskWarnings(prev => ({ ...prev, [levelId]: false }));
-      return;
+  const validateRiskLevels = (levels: Record<string, string>) => {
+    const errors: Record<string, string> = {};
+    const duplicates: string[] = [];
+    const values: number[] = [];
+    const processedValues: { [key: string]: number } = {};
+
+    // Get all risk level values (including unchanged ones)
+    const allLevels = { ...levels };
+    settings.riskLevels.forEach(level => {
+      if (['conservative', 'balanced', 'bold', 'maximum'].includes(level.id) && !allLevels[level.id]) {
+        allLevels[level.id] = level.percentage.toString();
+      }
+    });
+
+    // Check each risk level
+    Object.entries(allLevels).forEach(([levelId, value]) => {
+      const numValue = Number(value);
+      
+      // Check if empty
+      if (value === '' || value === undefined) {
+        errors[levelId] = 'Value required';
+        return;
+      }
+      
+      // Check if valid number
+      if (isNaN(numValue)) {
+        errors[levelId] = 'Invalid number';
+        return;
+      }
+      
+      // Check range (0 < value <= 3)
+      if (numValue <= 0) {
+        errors[levelId] = 'Must be greater than 0';
+      } else if (numValue > 3) {
+        errors[levelId] = 'Maximum value is 3%';
+      } else {
+        processedValues[levelId] = numValue;
+        values.push(numValue);
+      }
+    });
+
+    // Check for duplicates among valid values
+    const uniqueValues = new Set(values);
+    if (values.length !== uniqueValues.size) {
+      // Find which values are duplicated
+      const valueCount: Record<number, string[]> = {};
+      Object.entries(processedValues).forEach(([levelId, value]) => {
+        if (!valueCount[value]) valueCount[value] = [];
+        valueCount[value].push(levelId);
+      });
+      
+      Object.entries(valueCount).forEach(([value, levelIds]) => {
+        if (levelIds.length > 1) {
+          levelIds.forEach(levelId => {
+            if (!errors[levelId]) { // Don't override existing errors
+              errors[levelId] = `Duplicate value: ${value}%`;
+              duplicates.push(levelId);
+            }
+          });
+        }
+      });
+    }
+
+    return { errors, duplicates };
+  };
+
+  const validateCapital = (value: string) => {
+    if (value === '' || value === undefined) {
+      return 'Trading capital is required';
     }
     
-    // Set the actual value (including 0)
-    setEditedLevels(prev => ({ ...prev, [levelId]: percentage }));
+    const numValue = Number(value);
+    if (isNaN(numValue)) {
+      return 'Invalid amount';
+    }
     
-    // Check for zero value warning
-    const isZeroValue = percentage <= 0;
-    setZeroValueWarnings(prev => ({ ...prev, [levelId]: isZeroValue }));
+    if (numValue < 10000) {
+      return 'Minimum capital is ₹10,000';
+    }
     
-    // Check for high risk warning
-    const isHighRisk = percentage > 3;
-    setHighRiskWarnings(prev => ({ ...prev, [levelId]: isHighRisk }));
+    return null;
+  };
+
+  const handlePercentageChange = (levelId: string, value: string) => {
+    // Update the value
+    const newLevels = { ...editedLevels, [levelId]: value };
+    setEditedLevels(newLevels);
     
-    // Trigger shake animation for warnings
-    if (isHighRisk || isZeroValue) {
+    // Validate all risk levels
+    const { errors, duplicates } = validateRiskLevels(newLevels);
+    
+    // Update validation errors
+    setValidationErrors(prev => ({
+      ...prev,
+      riskLevels: errors,
+      duplicates
+    }));
+    
+    // Trigger shake animation for errors
+    if (errors[levelId] || duplicates.includes(levelId)) {
       setShakeAnimations(prev => ({ ...prev, [levelId]: true }));
       setTimeout(() => {
         setShakeAnimations(prev => ({ ...prev, [levelId]: false }));
@@ -48,17 +127,37 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
     }
   };
 
-  const handleCapitalChange = (capital: number) => {
-    setEditedCapital(capital);
+  const handleCapitalChange = (value: string) => {
+    setEditedCapital(value);
+    
+    // Validate capital
+    const error = validateCapital(value);
+    setValidationErrors(prev => ({
+      ...prev,
+      capital: error || undefined
+    }));
+    
+    // Trigger shake animation for capital errors
+    if (error) {
+      setShakeAnimations(prev => ({ ...prev, capital: true }));
+      setTimeout(() => {
+        setShakeAnimations(prev => ({ ...prev, capital: false }));
+      }, 600);
+    }
   };
 
   const handleSave = () => {
+    // Final validation before save
+    if (hasValidationErrors) {
+      return;
+    }
+    
     // Update risk levels with new percentages
     settings.riskLevels.forEach(level => {
       if (editedLevels[level.id] !== undefined) {
         const updatedLevel: RiskLevel = {
           ...level,
-          percentage: editedLevels[level.id]
+          percentage: Number(editedLevels[level.id])
         };
         updateRiskLevel(updatedLevel);
       }
@@ -66,7 +165,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
 
     // Update trading capital if changed
     if (editedCapital !== undefined) {
-      updateSettings({ accountBalance: editedCapital });
+      updateSettings({ accountBalance: Number(editedCapital) });
     }
 
     onClose();
@@ -74,19 +173,25 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
 
   const getDisplayValue = (level: RiskLevel) => {
     if (editedLevels[level.id] !== undefined) {
-      return editedLevels[level.id] === 0 ? '' : editedLevels[level.id].toString();
+      return editedLevels[level.id];
     }
     return level.percentage.toString();
   };
 
   const getDisplayCapital = () => {
-    return editedCapital !== undefined ? editedCapital : settings.accountBalance;
+    return editedCapital !== undefined ? editedCapital : settings.accountBalance.toString();
   };
 
   const hasCapitalChanged = editedCapital !== undefined;
   const hasChanges = Object.keys(editedLevels).length > 0 || hasCapitalChanged;
-  const hasZeroValues = Object.values(zeroValueWarnings).some(warning => warning);
-  const canSave = hasChanges && !hasZeroValues;
+  
+  // Check if there are any validation errors
+  const hasValidationErrors = 
+    validationErrors.capital ||
+    (validationErrors.riskLevels && Object.keys(validationErrors.riskLevels).length > 0) ||
+    (validationErrors.duplicates && validationErrors.duplicates.length > 0);
+    
+  const canSave = hasChanges && !hasValidationErrors;
 
   // Get the default risk levels (not custom ones)
   const defaultRiskLevels = settings.riskLevels.filter(level => 
@@ -132,7 +237,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
     };
   };
 
-  const capitalInfo = getCapitalLevel(getDisplayCapital());
+  const capitalInfo = getCapitalLevel(Number(getDisplayCapital()) || settings.accountBalance);
 
   const formatCurrency = (amount: number): string => {
     if (amount >= 10000000) return `${(amount / 10000000).toFixed(1)}Cr`;
@@ -155,7 +260,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
       <div className="relative bg-gradient-to-br from-slate-800/80 via-slate-900/90 to-slate-800/80 backdrop-blur-2xl rounded-[2rem] shadow-2xl w-full max-w-2xl border border-slate-700/50 hover:border-slate-600/60 transition-all duration-700 overflow-hidden">
         {/* Elegant border glow */}
         <div className="absolute inset-0 rounded-[2rem] bg-gradient-to-r from-violet-500/10 via-cyan-500/10 to-emerald-500/10 opacity-0 hover:opacity-100 transition-opacity duration-700"></div>
-        
+
         {/* Premium Header */}
         <div className="relative bg-gradient-to-r from-slate-800/60 via-slate-900/80 to-slate-800/60 border-b border-slate-700/50 overflow-hidden">
           {/* Sophisticated background animation */}
@@ -224,11 +329,16 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
             </div>
             
             <div className={`group relative bg-gradient-to-br ${capitalInfo.bgGradient} rounded-2xl p-5 border transition-all duration-500 overflow-hidden ${
-              hasCapitalChanged 
+              validationErrors.capital
+                ? 'border-red-500/50 ring-1 ring-red-500/30 shadow-lg shadow-red-500/10'
+                : hasCapitalChanged 
                 ? `${capitalInfo.borderColor} shadow-lg shadow-emerald-500/10` 
                 : `${capitalInfo.borderColor}`
-            }`}>
-              
+            }`}
+            style={{
+              animation: shakeAnimations.capital ? 'shake 0.6s ease-in-out' : undefined
+            }}>
+
               {/* Elegant floating elements */}
               <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 <div className="absolute top-3 left-6 w-1 h-1 bg-gradient-to-r from-emerald-400 to-teal-400 rounded-full animate-ping opacity-40"></div>
@@ -272,24 +382,36 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                 <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 font-bold text-lg">₹</div>
                 <input
                   type="number"
-                  min="1000"
+                  min="10000"
                   max="100000000"
                   step="1000"
                   value={getDisplayCapital()}
-                  onChange={(e) => handleCapitalChange(Number(e.target.value))}
-                  className={`w-full bg-gradient-to-r from-slate-800/60 to-slate-700/60 border rounded-xl pl-8 pr-16 py-3 text-white font-bold text-lg focus:outline-none transition-all duration-300 ${
-                    hasCapitalChanged 
-                      ? 'border-emerald-500/50 focus:border-emerald-400/70 focus:ring-2 focus:ring-emerald-500/20' 
-                      : 'border-slate-600/50 focus:border-slate-500/70 focus:ring-2 focus:ring-slate-500/20'
+                  onChange={(e) => handleCapitalChange(e.target.value)}
+                  className={`w-full border rounded-xl pl-8 pr-16 py-3 text-white font-bold text-lg focus:outline-none transition-all duration-300 ${
+                    validationErrors.capital
+                      ? 'bg-gradient-to-r from-red-900/50 to-red-800/50 border-red-400/60 focus:border-red-300/80 focus:ring-2 focus:ring-red-400/30'
+                      : hasCapitalChanged 
+                      ? 'bg-gradient-to-r from-slate-800/60 to-slate-700/60 border-emerald-500/50 focus:border-emerald-400/70 focus:ring-2 focus:ring-emerald-500/20' 
+                      : 'bg-gradient-to-r from-slate-800/60 to-slate-700/60 border-slate-600/50 focus:border-slate-500/70 focus:ring-2 focus:ring-slate-500/20'
                   }`}
                   placeholder="Enter amount"
                 />
                 <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
                   <span className={`text-xs font-bold px-2 py-1 rounded ${capitalInfo.textColor}`}>
-                    {formatCurrency(getDisplayCapital())}
+                    {formatCurrency(Number(getDisplayCapital()) || settings.accountBalance)}
                   </span>
                 </div>
               </div>
+              
+              {/* Capital Validation Error */}
+              {validationErrors.capital && (
+                <div className="mt-3 p-3 bg-gradient-to-r from-red-500/15 to-red-600/15 border border-red-400/30 rounded-lg">
+                  <div className="flex items-center space-x-2">
+                    <Shield className="w-3 h-3 text-red-300 flex-shrink-0" />
+                    <p className="text-xs font-bold text-red-300">{validationErrors.capital}</p>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -306,10 +428,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
             <div className="grid grid-cols-4 gap-3">
               {defaultRiskLevels.map((level) => {
                 const displayValue = getDisplayValue(level);
-                const isHighRisk = highRiskWarnings[level.id];
-                const isZeroValue = zeroValueWarnings[level.id];
+                const hasError = validationErrors.riskLevels?.[level.id];
                 const isShaking = shakeAnimations[level.id];
-                const hasWarning = isHighRisk || isZeroValue;
+                const errorType = hasError?.includes('Duplicate') ? 'duplicate' : hasError?.includes('Maximum') ? 'high' : hasError ? 'invalid' : null;
                 
                 const levelColors = {
                   'conservative': { 
@@ -354,16 +475,19 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                 
                 return (
                   <div key={level.id} className="relative">
-                    {/* Warning Alert */}
-                    {hasWarning && (
+                    {/* Validation Alert */}
+                    {hasError && (
                       <div className="absolute -top-1 -right-1 z-10">
                         <div className={`p-1 border rounded-full animate-bounce ${
-                          isZeroValue 
-                            ? 'bg-gradient-to-r from-yellow-500/30 to-orange-500/30 border-yellow-400/60'
-                            : 'bg-gradient-to-r from-red-500/30 to-pink-500/30 border-red-400/60'
+                          errorType === 'duplicate' 
+                            ? 'bg-gradient-to-r from-purple-500/30 to-violet-500/30 border-purple-400/60'
+                            : errorType === 'high'
+                            ? 'bg-gradient-to-r from-red-500/30 to-pink-500/30 border-red-400/60'
+                            : 'bg-gradient-to-r from-orange-500/30 to-yellow-500/30 border-orange-400/60'
                         }`}>
                           <AlertTriangle className={`w-2 h-2 ${
-                            isZeroValue ? 'text-yellow-300' : 'text-red-300'
+                            errorType === 'duplicate' ? 'text-purple-300' :
+                            errorType === 'high' ? 'text-red-300' : 'text-orange-300'
                           }`} />
                         </div>
                       </div>
@@ -372,9 +496,13 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                     {/* Card with Input Box Instead of Percentage */}
                     <div
                       className={`group relative bg-gradient-to-br ${colors.bg} rounded-xl p-3 border transition-all duration-300 hover:scale-105 overflow-hidden ${
-                        colors.border
-                      } ${isHighRisk ? 'ring-1 ring-red-500/50 border-red-500/40' : ''} ${
-                        isZeroValue ? 'ring-1 ring-yellow-500/50 border-yellow-500/40' : ''
+                        hasError 
+                          ? errorType === 'duplicate'
+                            ? 'ring-1 ring-purple-500/50 border-purple-500/40'
+                            : errorType === 'high'
+                            ? 'ring-1 ring-red-500/50 border-red-500/40'
+                            : 'ring-1 ring-orange-500/50 border-orange-500/40'
+                          : colors.border
                       }`}
                       style={{
                         animation: isShaking ? 'shake 0.6s ease-in-out' : undefined
@@ -389,15 +517,17 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                           <input
                             type="number"
                             min="0.01"
-                            max="10"
+                            max="3"
                             step="0.01"
                             value={displayValue}
                             onChange={(e) => handlePercentageChange(level.id, e.target.value)}
                             className={`w-16 h-8 border rounded-lg px-2 pr-4 text-center font-bold text-sm focus:outline-none transition-all duration-300 ${
-                              isHighRisk 
-                                ? 'bg-gradient-to-r from-red-900/50 to-red-800/50 border-red-400/60 text-red-200 focus:border-red-300/80 focus:ring-2 focus:ring-red-400/30' 
-                                : isZeroValue
-                                ? 'bg-gradient-to-r from-yellow-900/50 to-orange-900/50 border-yellow-400/60 text-yellow-200 focus:border-yellow-300/80 focus:ring-2 focus:ring-yellow-400/30'
+                              hasError 
+                                ? errorType === 'duplicate'
+                                  ? 'bg-gradient-to-r from-purple-900/50 to-violet-800/50 border-purple-400/60 text-purple-200 focus:border-purple-300/80 focus:ring-2 focus:ring-purple-400/30'
+                                  : errorType === 'high'
+                                  ? 'bg-gradient-to-r from-red-900/50 to-red-800/50 border-red-400/60 text-red-200 focus:border-red-300/80 focus:ring-2 focus:ring-red-400/30'
+                                  : 'bg-gradient-to-r from-orange-900/50 to-yellow-800/50 border-orange-400/60 text-orange-200 focus:border-orange-300/80 focus:ring-2 focus:ring-orange-400/30'
                                 : `${colors.inputBg} ${colors.inputBorder} ${colors.accent} focus:border-current/80 focus:ring-2 focus:ring-current/20 hover:${colors.inputBorder}/60`
                             }`}
                             placeholder="0.01"
@@ -411,20 +541,24 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                       </div>
                     </div>
                     
-                    {/* Warning Messages Below */}
-                    {isZeroValue && (
-                      <div className="mt-2 p-2 bg-gradient-to-r from-yellow-500/15 to-orange-600/15 border border-yellow-400/30 rounded-lg">
+                    {/* Validation Error Message */}
+                    {hasError && (
+                      <div className={`mt-2 p-2 border rounded-lg ${
+                        errorType === 'duplicate'
+                          ? 'bg-gradient-to-r from-purple-500/15 to-violet-600/15 border-purple-400/30'
+                          : errorType === 'high'
+                          ? 'bg-gradient-to-r from-red-500/15 to-red-600/15 border-red-400/30'
+                          : 'bg-gradient-to-r from-orange-500/15 to-yellow-600/15 border-orange-400/30'
+                      }`}>
                         <div className="flex items-center space-x-1">
-                          <Shield className="w-2.5 h-2.5 text-yellow-300 flex-shrink-0" />
-                          <p className="text-xs font-bold text-yellow-300">Value required!</p>
-                        </div>
-                      </div>
-                    )}
-                    {isHighRisk && !isZeroValue && (
-                      <div className="mt-2 p-2 bg-gradient-to-r from-red-500/15 to-red-600/15 border border-red-400/30 rounded-lg">
-                        <div className="flex items-center space-x-1">
-                          <Shield className="w-2.5 h-2.5 text-red-300 flex-shrink-0" />
-                          <p className="text-xs font-bold text-red-300">High risk!</p>
+                          <Shield className={`w-2.5 h-2.5 flex-shrink-0 ${
+                            errorType === 'duplicate' ? 'text-purple-300' :
+                            errorType === 'high' ? 'text-red-300' : 'text-orange-300'
+                          }`} />
+                          <p className={`text-xs font-bold ${
+                            errorType === 'duplicate' ? 'text-purple-300' :
+                            errorType === 'high' ? 'text-red-300' : 'text-orange-300'
+                          }`}>{hasError}</p>
                         </div>
                       </div>
                     )}
@@ -439,12 +573,15 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
             <div className="flex items-center space-x-3">
               <div className="flex items-center space-x-2">
                 <div className={`w-2 h-2 rounded-full animate-pulse ${
+                  hasValidationErrors ? 'bg-red-400' :
                   hasChanges ? 'bg-emerald-400' : 'bg-slate-500'
                 }`}></div>
                 <span className={`text-xs font-medium tracking-wider ${
+                  hasValidationErrors ? 'text-red-400' :
                   hasChanges ? 'text-emerald-400' : 'text-slate-500'
                 }`}>
-                  {hasChanges ? 'CHANGES DETECTED' : 'NO CHANGES'}
+                  {hasValidationErrors ? 'VALIDATION ERRORS' :
+                   hasChanges ? 'CHANGES DETECTED' : 'NO CHANGES'}
                 </span>
               </div>
             </div>
@@ -461,15 +598,18 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                 className={`group relative px-6 py-2.5 font-bold text-sm rounded-xl transition-all duration-300 overflow-hidden ${
                   canSave
                     ? 'bg-gradient-to-r from-emerald-600 via-cyan-600 to-blue-600 hover:from-emerald-500 hover:via-cyan-500 hover:to-blue-500 text-white shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/30 hover:scale-105'
-                    : hasZeroValues
-                    ? 'bg-gradient-to-r from-yellow-700 to-orange-600 text-yellow-200 cursor-not-allowed opacity-50'
+                    : hasValidationErrors
+                    ? 'bg-gradient-to-r from-red-700 to-red-600 text-red-200 cursor-not-allowed opacity-50'
                     : 'bg-gradient-to-r from-slate-700 to-slate-600 text-slate-400 cursor-not-allowed opacity-50'
                 }`}
               >
                 <span className="relative z-10 flex items-center space-x-2">
-                  <span>{hasZeroValues ? 'Fix Zero Values' : 'Save Changes'}</span>
+                  <span>
+                    {hasValidationErrors ? 'Fix Errors to Save' : 
+                     hasChanges ? 'Save Changes' : 'No Changes'}
+                  </span>
                   {canSave && <Activity className="w-4 h-4" />}
-                  {hasZeroValues && <AlertTriangle className="w-4 h-4" />}
+                  {hasValidationErrors && <AlertTriangle className="w-4 h-4" />}
                 </span>
                 {canSave && (
                   <div className="absolute inset-0 bg-gradient-to-r from-emerald-400/10 via-cyan-400/10 to-blue-400/10 animate-pulse"></div>
