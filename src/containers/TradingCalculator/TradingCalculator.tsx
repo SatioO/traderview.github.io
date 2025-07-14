@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Info, Shield, BarChart3, TrendingUp, Zap } from 'lucide-react';
 import { initializeApp } from 'firebase/app';
 import { getAnalytics } from 'firebase/analytics';
-import SettingsButton from '../../components/Settings/SettingsButton';
+import SettingsModal from '../../components/Settings/SettingsModal';
 import { useTradingSettings } from '../../hooks/useTradingSettings';
 import type {
   FormData,
@@ -74,16 +74,22 @@ const TradingCalculator: React.FC = () => {
   const getAllocationThresholds = () => {
     const levels = getAllocationLevels();
     return {
-      conservative: levels.find(l => l.id === 'conservative')?.percentage || 10,
-      balanced: levels.find(l => l.id === 'balanced')?.percentage || 20,
-      high: levels.find(l => l.id === 'high')?.percentage || 30,
-      extreme: levels.find(l => l.id === 'extreme')?.percentage || 40,
+      conservative:
+        levels.find((l) => l.id === 'conservative')?.percentage || 10,
+      balanced: levels.find((l) => l.id === 'balanced')?.percentage || 20,
+      high: levels.find((l) => l.id === 'high')?.percentage || 30,
+      extreme: levels.find((l) => l.id === 'extreme')?.percentage || 40,
     };
   };
 
   // Helper function to get Lucide icon component from icon name
-  const getAllocationIcon = (iconName: string): React.ComponentType<{className?: string}> => {
-    const iconMap: Record<string, React.ComponentType<{className?: string}>> = {
+  const getAllocationIcon = (
+    iconName: string
+  ): React.ComponentType<{ className?: string }> => {
+    const iconMap: Record<
+      string,
+      React.ComponentType<{ className?: string }>
+    > = {
       Shield,
       BarChart3,
       TrendingUp,
@@ -603,449 +609,419 @@ const TradingCalculator: React.FC = () => {
         }}
       ></div>
 
-      {/* Settings Button */}
-      <div className="absolute top-3 left-6 z-20">
-        <SettingsButton 
-          isSettingsOpen={isSettingsOpen}
-          onSettingsToggle={setIsSettingsOpen}
-        />
-      </div>
+      {/* Compact Professional Header */}
+      <div className="absolute top-0 left-0 right-0 z-20">
+        <div className="bg-black/60 backdrop-blur-xl border-b border-cyan-500/20 shadow-lg">
+          <div className="mx-auto px-4 py-1.5">
+            <div className="flex items-center justify-between h-12">
+              {/* Left Section - Logo & Quick Nav */}
+              <div className="flex items-center space-x-3">
+                <div className="group relative">
+                  {/* Compact Logo */}
+                  <div className="relative bg-gradient-to-br from-cyan-500/15 to-purple-500/15 rounded-lg p-1.5 border border-cyan-400/20 hover:border-cyan-400/40 transition-all duration-200">
+                    <div className="text-lg bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+                      📈
+                    </div>
+                    <div className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></div>
+                  </div>
+                </div>
 
-      {/* Enhanced Market Outlook Command Center */}
-      {!isSettingsOpen && (
-        <div className="absolute top-3 right-6 z-20">
-        <div className="group relative">
-          {/* Advanced Market Outlook Display */}
-          <div
-            className={`relative flex items-center space-x-3 backdrop-blur-xl border-2 rounded-2xl px-6 py-2 cursor-pointer transition-all duration-500 hover:scale-105 overflow-hidden ${
-              getMarketSizingInfo(formData.marketHealth).color === 'emerald'
-                ? 'bg-gradient-to-r from-emerald-500/15 via-cyan-500/10 to-blue-500/15 border-emerald-400/40 hover:border-emerald-400/70 hover:shadow-xl hover:shadow-emerald-500/25'
-                : getMarketSizingInfo(formData.marketHealth).color === 'yellow'
-                ? 'bg-gradient-to-r from-yellow-500/15 via-orange-500/10 to-amber-500/15 border-yellow-400/40 hover:border-yellow-400/70 hover:shadow-xl hover:shadow-yellow-500/25'
-                : getMarketSizingInfo(formData.marketHealth).color === 'orange'
-                ? 'bg-gradient-to-r from-orange-500/15 via-red-500/10 to-pink-500/15 border-orange-400/40 hover:border-orange-400/70 hover:shadow-xl hover:shadow-orange-500/25'
-                : 'bg-gradient-to-r from-red-500/15 via-rose-500/10 to-pink-500/15 border-red-400/40 hover:border-red-400/70 hover:shadow-xl hover:shadow-red-500/25'
-            }`}
-          >
-            {/* Animated background glow */}
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-pulse opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
-
-            {/* Market Status Icon with Animation */}
-            <div className="relative flex items-center space-x-3">
-              <div className="relative">
-                <div
-                  className={`w-3 h-3 rounded-full animate-pulse ${
-                    getMarketSizingInfo(formData.marketHealth).color ===
-                    'emerald'
-                      ? 'bg-emerald-400 shadow-lg shadow-emerald-400/50'
-                      : getMarketSizingInfo(formData.marketHealth).color ===
-                        'yellow'
-                      ? 'bg-yellow-400 shadow-lg shadow-yellow-400/50'
-                      : getMarketSizingInfo(formData.marketHealth).color ===
-                        'orange'
-                      ? 'bg-orange-400 shadow-lg shadow-orange-400/50'
-                      : 'bg-red-400 shadow-lg shadow-red-400/50'
-                  }`}
-                ></div>
-                <div
-                  className={`absolute inset-0 w-3 h-3 rounded-full animate-ping ${
-                    getMarketSizingInfo(formData.marketHealth).color ===
-                    'emerald'
-                      ? 'bg-emerald-400'
-                      : getMarketSizingInfo(formData.marketHealth).color ===
-                        'yellow'
-                      ? 'bg-yellow-400'
-                      : getMarketSizingInfo(formData.marketHealth).color ===
-                        'orange'
-                      ? 'bg-orange-400'
-                      : 'bg-red-400'
-                  }`}
-                ></div>
+                {/* Brand & Navigation */}
+                <div className="flex items-center space-x-4">
+                  <div className="text-lg font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
+                    TradeView
+                  </div>
+                </div>
               </div>
 
-              {/* Market Status Text */}
+              {/* Right Section - Compact Metrics & Actions */}
               <div className="flex items-center space-x-2">
-                <div className="text-lg">
-                  {getMarketSizingInfo(formData.marketHealth).icon}
-                </div>
-                <div className="text-xs font-bold text-white tracking-wide">
-                  MARKET OUTLOOK
-                </div>
-              </div>
-            </div>
-
-            {/* Separator with pulse effect */}
-            <div className="w-px h-6 bg-gradient-to-b from-transparent via-gray-400/60 to-transparent animate-pulse"></div>
-
-            {/* Market Condition */}
-            <div className="flex flex-col items-center">
-              <div className="text-xs text-gray-400 font-medium tracking-wider">
-                CONDITION
-              </div>
-              <div
-                className={`text-xs font-bold tracking-wide ${
-                  getMarketSizingInfo(formData.marketHealth).color === 'emerald'
-                    ? 'text-emerald-300'
-                    : getMarketSizingInfo(formData.marketHealth).color ===
-                      'yellow'
-                    ? 'text-yellow-300'
-                    : getMarketSizingInfo(formData.marketHealth).color ===
-                      'orange'
-                    ? 'text-orange-300'
-                    : 'text-red-300'
-                }`}
-              >
-                {getMarketSizingInfo(formData.marketHealth).label}
-              </div>
-            </div>
-
-            {/* Separator */}
-            <div className="w-px h-6 bg-gradient-to-b from-transparent via-gray-400/60 to-transparent animate-pulse"></div>
-
-            {/* Position Sizing Impact */}
-            <div className="flex flex-col items-center">
-              <div className="text-xs text-gray-400 font-medium tracking-wider">
-                SIZING
-              </div>
-              <div
-                className={`text-xs font-bold tracking-wide ${
-                  getMarketSizingInfo(formData.marketHealth).adjustment ===
-                  'Full'
-                    ? 'text-green-300'
-                    : getMarketSizingInfo(formData.marketHealth).adjustment ===
-                      '-25%'
-                    ? 'text-yellow-300'
-                    : getMarketSizingInfo(formData.marketHealth).adjustment ===
-                      '-50%'
-                    ? 'text-orange-300'
-                    : 'text-red-300'
-                }`}
-              >
-                {getMarketSizingInfo(formData.marketHealth).adjustment}
-              </div>
-            </div>
-
-            {/* Chevron indicator */}
-            <div className="text-gray-400 group-hover:text-white transition-colors duration-300">
-              <svg
-                className="w-4 h-4 transform group-hover:rotate-180 transition-transform duration-300"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M19 9l-7 7-7-7"
-                />
-              </svg>
-            </div>
-          </div>
-
-          {/* Enhanced Command Center Tooltip */}
-          <div className="absolute top-full right-0 mt-2 opacity-0 group-hover:opacity-100 transition-all duration-500 pointer-events-none group-hover:pointer-events-auto z-40 transform translate-y-2 group-hover:translate-y-0">
-            <div className="bg-gradient-to-br from-slate-900/98 to-slate-800/98 backdrop-blur-xl border-2 border-purple-400/30 rounded-3xl p-6 shadow-2xl min-w-96 max-w-md">
-              {/* Enhanced Header */}
-              <div className="flex items-center space-x-4 mb-6">
-                <div className="relative">
-                  <div className="w-10 h-10 bg-gradient-to-r from-purple-400 via-blue-400 to-cyan-400 rounded-xl flex items-center justify-center shadow-lg">
-                    <span className="text-lg">📊</span>
+                {/* Portfolio Value - Compact */}
+                <div className="flex items-center space-x-2 bg-gradient-to-br from-emerald-500/10 to-green-500/10 rounded-lg px-3 py-1 border border-emerald-400/20 hover:border-emerald-400/40 transition-all duration-200">
+                  <div className="text-emerald-400">
+                    <svg
+                      className="w-3 h-3"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4zM18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z"></path>
+                    </svg>
                   </div>
-                  <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-r from-green-400 to-emerald-400 rounded-full animate-pulse"></div>
-                </div>
-                <div className="flex-1">
-                  <div className="text-lg font-bold text-transparent bg-gradient-to-r from-purple-300 via-blue-300 to-cyan-300 bg-clip-text">
-                    Market Command Center
-                  </div>
-                  <div className="text-xs text-gray-400 flex items-center space-x-2">
-                    <span>Position Sizing Intelligence</span>
-                    <div className="w-1 h-1 bg-gray-500 rounded-full"></div>
-                    <span className="text-green-400">ACTIVE</span>
+                  <div className="text-xs font-bold text-emerald-300">
+                    {formatCurrencyWithSuffix(formData.accountBalance)}
                   </div>
                 </div>
-              </div>
 
-              {/* Current Setting with Enhanced Design */}
-              <div className="mb-5 p-4 bg-gradient-to-r from-purple-500/15 to-blue-500/15 border border-purple-400/30 rounded-xl backdrop-blur-sm">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="text-xs text-purple-300 font-bold tracking-wider">
-                    🎯 CURRENT CONFIGURATION
-                  </div>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <div className="text-2xl">
-                    {getMarketSizingInfo(formData.marketHealth).icon}
-                  </div>
-                  <div>
-                    <div className="text-sm font-bold text-white">
-                      {getMarketSizingInfo(formData.marketHealth).label}
-                    </div>
-                    <div className="text-xs text-gray-400">
-                      {getMarketSizingInfo(formData.marketHealth).description}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* MarketSmith Comparison */}
-              {marketSmithData.condition && (
-                <div className="mb-4 p-3 bg-gradient-to-r from-emerald-500/10 to-cyan-500/10 border border-emerald-400/20 rounded-lg">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="text-xs text-emerald-300 font-medium">
-                      MARKETSMITH SUGGESTS
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
-                      <div className="text-xs text-gray-400">
-                        {marketSmithData.date}
+                {/* Enhanced Market Outlook Center - Compact Height */}
+                <div className="relative group">
+                  <div
+                    className={`relative flex items-center space-x-2 backdrop-blur-xl border-2 rounded-xl px-3 py-2 cursor-pointer transition-all duration-300 hover:scale-105 ${
+                      getMarketSizingInfo(formData.marketHealth).color ===
+                      'emerald'
+                        ? 'bg-gradient-to-r from-emerald-500/15 via-cyan-500/10 to-blue-500/15 border-emerald-400/40 hover:border-emerald-400/70 hover:shadow-lg hover:shadow-emerald-500/25'
+                        : getMarketSizingInfo(formData.marketHealth).color ===
+                          'yellow'
+                        ? 'bg-gradient-to-r from-yellow-500/15 via-orange-500/10 to-amber-500/15 border-yellow-400/40 hover:border-yellow-400/70 hover:shadow-lg hover:shadow-yellow-500/25'
+                        : getMarketSizingInfo(formData.marketHealth).color ===
+                          'orange'
+                        ? 'bg-gradient-to-r from-orange-500/15 via-red-500/10 to-pink-500/15 border-orange-400/40 hover:border-orange-400/70 hover:shadow-lg hover:shadow-orange-500/25'
+                        : 'bg-gradient-to-r from-red-500/15 via-rose-500/10 to-pink-500/15 border-red-400/40 hover:border-red-400/70 hover:shadow-lg hover:shadow-red-500/25'
+                    }`}
+                  >
+                    {/* Market Intelligence Icon */}
+                    <div className="relative">
+                      <div className="w-6 h-6 bg-gradient-to-br from-purple-400 via-blue-400 to-cyan-400 rounded-lg flex items-center justify-center">
+                        <svg
+                          width="12"
+                          height="12"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          className="text-white"
+                        >
+                          <path
+                            d="M8 8h8M8 12h8M8 16h4"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                          />
+                          <circle cx="6" cy="8" r="1" fill="currentColor" />
+                          <circle cx="18" cy="8" r="1" fill="currentColor" />
+                          <circle cx="6" cy="12" r="1" fill="currentColor" />
+                          <circle cx="18" cy="12" r="1" fill="currentColor" />
+                        </svg>
+                        <div
+                          className={`absolute -top-1 -right-1 w-2 h-2 rounded-full ${
+                            getMarketSizingInfo(formData.marketHealth).color ===
+                            'emerald'
+                              ? 'bg-emerald-400'
+                              : getMarketSizingInfo(formData.marketHealth)
+                                  .color === 'yellow'
+                              ? 'bg-yellow-400'
+                              : getMarketSizingInfo(formData.marketHealth)
+                                  .color === 'orange'
+                              ? 'bg-orange-400'
+                              : 'bg-red-400'
+                          } animate-pulse`}
+                        ></div>
                       </div>
                     </div>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="text-sm font-medium text-white">
-                      {marketSmithData.condition}
+
+                    <div className="flex flex-col">
+                      <div className="text-xs font-bold text-white">
+                        MARKET OUTLOOK
+                      </div>
+                      <div className="text-xs text-gray-400">
+                        {getMarketSizingInfo(
+                          formData.marketHealth
+                        ).label.replace(' Market', '')}
+                      </div>
                     </div>
-                    {mapMarketSmithToHealth(marketSmithData.condition) !==
-                      formData.marketHealth && (
-                      <button
-                        onClick={() => {
-                          const suggestedHealth = mapMarketSmithToHealth(
-                            marketSmithData.condition
-                          );
-                          handleMarketSizingChange(suggestedHealth);
-                        }}
-                        className="px-3 py-1 bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/30 hover:border-emerald-400/50 rounded text-xs font-medium text-emerald-300 transition-all duration-300"
-                      >
-                        ✨ Apply
-                      </button>
-                    )}
-                  </div>
-                  {mapMarketSmithToHealth(marketSmithData.condition) ===
-                    formData.marketHealth && (
-                    <div className="mt-2 text-xs text-emerald-400">
-                      ✅ Already applied
-                    </div>
-                  )}
-                </div>
-              )}
 
-              {/* 🎮 LEGENDARY BATTLE STATIONS 🎮 */}
-              <div className="relative mb-5">
-                <div className="text-xs text-gray-400 mb-4 font-bold tracking-wider flex items-center justify-center">
-                  <span className="mr-2 animate-spin">⚙️</span>
-                  <span className="text-purple-300">
-                    TACTICAL OVERRIDE MATRIX
-                  </span>
-                  <span className="ml-2 animate-spin delay-500">⚙️</span>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  {(
-                    [
-                      'confirmed-uptrend',
-                      'uptrend-under-pressure',
-                      'rally-attempt',
-                      'downtrend',
-                    ] as const
-                  ).map((health) => {
-                    const sizingInfo = getMarketSizingInfo(health);
-                    const isSelected = formData.marketHealth === health;
-
-                    return (
-                      <button
-                        key={health}
-                        onClick={() => handleMarketSizingChange(health)}
-                        className={`group relative p-3 rounded-xl border-2 transition-all duration-500 text-left overflow-hidden hover:scale-105 transform  ${
-                          isSelected
-                            ? `border-${sizingInfo.color}-400 bg-${sizingInfo.color}-500/20 text-${sizingInfo.color}-200 shadow-lg shadow-${sizingInfo.color}-500/30 animate-pulse`
-                            : 'border-gray-600/40 bg-gray-500/10 text-gray-400 hover:border-gray-500/60 hover:text-gray-200 hover:bg-gray-500/20'
-                        }`}
-                      >
-                        {/* Epic Selection Indicator */}
-                        {isSelected && (
-                          <>
-                            <div className="absolute top-1 right-1 w-4 h-4 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full animate-bounce flex items-center justify-center">
-                              <span className="text-xs">👑</span>
-                            </div>
-                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-yellow-400 via-orange-400 to-red-400 animate-pulse"></div>
-                            <div className="absolute bottom-0 right-0 w-full h-1 bg-gradient-to-l from-yellow-400 via-orange-400 to-red-400 animate-pulse delay-500"></div>
-                          </>
-                        )}
-
-                        {/* Epic Background Animation */}
-                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 animate-pulse"></div>
-                        <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-cyan-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-
-                        <div className="relative flex items-center space-x-3">
-                          <div className="relative">
-                            <div
-                              className={`text-2xl transition-transform duration-300 ${
-                                isSelected
-                                  ? 'animate-bounce'
-                                  : 'group-hover:scale-125 group-hover:rotate-12'
-                              }`}
+                    {/* Enhanced Market Outlook Tooltip - Compact Height */}
+                    <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 opacity-0 group-hover:opacity-100 transition-all duration-500 pointer-events-none group-hover:pointer-events-auto z-50 translate-y-2 group-hover:translate-y-0">
+                      <div className="bg-gradient-to-br from-slate-900/98 to-slate-800/98 backdrop-blur-xl border-2 border-purple-400/30 rounded-2xl p-2.5 shadow-2xl min-w-80 max-w-md">
+                        {/* Header */}
+                        <div className="flex items-center space-x-2 mb-2">
+                          <div className="w-7 h-7 bg-gradient-to-br from-purple-400 via-blue-400 to-cyan-400 rounded-lg flex items-center justify-center">
+                            <svg
+                              width="14"
+                              height="14"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              className="text-white"
                             >
-                              {sizingInfo.icon}
-                            </div>
-                            {isSelected && (
-                              <div className="absolute -top-1 -right-1 w-3 h-3 bg-gradient-to-r from-emerald-400 to-cyan-400 rounded-full animate-ping"></div>
-                            )}
+                              <path
+                                d="M8 8h8M8 12h8M8 16h4"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                              />
+                              <circle
+                                cx="6"
+                                cy="8"
+                                r="1.5"
+                                fill="currentColor"
+                              />
+                              <circle
+                                cx="18"
+                                cy="8"
+                                r="1.5"
+                                fill="currentColor"
+                              />
+                              <circle
+                                cx="6"
+                                cy="12"
+                                r="1.5"
+                                fill="currentColor"
+                              />
+                              <circle
+                                cx="18"
+                                cy="12"
+                                r="1.5"
+                                fill="currentColor"
+                              />
+                              <circle
+                                cx="6"
+                                cy="16"
+                                r="1.5"
+                                fill="currentColor"
+                              />
+                              <circle
+                                cx="14"
+                                cy="16"
+                                r="1.5"
+                                fill="currentColor"
+                              />
+                            </svg>
                           </div>
-                          <div className="flex-1">
-                            <div className="text-sm font-bold mb-1 flex items-center">
-                              <span className="mr-1">
-                                {isSelected ? '⚡' : '🎯'}
-                              </span>
-                              {sizingInfo.label}
+                          <div>
+                            <div className="text-sm font-bold text-white">
+                              Market Outlook
                             </div>
-                            <div className="text-xs opacity-90 font-medium mb-1">
-                              <span className="mr-1">💎</span>
-                              {sizingInfo.adjustment} Size
+                            <div className="text-xs text-emerald-300">
+                              Position Sizing Intelligence •{' '}
+                              <span className="text-emerald-400">ACTIVE</span>
                             </div>
                           </div>
                         </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
 
-              {/* MarketSmith Status */}
-              {marketSmithData.error && (
-                <div className="p-3 bg-red-500/10 border border-red-400/20 rounded-lg">
-                  <div className="flex items-center justify-between">
-                    <div className="text-xs text-red-300">
-                      📈 MarketSmith connection failed
-                    </div>
-                    <button
-                      onClick={fetchMarketSmithData}
-                      className="text-xs text-red-400 hover:text-red-300 underline"
-                    >
-                      Retry
-                    </button>
-                  </div>
-                </div>
-              )}
+                        {/* Current Configuration */}
+                        <div className="mb-2 p-1.5 bg-gradient-to-r from-purple-500/15 to-blue-500/15 border border-purple-400/30 rounded-xl">
+                          <div className="flex items-center justify-between mb-0.5">
+                            <div className="text-xs text-purple-300 font-bold tracking-wider">
+                              CURRENT CONFIGURATION
+                            </div>
+                            <div className="text-xs text-emerald-400 font-bold">
+                              {
+                                getMarketSizingInfo(formData.marketHealth)
+                                  .adjustment
+                              }{' '}
+                              SIZING
+                            </div>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <div className="text-base">
+                              {getMarketSizingInfo(formData.marketHealth).icon}
+                            </div>
+                            <div className="flex-1">
+                              <div className="text-sm font-bold text-white">
+                                {
+                                  getMarketSizingInfo(formData.marketHealth)
+                                    .label
+                                }
+                              </div>
+                              <div className="text-xs text-gray-400">
+                                {
+                                  getMarketSizingInfo(formData.marketHealth)
+                                    .description
+                                }
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <div className="text-lg font-bold text-emerald-400">
+                                {
+                                  getMarketSizingInfo(formData.marketHealth)
+                                    .adjustment
+                                }
+                              </div>
+                              <div className="text-xs text-gray-400">
+                                Position Size
+                              </div>
+                            </div>
+                          </div>
+                        </div>
 
-              {marketSmithData.isLoading && (
-                <div className="p-3 bg-blue-500/10 border border-blue-400/20 rounded-lg">
-                  <div className="flex items-center space-x-2">
-                    <div className="w-2 h-2 bg-blue-400 rounded-full animate-spin"></div>
-                    <div className="text-xs text-blue-300">
-                      Loading MarketSmith data...
-                    </div>
-                  </div>
-                </div>
-              )}
+                        {/* MarketSmith Comparison */}
+                        {marketSmithData.condition && (
+                          <div className="mb-2 p-1.5 bg-gradient-to-r from-emerald-500/10 to-cyan-500/10 border border-emerald-400/20 rounded-lg">
+                            <div className="flex items-center justify-between mb-0.5">
+                              <div className="text-xs text-emerald-300 font-medium">
+                                MARKETSMITH SUGGESTS
+                              </div>
+                              <div className="text-xs text-gray-400">
+                                {marketSmithData.date}
+                              </div>
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <div className="text-sm font-medium text-white">
+                                {marketSmithData.condition}
+                              </div>
+                              {mapMarketSmithToHealth(
+                                marketSmithData.condition
+                              ) !== formData.marketHealth && (
+                                <button
+                                  onClick={() => {
+                                    const suggestedHealth =
+                                      mapMarketSmithToHealth(
+                                        marketSmithData.condition
+                                      );
+                                    handleMarketSizingChange(suggestedHealth);
+                                  }}
+                                  className="px-2 py-0.5 bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/30 rounded text-xs text-emerald-300 transition-all duration-300"
+                                >
+                                  Apply
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        )}
 
-              {!marketSmithData.condition &&
-                !marketSmithData.error &&
-                !marketSmithData.isLoading && (
-                  <div className="p-3 bg-gray-500/10 border border-gray-400/20 rounded-lg">
-                    <div className="flex items-center justify-between">
-                      <div className="text-xs text-gray-400">
-                        📈 MarketSmith data not loaded
+                        {/* Tactical Override Matrix */}
+                        <div className="text-center mb-1.5">
+                          <div className="text-xs text-gray-400 font-bold tracking-wider">
+                            ⚙️ TACTICAL OVERRIDE MATRIX ⚙️
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-1.5">
+                          {(
+                            [
+                              'confirmed-uptrend',
+                              'uptrend-under-pressure',
+                              'rally-attempt',
+                              'downtrend',
+                            ] as const
+                          ).map((health) => {
+                            const sizingInfo = getMarketSizingInfo(health);
+                            const isSelected = formData.marketHealth === health;
+
+                            return (
+                              <button
+                                key={health}
+                                onClick={() => handleMarketSizingChange(health)}
+                                className={`group relative p-1.5 rounded-lg border transition-all duration-300 text-left ${
+                                  isSelected
+                                    ? `border-${sizingInfo.color}-400 bg-${sizingInfo.color}-500/20 text-${sizingInfo.color}-200`
+                                    : 'border-gray-600/40 bg-gray-500/10 text-gray-400 hover:border-gray-500/60 hover:text-gray-200'
+                                }`}
+                              >
+                                <div className="flex items-center space-x-1.5">
+                                  <div className="text-base">
+                                    {sizingInfo.icon}
+                                  </div>
+                                  <div>
+                                    <div className="text-xs font-medium leading-tight">
+                                      {sizingInfo.label.replace(' Market', '')}
+                                    </div>
+                                    <div className="text-xs opacity-75 flex items-center leading-tight">
+                                      <svg
+                                        className="w-3 h-3 mr-1 text-blue-400"
+                                        fill="currentColor"
+                                        viewBox="0 0 20 20"
+                                      >
+                                        <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                      </svg>
+                                      {sizingInfo.adjustment} Sizing
+                                    </div>
+                                  </div>
+                                </div>
+                                {isSelected && (
+                                  <div className="absolute top-1 right-1 w-2 h-2 bg-gradient-to-r from-emerald-400 to-cyan-400 rounded-full animate-pulse"></div>
+                                )}
+                              </button>
+                            );
+                          })}
+                        </div>
                       </div>
-                      <button
-                        onClick={fetchMarketSmithData}
-                        className="text-xs text-gray-300 hover:text-white underline"
-                      >
-                        Load
-                      </button>
+                      <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 w-4 h-4 bg-gradient-to-br from-slate-900/98 to-slate-800/98 border-l-2 border-t-2 border-purple-400/30 rotate-45"></div>
                     </div>
                   </div>
-                )}
-            </div>
+                </div>
 
-            {/* Enhanced Arrow with Glow */}
-            <div className="absolute -top-2 right-12 w-4 h-4 bg-gradient-to-br from-slate-900/98 to-slate-800/98 border-l-2 border-t-2 border-purple-400/30 transform rotate-45 shadow-lg"></div>
+                {/* Trader Profile - Compact */}
+                <div className="flex items-center space-x-1.5 bg-gradient-to-br from-gray-500/10 to-slate-500/10 rounded-lg px-2 py-1 border border-gray-400/20 hover:border-gray-400/40 transition-all duration-200">
+                  <div className="w-5 h-5 bg-gradient-to-br from-cyan-400 to-purple-400 rounded-full flex items-center justify-center text-white font-bold text-xs">
+                    T
+                  </div>
+                  <div className="hidden md:block text-xs text-gray-300 font-medium">
+                    {formData.accountBalance >= 10000000
+                      ? 'Elite'
+                      : formData.accountBalance >= 5000000
+                      ? 'Pro'
+                      : formData.accountBalance >= 1000000
+                      ? 'Advanced'
+                      : 'Standard'}
+                  </div>
+                </div>
+
+                {/* Settings - Streamlined */}
+                <button
+                  onClick={() => setIsSettingsOpen(true)}
+                  className="flex items-center space-x-1 bg-gradient-to-br from-slate-500/10 to-gray-500/10 rounded-lg px-2 py-1 border border-slate-400/20 hover:border-slate-400/40 transition-all duration-200 hover:scale-105"
+                >
+                  <div className="text-slate-300">
+                    <svg
+                      className="w-3 h-3"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+                      />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                      />
+                    </svg>
+                  </div>
+                  <div className="hidden sm:block text-xs text-slate-300 font-medium">
+                    Settings
+                  </div>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
+      </div>
+
+      {/* Floating Quick Action Button */}
+      <div className="fixed bottom-8 right-8 z-30">
+        <div className="group relative">
+          {/* Main FAB */}
+          <button className="w-14 h-14 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-full shadow-2xl border-2 border-cyan-400/50 hover:border-cyan-400 transition-all duration-500 hover:scale-110 hover:shadow-cyan-500/50 hover:shadow-2xl">
+            {/* Background Glow */}
+            <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/20 to-purple-500/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 animate-pulse"></div>
+
+            {/* Icon */}
+            <div className="relative flex items-center justify-center text-white text-xl font-bold">
+              ⚡
+            </div>
+
+            {/* Pulse Ring */}
+            <div className="absolute inset-0 rounded-full border-2 border-cyan-400 animate-ping opacity-30"></div>
+          </button>
+
+          {/* Quick Actions Menu - Hidden by default */}
+          <div className="absolute bottom-16 right-0 opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none group-hover:pointer-events-auto">
+            <div className="bg-black/80 backdrop-blur-xl rounded-2xl p-4 border border-cyan-400/30 shadow-2xl min-w-48">
+              <div className="space-y-2">
+                <button className="w-full text-left p-3 rounded-lg hover:bg-cyan-500/20 transition-colors duration-300 text-cyan-300 hover:text-cyan-200 text-sm font-medium">
+                  🎯 Quick Position
+                </button>
+                <button className="w-full text-left p-3 rounded-lg hover:bg-purple-500/20 transition-colors duration-300 text-purple-300 hover:text-purple-200 text-sm font-medium">
+                  📊 Market Analysis
+                </button>
+                <button className="w-full text-left p-3 rounded-lg hover:bg-emerald-500/20 transition-colors duration-300 text-emerald-300 hover:text-emerald-200 text-sm font-medium">
+                  💰 Portfolio Summary
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
-      )}
+      </div>
 
       {/* Main Content */}
-      <main className="relative z-10 mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="relative z-10 mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-16">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Gaming Control Panel */}
           <div className="lg:col-span-1">
             <div className="bg-black/40 backdrop-blur-xl rounded-3xl p-6 shadow-2xl border border-cyan-500/30 sticky top-8 hover:border-cyan-400/50 transition-all duration-500 hover:shadow-cyan-500/20 hover:shadow-2xl">
               {/* Enhanced Gaming Wallet Display */}
-              <div className="mb-6">
-                <div className="group relative bg-gradient-to-br from-emerald-500/20 via-green-500/20 to-teal-500/20 rounded-2xl p-4 border border-emerald-500/30 backdrop-blur-sm hover:border-emerald-400/50 transition-all duration-500 overflow-hidden">
-                  {/* Animated background particles */}
-                  <div className="absolute inset-0 overflow-hidden">
-                    <div className="absolute top-2 left-4 w-1 h-1 bg-emerald-400 rounded-full animate-ping opacity-60"></div>
-                    <div className="absolute top-8 right-6 w-1 h-1 bg-green-400 rounded-full animate-ping opacity-40 delay-1000"></div>
-                    <div className="absolute bottom-6 left-8 w-1 h-1 bg-teal-400 rounded-full animate-ping opacity-50 delay-2000"></div>
-                  </div>
-
-                  {/* Wallet Health Meter */}
-                  <div className="absolute top-3 right-3 flex items-center space-x-1">
-                    <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
-                    <div className="text-xs text-emerald-300 font-bold">
-                      ACTIVE
-                    </div>
-                  </div>
-
-                  <div className="relative">
-                    <label className="text-sm font-medium text-emerald-300 mb-2 items-center">
-                      <span className="mr-2">💳</span>
-                      Trading Capital
-                      <Info className="inline w-4 h-4 ml-2 text-emerald-400 cursor-help" />
-                    </label>
-
-                    {/* Capital Power Gauge */}
-                    <div className="mb-3">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-xs text-emerald-300">
-                          POWER LEVEL
-                        </span>
-                        <span className="text-xs text-emerald-400 font-bold">
-                          {formData.accountBalance >= 10000000
-                            ? 'ELITE'
-                            : formData.accountBalance >= 1000000
-                            ? 'ADVANCED'
-                            : formData.accountBalance >= 100000
-                            ? 'INTERMEDIATE'
-                            : 'BEGINNER'}
-                        </span>
-                      </div>
-                      <div className="h-2 bg-black/40 rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-gradient-to-r from-emerald-400 via-green-400 to-teal-400 rounded-full transition-all duration-1000 ease-out"
-                          style={{
-                            width: `${Math.min(
-                              (formData.accountBalance / 10000000) * 100,
-                              100
-                            )}%`,
-                          }}
-                        ></div>
-                      </div>
-                    </div>
-
-                    <div className="relative">
-                      <input
-                        type="number"
-                        value={formData.accountBalance}
-                        onChange={(e) =>
-                          handleAccountBalanceChange(parseFloat(e.target.value))
-                        }
-                        className="w-full px-4 py-3 pl-10 bg-black/30 border-2 border-emerald-500/50 rounded-xl focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20 text-white placeholder-emerald-300/50 font-mono text-lg transition-all duration-300 focus:shadow-lg focus:shadow-emerald-500/20 group-hover:border-emerald-400/70"
-                        min="0"
-                        step="10000"
-                        placeholder="Enter credits..."
-                      />
-                      <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-emerald-400 animate-pulse">
-                        ₹
-                      </div>
-                      <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-emerald-400 text-sm font-bold">
-                        {formatCurrencyWithSuffix(formData.accountBalance)}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
 
               {/* Enhanced Gaming Mode Selector */}
               <div className="mb-6">
@@ -1149,10 +1125,14 @@ const TradingCalculator: React.FC = () => {
                       <label className="text-sm font-medium text-purple-300 flex items-center">
                         <span className="mr-2">⚡</span>
                         Risk Level
-                        <Info
-                          className="inline w-4 h-4 ml-2 text-purple-400 cursor-help"
-                          xlinkTitle="Strategic allocation of your portfolio to this trade"
-                        />
+                        <div className="inline-flex items-center ml-2">
+                          <div className="relative group">
+                            <div className="transform transition-transform duration-300 group-hover:scale-110 text-purple-400">
+                              <Info className="w-4 h-4" />
+                            </div>
+                            <div className="absolute -inset-1 bg-gradient-to-r from-purple-500/20 to-violet-500/20 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 animate-pulse"></div>
+                          </div>
+                        </div>
                       </label>
 
                       {/* Real-time Risk Meter */}
@@ -1246,14 +1226,19 @@ const TradingCalculator: React.FC = () => {
 
                             <div className="relative z-10 flex flex-col items-center">
                               {/* Icon with enhanced animations */}
-                              <div
-                                className={`text-lg mb-1 transition-transform duration-300 ${
-                                  isSelected
-                                    ? 'animate-bounce'
-                                    : 'group-hover:scale-110 group-hover:rotate-12'
-                                }`}
-                              >
-                                {riskLevel.icon}
+                              <div className="relative">
+                                <div
+                                  className={`text-lg mb-1 transition-transform duration-300 ${
+                                    isSelected
+                                      ? 'animate-bounce'
+                                      : 'group-hover:scale-110 group-hover:rotate-12'
+                                  }`}
+                                >
+                                  {riskLevel.icon}
+                                </div>
+                                {isSelected && (
+                                  <div className="absolute -inset-1 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-full opacity-100 animate-pulse"></div>
+                                )}
                               </div>
 
                               {/* Percentage with power level effect */}
@@ -1378,10 +1363,14 @@ const TradingCalculator: React.FC = () => {
                       <label className="text-sm font-medium text-purple-300 flex items-center">
                         <span className="mr-2">🎯</span>
                         Portfolio Allocation Level
-                        <Info
-                          className="inline w-4 h-4 ml-2 text-purple-400 cursor-help"
-                          xlinkTitle="Strategic allocation of your portfolio to this trade"
-                        />
+                        <div className="inline-flex items-center ml-2">
+                          <div className="relative group">
+                            <div className="transform transition-transform duration-300 group-hover:scale-110 text-purple-400">
+                              <Info className="w-4 h-4" />
+                            </div>
+                            <div className="absolute -inset-1 bg-gradient-to-r from-purple-500/20 to-violet-500/20 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 animate-pulse"></div>
+                          </div>
+                        </div>
                       </label>
 
                       {/* Real-time Allocation Meter */}
@@ -1400,16 +1389,20 @@ const TradingCalculator: React.FC = () => {
                         </div>
                         <div
                           className={`text-xs font-bold ${
-                            (Number(formData.allocationPercentage) || 0) > getAllocationThresholds().high
+                            (Number(formData.allocationPercentage) || 0) >
+                            getAllocationThresholds().high
                               ? 'text-red-400'
-                              : (Number(formData.allocationPercentage) || 0) > getAllocationThresholds().balanced
+                              : (Number(formData.allocationPercentage) || 0) >
+                                getAllocationThresholds().balanced
                               ? 'text-yellow-400'
                               : 'text-green-400'
                           }`}
                         >
-                          {(Number(formData.allocationPercentage) || 0) > getAllocationThresholds().high
+                          {(Number(formData.allocationPercentage) || 0) >
+                          getAllocationThresholds().high
                             ? 'HIGH'
-                            : (Number(formData.allocationPercentage) || 0) > getAllocationThresholds().balanced
+                            : (Number(formData.allocationPercentage) || 0) >
+                              getAllocationThresholds().balanced
                             ? 'MED'
                             : 'LOW'}
                         </div>
@@ -1426,7 +1419,8 @@ const TradingCalculator: React.FC = () => {
                           'red',
                         ];
                         const isSelected =
-                          Number(formData.allocationPercentage) === allocationLevel.percentage;
+                          Number(formData.allocationPercentage) ===
+                          allocationLevel.percentage;
 
                         return (
                           <button
@@ -1445,16 +1439,29 @@ const TradingCalculator: React.FC = () => {
                             }`}
                           >
                             <div className="flex flex-col items-center space-y-1">
-                              <div className={`text-${allocationColors[index]}-400 transition-colors duration-300`}>
-                                {React.createElement(getAllocationIcon(allocationLevel.icon), {
-                                  className: "w-4 h-4"
-                                })}
+                              <div className="relative group">
+                                <div
+                                  className={`transform transition-transform duration-300 group-hover:scale-110 text-${allocationColors[index]}-400`}
+                                >
+                                  {React.createElement(
+                                    getAllocationIcon(allocationLevel.icon),
+                                    {
+                                      className: 'w-4 h-4',
+                                    }
+                                  )}
+                                </div>
+                                <div
+                                  className={`absolute -inset-1 bg-gradient-to-r from-${allocationColors[index]}-500/20 to-${allocationColors[index]}-600/20 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 animate-pulse`}
+                                ></div>
                               </div>
                               <div className="text-sm font-bold">
                                 {allocationLevel.percentage}%
                               </div>
                               <div className="text-xs opacity-75">
-                                {allocationLevel.name.replace(' allocation', '')}
+                                {allocationLevel.name.replace(
+                                  ' allocation',
+                                  ''
+                                )}
                               </div>
                             </div>
 
@@ -1509,17 +1516,24 @@ const TradingCalculator: React.FC = () => {
                             <div className="w-16 h-3 bg-gray-700 rounded-full overflow-hidden">
                               <div
                                 className={`h-full transition-all duration-500 ${
-                                  (Number(formData.allocationPercentage) || 0) > getAllocationThresholds().high
+                                  (Number(formData.allocationPercentage) || 0) >
+                                  getAllocationThresholds().high
                                     ? 'bg-gradient-to-r from-red-500 to-red-700 animate-pulse'
-                                    : (Number(formData.allocationPercentage) || 0) > getAllocationThresholds().balanced
+                                    : (Number(formData.allocationPercentage) ||
+                                        0) > getAllocationThresholds().balanced
                                     ? 'bg-gradient-to-r from-orange-400 to-red-400'
-                                    : (Number(formData.allocationPercentage) || 0) > getAllocationThresholds().conservative
+                                    : (Number(formData.allocationPercentage) ||
+                                        0) >
+                                      getAllocationThresholds().conservative
                                     ? 'bg-gradient-to-r from-yellow-400 to-orange-400'
                                     : 'bg-gradient-to-r from-green-400 to-emerald-400'
                                 }`}
                                 style={{
                                   width: `${Math.min(
-                                    ((Number(formData.allocationPercentage) || 0) * 100) / getAllocationThresholds().extreme,
+                                    ((Number(formData.allocationPercentage) ||
+                                      0) *
+                                      100) /
+                                      getAllocationThresholds().extreme,
                                     100
                                   )}%`,
                                 }}
@@ -1527,20 +1541,27 @@ const TradingCalculator: React.FC = () => {
                             </div>
                             <div
                               className={`text-xs font-bold ${
-                                (Number(formData.allocationPercentage) || 0) > getAllocationThresholds().high
+                                (Number(formData.allocationPercentage) || 0) >
+                                getAllocationThresholds().high
                                   ? 'text-red-400 animate-pulse'
-                                  : (Number(formData.allocationPercentage) || 0) > getAllocationThresholds().balanced
+                                  : (Number(formData.allocationPercentage) ||
+                                      0) > getAllocationThresholds().balanced
                                   ? 'text-orange-400'
-                                  : (Number(formData.allocationPercentage) || 0) > getAllocationThresholds().conservative
+                                  : (Number(formData.allocationPercentage) ||
+                                      0) >
+                                    getAllocationThresholds().conservative
                                   ? 'text-yellow-400'
                                   : 'text-green-400'
                               }`}
                             >
-                              {(Number(formData.allocationPercentage) || 0) > getAllocationThresholds().high
+                              {(Number(formData.allocationPercentage) || 0) >
+                              getAllocationThresholds().high
                                 ? 'EXTREME'
-                                : (Number(formData.allocationPercentage) || 0) > getAllocationThresholds().balanced
+                                : (Number(formData.allocationPercentage) || 0) >
+                                  getAllocationThresholds().balanced
                                 ? 'HIGH'
-                                : (Number(formData.allocationPercentage) || 0) > getAllocationThresholds().conservative
+                                : (Number(formData.allocationPercentage) || 0) >
+                                  getAllocationThresholds().conservative
                                 ? 'MEDIUM'
                                 : 'LOW'}
                             </div>
@@ -1555,7 +1576,14 @@ const TradingCalculator: React.FC = () => {
                   <div className="relative">
                     <label className="block text-sm font-medium text-green-300 mb-2">
                       💰 Entry Price
-                      <Info className="inline w-4 h-4 ml-1 text-green-400 cursor-help" />
+                      <div className="inline-flex items-center ml-1">
+                        <div className="relative group">
+                          <div className="transform transition-transform duration-300 group-hover:scale-110 text-green-400">
+                            <Info className="w-4 h-4" />
+                          </div>
+                          <div className="absolute -inset-1 bg-gradient-to-r from-green-500/20 to-emerald-500/20 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 animate-pulse"></div>
+                        </div>
+                      </div>
                     </label>
                     <div className="relative">
                       <input
@@ -1580,7 +1608,14 @@ const TradingCalculator: React.FC = () => {
                   <div className="relative">
                     <label className="block text-sm font-medium text-red-300 mb-2">
                       🛡️ Stop Loss
-                      <Info className="inline w-4 h-4 ml-1 text-red-400 cursor-help" />
+                      <div className="inline-flex items-center ml-1">
+                        <div className="relative group">
+                          <div className="transform transition-transform duration-300 group-hover:scale-110 text-red-400">
+                            <Info className="w-4 h-4" />
+                          </div>
+                          <div className="absolute -inset-1 bg-gradient-to-r from-red-500/20 to-orange-500/20 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 animate-pulse"></div>
+                        </div>
+                      </div>
                     </label>
                     <div className="relative">
                       <input
@@ -2073,6 +2108,12 @@ const TradingCalculator: React.FC = () => {
           </div>
         </div>
       </main>
+
+      {/* Settings Modal */}
+      <SettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+      />
     </div>
   );
 };
