@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
-import { Info } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Info, Shield, BarChart3, TrendingUp, Zap } from 'lucide-react';
 import { initializeApp } from 'firebase/app';
 import { getAnalytics } from 'firebase/analytics';
 import SettingsButton from '../../components/Settings/SettingsButton';
@@ -79,6 +79,17 @@ const TradingCalculator: React.FC = () => {
       high: levels.find(l => l.id === 'high')?.percentage || 30,
       extreme: levels.find(l => l.id === 'extreme')?.percentage || 40,
     };
+  };
+
+  // Helper function to get Lucide icon component from icon name
+  const getAllocationIcon = (iconName: string): React.ComponentType<{className?: string}> => {
+    const iconMap: Record<string, React.ComponentType<{className?: string}>> = {
+      Shield,
+      BarChart3,
+      TrendingUp,
+      Zap,
+    };
+    return iconMap[iconName] || Shield;
   };
 
   // Calculate brokerage automatically for delivery equity (buy only)
@@ -1433,11 +1444,18 @@ const TradingCalculator: React.FC = () => {
                                 : `border-purple-500/30 bg-black/30 text-purple-300 hover:border-${allocationColors[index]}-400/50 hover:bg-${allocationColors[index]}-500/5 hover:text-${allocationColors[index]}-300`
                             }`}
                           >
-                            <div className="text-sm font-bold mb-1">
-                              {allocationLevel.percentage}%
-                            </div>
-                            <div className="text-xs opacity-75">
-                              {allocationLevel.name.replace(' allocation', '')}
+                            <div className="flex flex-col items-center space-y-1">
+                              <div className={`text-${allocationColors[index]}-400 transition-colors duration-300`}>
+                                {React.createElement(getAllocationIcon(allocationLevel.icon), {
+                                  className: "w-4 h-4"
+                                })}
+                              </div>
+                              <div className="text-sm font-bold">
+                                {allocationLevel.percentage}%
+                              </div>
+                              <div className="text-xs opacity-75">
+                                {allocationLevel.name.replace(' allocation', '')}
+                              </div>
                             </div>
 
                             {isSelected && (

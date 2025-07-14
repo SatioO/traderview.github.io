@@ -9,6 +9,11 @@ import {
   ChevronRight,
   ChevronDown,
   ChevronUp,
+  Shield,
+  BarChart3,
+  Zap,
+  PieChart,
+  Flame,
 } from 'lucide-react';
 import {
   useSettings,
@@ -92,6 +97,28 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
   }, [isOpen, onClose]);
 
   if (!isOpen) return null;
+
+  // Helper function to get allocation level icons
+  const getAllocationIcon = (allocationId: string): React.ComponentType<{className?: string}> => {
+    const iconMap: Record<string, React.ComponentType<{className?: string}>> = {
+      conservative: Shield,      // Conservative allocation - safety/protection
+      balanced: PieChart,        // Balanced allocation - portfolio distribution  
+      high: TrendingUp,         // High allocation - growth/upward trend
+      extreme: Flame,           // Extreme allocation - aggressive/intense
+    };
+    return iconMap[allocationId] || Shield;
+  };
+
+  // Helper function to get risk level icons
+  const getRiskIcon = (riskId: string): React.ComponentType<{className?: string}> => {
+    const iconMap: Record<string, React.ComponentType<{className?: string}>> = {
+      conservative: Shield,
+      balanced: BarChart3,
+      bold: TrendingUp,
+      maximum: Zap,
+    };
+    return iconMap[riskId] || Shield;
+  };
 
   const validateRiskLevels = (levels: Record<string, string>) => {
     const errors: Record<string, string> = {};
@@ -1190,7 +1217,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                             accent: 'text-emerald-400',
                             inputBg: 'bg-emerald-500/10',
                             inputBorder: 'border-emerald-400/40',
-                            icon: '🌱',
                           },
                           balanced: {
                             bg: 'from-amber-500/10 via-yellow-500/5 to-orange-500/10',
@@ -1200,7 +1226,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                             accent: 'text-amber-400',
                             inputBg: 'bg-amber-500/10',
                             inputBorder: 'border-amber-400/40',
-                            icon: '🔥',
                           },
                           bold: {
                             bg: 'from-orange-500/10 via-red-500/5 to-pink-500/10',
@@ -1210,7 +1235,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                             accent: 'text-orange-400',
                             inputBg: 'bg-orange-500/10',
                             inputBorder: 'border-orange-400/40',
-                            icon: '⚡',
                           },
                           maximum: {
                             bg: 'from-red-500/10 via-pink-500/5 to-rose-500/10',
@@ -1219,7 +1243,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                             accent: 'text-red-400',
                             inputBg: 'bg-red-500/10',
                             inputBorder: 'border-red-400/40',
-                            icon: '💀',
                           },
                         };
 
@@ -1274,12 +1297,18 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                                     </div>
                                   </div>
                                 )}
+                                
+                                {/* Subtle shimmer effect on hover */}
+                                <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/10 to-transparent group-hover:translate-x-full transition-transform duration-700 ease-out"></div>
+                                
                                 {/* Card Content - Icon, Input, Label */}
                                 <div className="flex flex-col items-center justify-center text-center space-y-2 h-full">
                                   {/* Enhanced Icon with Pulse */}
                                   <div className="relative">
-                                    <div className="text-3xl transform transition-transform duration-300 group-hover:scale-110">
-                                      {colors.icon}
+                                    <div className={`transform transition-transform duration-300 group-hover:scale-110 ${colors.accent}`}>
+                                      {React.createElement(getRiskIcon(level.id), {
+                                        className: "w-8 h-8"
+                                      })}
                                     </div>
                                     {hasError && (
                                       <div className="absolute -inset-1 bg-gradient-to-r from-red-500/20 to-orange-500/20 rounded-full animate-pulse"></div>
@@ -1442,7 +1471,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                             text: 'text-emerald-300',
                             accent: 'text-emerald-400',
                             inputBorder: 'border-emerald-400/40',
-                            icon: '🛡️',
                           },
                           balanced: {
                             bg: 'from-blue-500/10 via-cyan-500/5 to-indigo-500/10',
@@ -1451,7 +1479,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                             text: 'text-blue-300',
                             accent: 'text-blue-400',
                             inputBorder: 'border-blue-400/40',
-                            icon: '📊',
                           },
                           high: {
                             bg: 'from-orange-500/10 via-red-500/5 to-pink-500/10',
@@ -1460,7 +1487,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                             text: 'text-orange-300',
                             accent: 'text-orange-400',
                             inputBorder: 'border-orange-400/40',
-                            icon: '🚀',
                           },
                           extreme: {
                             bg: 'from-red-500/10 via-pink-500/5 to-rose-500/10',
@@ -1468,7 +1494,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                             text: 'text-red-300',
                             accent: 'text-red-400',
                             inputBorder: 'border-red-400/40',
-                            icon: '💥',
                           },
                         };
 
@@ -1496,12 +1521,17 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                                     : undefined,
                                 }}
                               >
+                                {/* Subtle shimmer effect on hover */}
+                                <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/10 to-transparent group-hover:translate-x-full transition-transform duration-700 ease-out"></div>
+                                
                                 {/* Card Content - Icon, Input, Label */}
                                 <div className="flex flex-col items-center justify-center text-center space-y-2 h-full">
                                   {/* Enhanced Icon with Pulse */}
                                   <div className="relative">
-                                    <div className="text-3xl transform transition-transform duration-300 group-hover:scale-110">
-                                      {colors.icon}
+                                    <div className={`transform transition-transform duration-300 group-hover:scale-110 ${colors.accent}`}>
+                                      {React.createElement(getAllocationIcon(level.id), {
+                                        className: "w-8 h-8"
+                                      })}
                                     </div>
                                     {hasError && (
                                       <div className="absolute -inset-1 bg-gradient-to-r from-red-500/20 to-orange-500/20 rounded-full animate-pulse"></div>
