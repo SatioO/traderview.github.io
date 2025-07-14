@@ -54,6 +54,43 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
     setLocalSettings(settings);
   }, [settings]);
 
+  // Keyboard shortcuts handler - needs to be after hooks but before early return
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // ESC to close
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        // Reset any unsaved changes before closing
+        setEditedLevels({});
+        setEditedAllocationLevels({});
+        setEditedCapital(undefined);
+        setValidationErrors({});
+        setOrderConflicts({});
+        setShakeAnimations({});
+        onClose();
+        return;
+      }
+
+      // ⌘S or Ctrl+S to save
+      if ((event.metaKey || event.ctrlKey) && event.key === 's') {
+        event.preventDefault();
+        // Check if save button is enabled (has changes and no validation errors)
+        const saveButton = document.querySelector('[data-save-button]') as HTMLButtonElement;
+        if (saveButton && !saveButton.disabled) {
+          saveButton.click();
+        }
+        return;
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   const validateRiskLevels = (levels: Record<string, string>) => {
@@ -679,7 +716,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
 
   return (
     <div
-      className="fixed inset-0 bg-gradient-to-br from-indigo-950/96 via-purple-900/94 to-emerald-950/96 backdrop-blur-xl flex items-center justify-center z-[10000] p-4 animate-gradient-shift"
+      className="fixed inset-0 flex items-center justify-center z-[10000] p-4"
       onClick={(e) => {
         // Close modal if clicking on backdrop
         if (e.target === e.currentTarget) {
@@ -695,23 +732,76 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
       }}
       style={{ pointerEvents: 'auto' }}
     >
-      {/* Epic Background Effects */}
+      {/* World-Class Cinematic Backdrop */}
       <div className="absolute inset-0 overflow-hidden">
-        {/* Massive animated orbs */}
-        <div className="absolute top-10 left-10 w-[500px] h-[500px] bg-gradient-to-br from-violet-500/12 via-purple-500/8 to-fuchsia-500/12 rounded-full blur-3xl animate-float-slow"></div>
-        <div className="absolute top-10 right-10 w-[400px] h-[400px] bg-gradient-to-br from-cyan-500/12 via-blue-500/8 to-indigo-500/12 rounded-full blur-3xl animate-float-medium"></div>
-        <div className="absolute bottom-10 left-10 w-[450px] h-[450px] bg-gradient-to-br from-emerald-500/12 via-green-500/8 to-teal-500/12 rounded-full blur-3xl animate-float-fast"></div>
-        <div className="absolute bottom-10 right-10 w-[350px] h-[350px] bg-gradient-to-br from-amber-500/12 via-orange-500/8 to-red-500/12 rounded-full blur-3xl animate-float-slow"></div>
+        {/* Revolutionary depth layers */}
+        <div className="absolute inset-0 bg-black/40 backdrop-blur-3xl"></div>
+        
+        {/* Dynamic holographic grid */}
+        <div className="absolute inset-0 opacity-30" style={{
+          backgroundImage: `
+            linear-gradient(rgba(56, 189, 248, 0.03) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(56, 189, 248, 0.03) 1px, transparent 1px)
+          `,
+          backgroundSize: '60px 60px',
+          animation: 'grid-float 20s ease-in-out infinite'
+        }}></div>
 
-        {/* Floating geometric elements */}
-        <div className="absolute top-1/4 left-1/3 w-16 h-16 border-2 border-violet-400/20 rotate-45 rounded-lg animate-spin-slow"></div>
-        <div className="absolute bottom-1/3 right-1/4 w-12 h-12 border-2 border-cyan-400/20 rotate-12 rounded-lg animate-bounce-subtle"></div>
-        <div className="absolute top-2/3 left-1/4 w-8 h-8 border border-emerald-400/30 rounded-full animate-float-medium"></div>
+        {/* Immersive ambient lighting */}
+        <div className="absolute top-0 left-1/4 w-[800px] h-[400px] bg-gradient-radial from-blue-500/8 via-purple-500/4 to-transparent rounded-full blur-3xl animate-ambient-pulse"></div>
+        <div className="absolute bottom-0 right-1/4 w-[600px] h-[300px] bg-gradient-radial from-emerald-500/8 via-cyan-500/4 to-transparent rounded-full blur-3xl animate-ambient-pulse-delayed"></div>
+        <div className="absolute top-1/2 left-0 w-[400px] h-[600px] bg-gradient-radial from-violet-500/6 via-fuchsia-500/3 to-transparent rounded-full blur-3xl animate-ambient-drift"></div>
 
-        {/* Particle effects */}
-        <div className="absolute top-1/2 left-1/2 w-2 h-2 bg-violet-400/60 rounded-full animate-ping"></div>
-        <div className="absolute top-1/3 right-1/3 w-1 h-1 bg-cyan-400/80 rounded-full animate-pulse delay-1000"></div>
-        <div className="absolute bottom-1/4 left-1/5 w-1.5 h-1.5 bg-emerald-400/70 rounded-full animate-ping delay-2000"></div>
+        {/* Floating data fragments */}
+        <div className="absolute top-1/4 left-1/3 w-32 h-24 border border-cyan-400/10 rounded-lg backdrop-blur-sm animate-data-float transform-gpu">
+          <div className="absolute inset-2 border border-cyan-400/20 rounded animate-pulse"></div>
+          <div className="absolute top-3 left-3 w-2 h-2 bg-cyan-400/60 rounded-full animate-ping"></div>
+        </div>
+        <div className="absolute bottom-1/3 right-1/4 w-24 h-32 border border-emerald-400/10 rounded-lg backdrop-blur-sm animate-data-float-reverse transform-gpu">
+          <div className="absolute inset-2 border border-emerald-400/20 rounded animate-pulse" style={{animationDelay: '0.5s'}}></div>
+          <div className="absolute bottom-3 right-3 w-2 h-2 bg-emerald-400/60 rounded-full animate-ping" style={{animationDelay: '0.7s'}}></div>
+        </div>
+
+        {/* Neural pathways */}
+        <svg className="absolute inset-0 w-full h-full" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="neural1" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#06B6D4" stopOpacity="0"/>
+              <stop offset="30%" stopColor="#06B6D4" stopOpacity="0.4"/>
+              <stop offset="70%" stopColor="#8B5CF6" stopOpacity="0.4"/>
+              <stop offset="100%" stopColor="#8B5CF6" stopOpacity="0"/>
+            </linearGradient>
+            <filter id="glow">
+              <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+              <feMerge> 
+                <feMergeNode in="coloredBlur"/>
+                <feMergeNode in="SourceGraphic"/>
+              </feMerge>
+            </filter>
+          </defs>
+          <path 
+            d="M0,300 Q200,200 400,250 T800,200 Q1000,180 1200,220" 
+            stroke="url(#neural1)" 
+            strokeWidth="2" 
+            fill="none" 
+            filter="url(#glow)"
+            className="animate-neural-flow"
+          />
+          <path 
+            d="M200,500 Q400,400 600,450 T1000,400 Q1200,380 1400,420" 
+            stroke="url(#neural1)" 
+            strokeWidth="1.5" 
+            fill="none" 
+            filter="url(#glow)"
+            className="animate-neural-flow-delayed"
+          />
+        </svg>
+
+        {/* Quantum particles */}
+        <div className="absolute top-20 left-20 w-1 h-1 bg-blue-400 rounded-full animate-quantum-drift shadow-lg shadow-blue-400/50"></div>
+        <div className="absolute top-40 right-40 w-1 h-1 bg-purple-400 rounded-full animate-quantum-drift-reverse shadow-lg shadow-purple-400/50"></div>
+        <div className="absolute bottom-60 left-60 w-1 h-1 bg-emerald-400 rounded-full animate-quantum-spiral shadow-lg shadow-emerald-400/50"></div>
+        <div className="absolute bottom-40 right-20 w-1 h-1 bg-cyan-400 rounded-full animate-quantum-orbit shadow-lg shadow-cyan-400/50"></div>
       </div>
 
       {/* Spectacular Settings Modal */}
@@ -719,32 +809,97 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
         className="relative bg-gradient-to-br from-slate-800/70 via-indigo-900/80 to-slate-800/70 backdrop-blur-3xl rounded-[2.5rem] shadow-2xl w-full max-w-5xl border border-slate-600/40 transition-all duration-300 overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Clean Minimal Header */}
-        <div className="relative border-b border-slate-700/40 backdrop-blur-sm">
-          <div className="flex items-center justify-between px-6 py-4">
-            {/* Left - Simple Title */}
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-slate-800/50 rounded-lg border border-slate-600/50">
-                <Settings className="w-5 h-5 text-slate-300" />
+        {/* Masterclass Header Design */}
+        <div className="relative overflow-hidden">
+          {/* Revolutionary glass morphism background */}
+          <div className="absolute inset-0 bg-gradient-to-r from-black/20 via-slate-900/30 to-black/20 backdrop-blur-2xl"></div>
+          <div className="absolute inset-0 bg-gradient-to-b from-white/[0.02] via-transparent to-black/10"></div>
+          
+          {/* Dynamic light bar */}
+          <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-cyan-400/40 to-transparent animate-light-sweep"></div>
+          <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-slate-600/30 to-transparent"></div>
+          
+          <div className="relative flex items-center px-8 py-8">
+            {/* Iconic Brand Experience */}
+            <div className="flex items-center space-x-6 flex-1">
+              {/* Quantum Logo */}
+              <div className="relative group cursor-pointer">
+                {/* Orbital rings */}
+                <div className="absolute inset-0 w-16 h-16 border border-cyan-400/20 rounded-full animate-orbital-slow"></div>
+                <div className="absolute inset-1 w-14 h-14 border border-purple-400/15 rounded-full animate-orbital-medium"></div>
+                <div className="absolute inset-2 w-12 h-12 border border-emerald-400/15 rounded-full animate-orbital-fast"></div>
+                
+                {/* Core icon */}
+                <div className="relative z-10 p-4 bg-gradient-to-br from-slate-800/60 via-slate-900/80 to-black/60 backdrop-blur-xl rounded-2xl border border-slate-700/40 group-hover:border-cyan-400/40 transition-all duration-500 group-hover:scale-105">
+                  <Settings className="w-8 h-8 text-slate-300 group-hover:text-cyan-300 transition-all duration-500 group-hover:rotate-90" />
+                  
+                  {/* Energy pulse */}
+                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-cyan-400/0 via-cyan-400/0 to-cyan-400/0 group-hover:from-cyan-400/10 group-hover:via-cyan-400/5 group-hover:to-cyan-400/10 transition-all duration-500"></div>
+                </div>
+                
+                {/* Particle trail */}
+                <div className="absolute top-6 left-6 w-1 h-1 bg-cyan-400/60 rounded-full animate-particle-trail opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <div className="absolute top-8 left-8 w-0.5 h-0.5 bg-purple-400/60 rounded-full animate-particle-trail-delayed opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               </div>
-              <h2 className="text-lg font-semibold text-white">Settings</h2>
+              
+              {/* Cinematic Typography */}
+              <div className="space-y-2">
+                <div className="flex items-baseline space-x-3">
+                  <h1 className="text-2xl font-black bg-gradient-to-r from-slate-100 via-cyan-200 to-slate-100 bg-clip-text text-transparent tracking-tight relative">
+                    TradeView
+                    <div className="absolute -bottom-1 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-cyan-400/60 to-transparent transform scale-x-0 group-hover:scale-x-100 transition-transform duration-700"></div>
+                  </h1>
+                  <div className="px-2 py-0.5 bg-gradient-to-r from-cyan-500/20 to-purple-500/20 border border-cyan-400/30 rounded-full">
+                    <span className="text-xs font-bold text-cyan-300 tracking-wider">SETTINGS</span>
+                  </div>
+                </div>
+                <p className="text-sm text-slate-400 font-medium tracking-wide opacity-80">
+                  Advanced trading configuration & risk management
+                </p>
+              </div>
             </div>
 
-            {/* Right - Close Button */}
-            <button
-              onClick={() => {
-                setEditedLevels({});
-                setEditedAllocationLevels({});
-                setEditedCapital(undefined);
-                setValidationErrors({});
-                setOrderConflicts({});
-                setShakeAnimations({});
-                onClose();
-              }}
-              className="p-2 hover:bg-slate-700/50 rounded-lg transition-colors duration-200"
-            >
-              <X className="w-5 h-5 text-slate-400 hover:text-white" />
-            </button>
+            {/* Adaptive Action Zone */}
+            <div className="flex items-center space-x-4">
+              {/* Contextual shortcuts */}
+              <div className="hidden lg:flex items-center space-x-2 opacity-60 hover:opacity-100 transition-opacity duration-300">
+                <div className="flex items-center space-x-1 px-3 py-1.5 bg-slate-800/40 backdrop-blur-sm rounded-lg border border-slate-700/40">
+                  <kbd className="text-xs text-slate-400 font-mono">ESC</kbd>
+                  <span className="text-xs text-slate-500">to close</span>
+                </div>
+                <div className="flex items-center space-x-1 px-3 py-1.5 bg-slate-800/40 backdrop-blur-sm rounded-lg border border-slate-700/40">
+                  <kbd className="text-xs text-slate-400 font-mono">⌘</kbd>
+                  <kbd className="text-xs text-slate-400 font-mono">S</kbd>
+                  <span className="text-xs text-slate-500">to save</span>
+                </div>
+              </div>
+              
+              {/* Intelligent close button */}
+              <button
+                onClick={() => {
+                  setEditedLevels({});
+                  setEditedAllocationLevels({});
+                  setEditedCapital(undefined);
+                  setValidationErrors({});
+                  setOrderConflicts({});
+                  setShakeAnimations({});
+                  onClose();
+                }}
+                className="relative group p-3 hover:bg-slate-800/60 rounded-2xl transition-all duration-300 border border-transparent hover:border-slate-600/40 hover:scale-105"
+              >
+                {/* Warning glow for unsaved changes */}
+                {hasChanges && (
+                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-amber-400/10 via-amber-400/20 to-amber-400/10 animate-pulse"></div>
+                )}
+                
+                <X className="relative w-6 h-6 text-slate-400 group-hover:text-white transition-all duration-300 group-hover:rotate-90" />
+                
+                {/* Smart tooltip */}
+                <div className="absolute right-0 top-full mt-2 px-3 py-1.5 bg-slate-900/90 backdrop-blur-xl rounded-lg border border-slate-700/40 text-xs text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap z-50">
+                  {hasChanges ? 'Close (unsaved changes will be lost)' : 'Close settings'}
+                </div>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -1512,6 +1667,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
             <button
               onClick={handleSave}
               disabled={!canSave}
+              data-save-button
               className={`relative px-6 py-2.5 font-semibold text-sm rounded-lg transition-all duration-300 ${
                 canSave
                   ? 'bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 text-white shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/30 hover:scale-105'
@@ -1578,6 +1734,90 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
             0%, 100% { background-position: 0% 50%; }
             50% { background-position: 100% 50%; }
           }
+          @keyframes twinkle {
+            0%, 100% { opacity: 0.6; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.2); }
+          }
+          @keyframes grid-float {
+            0%, 100% { transform: translateX(0) translateY(0); }
+            50% { transform: translateX(10px) translateY(-5px); }
+          }
+          @keyframes ambient-pulse {
+            0%, 100% { opacity: 0.6; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.1); }
+          }
+          @keyframes ambient-pulse-delayed {
+            0%, 100% { opacity: 0.5; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(1.05); }
+          }
+          @keyframes ambient-drift {
+            0%, 100% { transform: translateX(0) rotate(0deg); }
+            33% { transform: translateX(20px) rotate(120deg); }
+            66% { transform: translateX(-10px) rotate(240deg); }
+          }
+          @keyframes data-float {
+            0%, 100% { transform: translateY(0) rotate(0deg); opacity: 0.6; }
+            50% { transform: translateY(-15px) rotate(5deg); opacity: 0.8; }
+          }
+          @keyframes data-float-reverse {
+            0%, 100% { transform: translateY(0) rotate(0deg); opacity: 0.6; }
+            50% { transform: translateY(15px) rotate(-5deg); opacity: 0.8; }
+          }
+          @keyframes neural-flow {
+            0% { stroke-dasharray: 0 1000; }
+            50% { stroke-dasharray: 500 1000; }
+            100% { stroke-dasharray: 1000 1000; }
+          }
+          @keyframes neural-flow-delayed {
+            0% { stroke-dasharray: 0 800; }
+            50% { stroke-dasharray: 400 800; }
+            100% { stroke-dasharray: 800 800; }
+          }
+          @keyframes quantum-drift {
+            0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.8; }
+            25% { transform: translate(30px, -20px) scale(1.2); opacity: 1; }
+            50% { transform: translate(-10px, -40px) scale(0.8); opacity: 0.6; }
+            75% { transform: translate(-30px, -10px) scale(1.1); opacity: 0.9; }
+          }
+          @keyframes quantum-drift-reverse {
+            0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.8; }
+            25% { transform: translate(-30px, 20px) scale(1.2); opacity: 1; }
+            50% { transform: translate(10px, 40px) scale(0.8); opacity: 0.6; }
+            75% { transform: translate(30px, 10px) scale(1.1); opacity: 0.9; }
+          }
+          @keyframes quantum-spiral {
+            0% { transform: translate(0, 0) rotate(0deg) scale(1); }
+            100% { transform: translate(50px, -50px) rotate(360deg) scale(1.5); opacity: 0; }
+          }
+          @keyframes quantum-orbit {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            100% { transform: translate(0, 0) rotate(360deg); }
+          }
+          @keyframes light-sweep {
+            0%, 100% { transform: translateX(-100%); opacity: 0; }
+            50% { transform: translateX(100%); opacity: 1; }
+          }
+          @keyframes orbital-slow {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+          @keyframes orbital-medium {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(-360deg); }
+          }
+          @keyframes orbital-fast {
+            0% { transform: rotate(0deg) scale(1); }
+            50% { transform: rotate(180deg) scale(1.1); }
+            100% { transform: rotate(360deg) scale(1); }
+          }
+          @keyframes particle-trail {
+            0% { transform: translate(0, 0) scale(1); opacity: 1; }
+            100% { transform: translate(20px, -20px) scale(0); opacity: 0; }
+          }
+          @keyframes particle-trail-delayed {
+            0% { transform: translate(0, 0) scale(1); opacity: 1; }
+            100% { transform: translate(-15px, -25px) scale(0); opacity: 0; }
+          }
           @keyframes shimmer {
             0% { transform: translateX(-100%); }
             100% { transform: translateX(100%); }
@@ -1605,9 +1845,30 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
           .animate-float-fast { animation: float-fast 2s ease-in-out infinite; }
           .animate-spin-slow { animation: spin-slow 8s linear infinite; }
           .animate-bounce-subtle { animation: bounce-subtle 3s ease-in-out infinite; }
+          .animate-twinkle { animation: twinkle 2s ease-in-out infinite; }
+          .animate-ambient-pulse { animation: ambient-pulse 4s ease-in-out infinite; }
+          .animate-ambient-pulse-delayed { animation: ambient-pulse-delayed 5s ease-in-out infinite 1s; }
+          .animate-ambient-drift { animation: ambient-drift 8s ease-in-out infinite; }
+          .animate-data-float { animation: data-float 6s ease-in-out infinite; }
+          .animate-data-float-reverse { animation: data-float-reverse 7s ease-in-out infinite 1s; }
+          .animate-neural-flow { animation: neural-flow 3s ease-in-out infinite; }
+          .animate-neural-flow-delayed { animation: neural-flow-delayed 4s ease-in-out infinite 1.5s; }
+          .animate-quantum-drift { animation: quantum-drift 8s ease-in-out infinite; }
+          .animate-quantum-drift-reverse { animation: quantum-drift-reverse 10s ease-in-out infinite 2s; }
+          .animate-quantum-spiral { animation: quantum-spiral 4s linear infinite; }
+          .animate-quantum-orbit { animation: quantum-orbit 6s linear infinite; }
+          .animate-light-sweep { animation: light-sweep 3s ease-in-out infinite; }
+          .animate-orbital-slow { animation: orbital-slow 15s linear infinite; }
+          .animate-orbital-medium { animation: orbital-medium 10s linear infinite; }
+          .animate-orbital-fast { animation: orbital-fast 8s linear infinite; }
+          .animate-particle-trail { animation: particle-trail 1s ease-out infinite; }
+          .animate-particle-trail-delayed { animation: particle-trail-delayed 1.2s ease-out infinite 0.3s; }
           .animate-gradient-shift { 
             background-size: 200% 200%; 
             animation: gradient-shift 3s ease infinite; 
+          }
+          .bg-gradient-radial {
+            background: radial-gradient(circle, var(--tw-gradient-stops));
           }
           .animate-shimmer { animation: shimmer 2s linear infinite; }
           .animate-subtle-glow { animation: subtle-glow 4s ease-in-out infinite; }
