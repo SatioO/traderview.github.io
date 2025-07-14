@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Info, Shield, BarChart3, TrendingUp, Zap } from 'lucide-react';
+import { Info, Shield, Zap } from 'lucide-react';
 import { initializeApp } from 'firebase/app';
 import { getAnalytics } from 'firebase/analytics';
 import SettingsButton from '../../components/Settings/SettingsButton';
@@ -28,14 +28,9 @@ const app = initializeApp(firebaseConfig);
 getAnalytics(app);
 
 // Helper function to get risk level icons
-const getRiskLevelIcon = (iconName: string): React.ComponentType<{ className?: string }> => {
-  const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
-    Shield,
-    BarChart3,
-    TrendingUp,
-    Zap,
-  };
-  return iconMap[iconName] || Shield;
+const getRiskLevelIcon = (): React.ComponentType<{ className?: string }> => {
+  // All risk levels use Shield icon (same as allocation levels)
+  return Shield;
 };
 
 const TradingCalculator: React.FC = () => {
@@ -94,19 +89,9 @@ const TradingCalculator: React.FC = () => {
   };
 
   // Helper function to get Lucide icon component from icon name
-  const getAllocationIcon = (
-    iconName: string
-  ): React.ComponentType<{ className?: string }> => {
-    const iconMap: Record<
-      string,
-      React.ComponentType<{ className?: string }>
-    > = {
-      Shield,
-      BarChart3,
-      TrendingUp,
-      Zap,
-    };
-    return iconMap[iconName] || Shield;
+  const getAllocationIcon = (): React.ComponentType<{ className?: string }> => {
+    // All allocation levels use Shield icon (same as risk levels)
+    return Shield;
   };
 
   // Calculate brokerage automatically for delivery equity (buy only)
@@ -1236,7 +1221,7 @@ const TradingCalculator: React.FC = () => {
                                 className={`text-${riskColors[index]}-400 transition-colors duration-300`}
                               >
                                 {React.createElement(
-                                  getRiskLevelIcon(riskLevel.icon),
+                                  getRiskLevelIcon(),
                                   {
                                     className: 'w-4 h-4',
                                   }
@@ -1369,7 +1354,7 @@ const TradingCalculator: React.FC = () => {
                                 className={`text-${allocationColors[index]}-400 transition-colors duration-300`}
                               >
                                 {React.createElement(
-                                  getAllocationIcon(allocationLevel.icon),
+                                  getAllocationIcon(),
                                   {
                                     className: 'w-4 h-4',
                                   }

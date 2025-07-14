@@ -11,10 +11,6 @@ import {
   ChevronDown,
   ChevronUp,
   Shield,
-  BarChart3,
-  Zap,
-  PieChart,
-  Flame,
 } from 'lucide-react';
 import {
   useSettings,
@@ -102,35 +98,15 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   // Helper function to get allocation level icons
-  const getAllocationIcon = (
-    allocationId: string
-  ): React.ComponentType<{ className?: string }> => {
-    const iconMap: Record<
-      string,
-      React.ComponentType<{ className?: string }>
-    > = {
-      conservative: Shield, // Conservative allocation - safety/protection
-      balanced: PieChart, // Balanced allocation - portfolio distribution
-      high: TrendingUp, // High allocation - growth/upward trend
-      extreme: Flame, // Extreme allocation - aggressive/intense
-    };
-    return iconMap[allocationId] || Shield;
+  const getAllocationIcon = (): React.ComponentType<{ className?: string }> => {
+    // All allocation levels use Shield icon (same as risk levels)
+    return Shield;
   };
 
   // Helper function to get risk level icons
-  const getRiskIcon = (
-    riskId: string
-  ): React.ComponentType<{ className?: string }> => {
-    const iconMap: Record<
-      string,
-      React.ComponentType<{ className?: string }>
-    > = {
-      conservative: Shield,
-      balanced: BarChart3,
-      bold: TrendingUp,
-      maximum: Zap,
-    };
-    return iconMap[riskId] || Shield;
+  const getRiskIcon = (): React.ComponentType<{ className?: string }> => {
+    // All risk levels use Shield icon (same as allocation levels)
+    return Shield;
   };
 
   const validateRiskLevels = (levels: Record<string, string>) => {
@@ -1349,7 +1325,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                                       className={`transform transition-transform duration-300 group-hover:scale-110 ${colors.accent}`}
                                     >
                                       {React.createElement(
-                                        getRiskIcon(level.id),
+                                        getRiskIcon(),
                                         {
                                           className: 'w-8 h-8',
                                         }
@@ -1577,7 +1553,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                                       className={`transform transition-transform duration-300 group-hover:scale-110 ${colors.accent}`}
                                     >
                                       {React.createElement(
-                                        getAllocationIcon(level.id),
+                                        getAllocationIcon(),
                                         {
                                           className: 'w-8 h-8',
                                         }

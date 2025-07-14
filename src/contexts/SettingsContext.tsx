@@ -64,7 +64,7 @@ export interface UserSettings {
   showPercentages: boolean;
 }
 
-// Default Risk Levels (based on your screenshot)
+// Default Risk Levels (using Shield icon for all levels like allocation levels)
 const DEFAULT_RISK_LEVELS: RiskLevel[] = [
   {
     id: 'conservative',
@@ -80,7 +80,7 @@ const DEFAULT_RISK_LEVELS: RiskLevel[] = [
     name: 'Balanced approach',
     percentage: 0.5,
     description: 'Moderate risk with balanced returns',
-    icon: 'BarChart3',
+    icon: 'Shield',
     threatLevel: 'MEDIUM',
     color: '#F59E0B',
   },
@@ -89,7 +89,7 @@ const DEFAULT_RISK_LEVELS: RiskLevel[] = [
     name: 'Bold strategy',
     percentage: 0.75,
     description: 'Higher risk for greater potential returns',
-    icon: 'TrendingUp',
+    icon: 'Shield',
     threatLevel: 'HIGH',
     color: '#EF4444',
   },
@@ -98,13 +98,13 @@ const DEFAULT_RISK_LEVELS: RiskLevel[] = [
     name: 'Maximum risk',
     percentage: 1.0,
     description: 'Highest risk, highest potential reward',
-    icon: 'Zap',
+    icon: 'Shield',
     threatLevel: 'MAXIMUM',
     color: '#8B5CF6',
   },
 ];
 
-// Default Portfolio Allocation Levels (matching main screen)
+// Default Portfolio Allocation Levels (using Shield icon for all levels like risk levels)
 const DEFAULT_ALLOCATION_LEVELS: AllocationLevel[] = [
   {
     id: 'conservative',
@@ -120,7 +120,7 @@ const DEFAULT_ALLOCATION_LEVELS: AllocationLevel[] = [
     name: 'Balanced allocation',
     percentage: 20,
     description: 'Moderate portfolio exposure',
-    icon: 'BarChart3',
+    icon: 'Shield',
     riskCategory: 'MODERATE',
     color: '#F59E0B',
   },
@@ -129,7 +129,7 @@ const DEFAULT_ALLOCATION_LEVELS: AllocationLevel[] = [
     name: 'High allocation',
     percentage: 30,
     description: 'Aggressive portfolio exposure',
-    icon: 'TrendingUp',
+    icon: 'Shield',
     riskCategory: 'AGGRESSIVE',
     color: '#EF4444',
   },
@@ -138,7 +138,7 @@ const DEFAULT_ALLOCATION_LEVELS: AllocationLevel[] = [
     name: 'Extreme allocation',
     percentage: 40,
     description: 'Maximum concentration risk',
-    icon: 'Zap',
+    icon: 'Shield',
     riskCategory: 'EXTREME',
     color: '#991B1B',
   },
