@@ -82,7 +82,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
       if ((event.metaKey || event.ctrlKey) && event.key === 's') {
         event.preventDefault();
         // Check if save button is enabled (has changes and no validation errors)
-        const saveButton = document.querySelector('[data-save-button]') as HTMLButtonElement;
+        const saveButton = document.querySelector(
+          '[data-save-button]'
+        ) as HTMLButtonElement;
         if (saveButton && !saveButton.disabled) {
           saveButton.click();
         }
@@ -99,19 +101,29 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   // Helper function to get allocation level icons
-  const getAllocationIcon = (allocationId: string): React.ComponentType<{className?: string}> => {
-    const iconMap: Record<string, React.ComponentType<{className?: string}>> = {
-      conservative: Shield,      // Conservative allocation - safety/protection
-      balanced: PieChart,        // Balanced allocation - portfolio distribution  
-      high: TrendingUp,         // High allocation - growth/upward trend
-      extreme: Flame,           // Extreme allocation - aggressive/intense
+  const getAllocationIcon = (
+    allocationId: string
+  ): React.ComponentType<{ className?: string }> => {
+    const iconMap: Record<
+      string,
+      React.ComponentType<{ className?: string }>
+    > = {
+      conservative: Shield, // Conservative allocation - safety/protection
+      balanced: PieChart, // Balanced allocation - portfolio distribution
+      high: TrendingUp, // High allocation - growth/upward trend
+      extreme: Flame, // Extreme allocation - aggressive/intense
     };
     return iconMap[allocationId] || Shield;
   };
 
   // Helper function to get risk level icons
-  const getRiskIcon = (riskId: string): React.ComponentType<{className?: string}> => {
-    const iconMap: Record<string, React.ComponentType<{className?: string}>> = {
+  const getRiskIcon = (
+    riskId: string
+  ): React.ComponentType<{ className?: string }> => {
+    const iconMap: Record<
+      string,
+      React.ComponentType<{ className?: string }>
+    > = {
       conservative: Shield,
       balanced: BarChart3,
       bold: TrendingUp,
@@ -546,8 +558,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
   );
 
   // Get the default allocation levels
-  const defaultAllocationLevels = localSettings.allocationLevels.filter((level) =>
-    ['conservative', 'balanced', 'high', 'extreme'].includes(level.id)
+  const defaultAllocationLevels = localSettings.allocationLevels.filter(
+    (level) =>
+      ['conservative', 'balanced', 'high', 'extreme'].includes(level.id)
   );
 
   // Global error summary
@@ -617,14 +630,18 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
         Object.entries(validationErrors.allocationLevels).forEach(
           ([levelId, error]) => {
             if (error && typeof error === 'string') {
-              const level = defaultAllocationLevels.find((l) => l.id === levelId);
+              const level = defaultAllocationLevels.find(
+                (l) => l.id === levelId
+              );
               const isDuplicate = error.includes('Duplicate');
               const isMaximumRange = error.includes('Maximum value is 50%');
               const isMinimumRange = error.includes('Minimum value is 5%');
               const isOrderError =
                 error.includes('Must be greater than') && error.includes('%');
               const isRange =
-                isMaximumRange || isMinimumRange || error.includes('Must be greater than 0');
+                isMaximumRange ||
+                isMinimumRange ||
+                error.includes('Must be greater than 0');
 
               errors.push({
                 type: isDuplicate
@@ -666,8 +683,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
     risk:
       errorSummary?.filter(
         (e) =>
-          e.type !== 'capital' && 
-          e.type !== 'duplicate' && 
+          e.type !== 'capital' &&
+          e.type !== 'duplicate' &&
           e.type !== 'order' &&
           !e.field?.toLowerCase().includes('allocation')
       ).length || 0,
@@ -675,10 +692,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
       errorSummary?.filter(
         (e) =>
           e.field?.toLowerCase().includes('allocation') ||
-          (e.type !== 'capital' && 
-           e.type !== 'duplicate' && 
-           e.type !== 'order' &&
-           defaultAllocationLevels.some(level => e.field === level.name))
+          (e.type !== 'capital' &&
+            e.type !== 'duplicate' &&
+            e.type !== 'order' &&
+            defaultAllocationLevels.some((level) => e.field === level.name))
       ).length || 0,
     order: errorSummary?.filter((e) => e.type === 'order').length || 0,
     duplicates: errorSummary?.filter((e) => e.type === 'duplicate').length || 0,
@@ -760,19 +777,22 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
       style={{ pointerEvents: 'auto' }}
     >
       {/* World-Class Cinematic Backdrop */}
-      <div className="absolute inset-0 overflow-hidden">
+      <div className="absolute inset-0 overflow-hidden opacity-95">
         {/* Revolutionary depth layers */}
         <div className="absolute inset-0 bg-black/40 backdrop-blur-3xl"></div>
-        
+
         {/* Dynamic holographic grid */}
-        <div className="absolute inset-0 opacity-30" style={{
-          backgroundImage: `
+        <div
+          className="absolute inset-0 opacity-30"
+          style={{
+            backgroundImage: `
             linear-gradient(rgba(56, 189, 248, 0.03) 1px, transparent 1px),
             linear-gradient(90deg, rgba(56, 189, 248, 0.03) 1px, transparent 1px)
           `,
-          backgroundSize: '60px 60px',
-          animation: 'grid-float 20s ease-in-out infinite'
-        }}></div>
+            backgroundSize: '60px 60px',
+            animation: 'grid-float 20s ease-in-out infinite',
+          }}
+        ></div>
 
         {/* Immersive ambient lighting */}
         <div className="absolute top-0 left-1/4 w-[800px] h-[400px] bg-gradient-radial from-blue-500/8 via-purple-500/4 to-transparent rounded-full blur-3xl animate-ambient-pulse"></div>
@@ -785,40 +805,49 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
           <div className="absolute top-3 left-3 w-2 h-2 bg-cyan-400/60 rounded-full animate-ping"></div>
         </div>
         <div className="absolute bottom-1/3 right-1/4 w-24 h-32 border border-emerald-400/10 rounded-lg backdrop-blur-sm animate-data-float-reverse transform-gpu">
-          <div className="absolute inset-2 border border-emerald-400/20 rounded animate-pulse" style={{animationDelay: '0.5s'}}></div>
-          <div className="absolute bottom-3 right-3 w-2 h-2 bg-emerald-400/60 rounded-full animate-ping" style={{animationDelay: '0.7s'}}></div>
+          <div
+            className="absolute inset-2 border border-emerald-400/20 rounded animate-pulse"
+            style={{ animationDelay: '0.5s' }}
+          ></div>
+          <div
+            className="absolute bottom-3 right-3 w-2 h-2 bg-emerald-400/60 rounded-full animate-ping"
+            style={{ animationDelay: '0.7s' }}
+          ></div>
         </div>
 
         {/* Neural pathways */}
-        <svg className="absolute inset-0 w-full h-full" xmlns="http://www.w3.org/2000/svg">
+        <svg
+          className="absolute inset-0 w-full h-full"
+          xmlns="http://www.w3.org/2000/svg"
+        >
           <defs>
             <linearGradient id="neural1" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#06B6D4" stopOpacity="0"/>
-              <stop offset="30%" stopColor="#06B6D4" stopOpacity="0.4"/>
-              <stop offset="70%" stopColor="#8B5CF6" stopOpacity="0.4"/>
-              <stop offset="100%" stopColor="#8B5CF6" stopOpacity="0"/>
+              <stop offset="0%" stopColor="#06B6D4" stopOpacity="0" />
+              <stop offset="30%" stopColor="#06B6D4" stopOpacity="0.4" />
+              <stop offset="70%" stopColor="#8B5CF6" stopOpacity="0.4" />
+              <stop offset="100%" stopColor="#8B5CF6" stopOpacity="0" />
             </linearGradient>
             <filter id="glow">
-              <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
-              <feMerge> 
-                <feMergeNode in="coloredBlur"/>
-                <feMergeNode in="SourceGraphic"/>
+              <feGaussianBlur stdDeviation="3" result="coloredBlur" />
+              <feMerge>
+                <feMergeNode in="coloredBlur" />
+                <feMergeNode in="SourceGraphic" />
               </feMerge>
             </filter>
           </defs>
-          <path 
-            d="M0,300 Q200,200 400,250 T800,200 Q1000,180 1200,220" 
-            stroke="url(#neural1)" 
-            strokeWidth="2" 
-            fill="none" 
+          <path
+            d="M0,300 Q200,200 400,250 T800,200 Q1000,180 1200,220"
+            stroke="url(#neural1)"
+            strokeWidth="2"
+            fill="none"
             filter="url(#glow)"
             className="animate-neural-flow"
           />
-          <path 
-            d="M200,500 Q400,400 600,450 T1000,400 Q1200,380 1400,420" 
-            stroke="url(#neural1)" 
-            strokeWidth="1.5" 
-            fill="none" 
+          <path
+            d="M200,500 Q400,400 600,450 T1000,400 Q1200,380 1400,420"
+            stroke="url(#neural1)"
+            strokeWidth="1.5"
+            fill="none"
             filter="url(#glow)"
             className="animate-neural-flow-delayed"
           />
@@ -841,11 +870,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
           {/* Revolutionary glass morphism background */}
           <div className="absolute inset-0 bg-gradient-to-r from-black/20 via-slate-900/30 to-black/20 backdrop-blur-2xl"></div>
           <div className="absolute inset-0 bg-gradient-to-b from-white/[0.02] via-transparent to-black/10"></div>
-          
+
           {/* Dynamic light bar */}
           <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-cyan-400/40 to-transparent animate-light-sweep"></div>
           <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-slate-600/30 to-transparent"></div>
-          
+
           <div className="relative flex items-center px-8 py-8">
             {/* Iconic Brand Experience */}
             <div className="flex items-center space-x-6 flex-1">
@@ -855,20 +884,20 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                 <div className="absolute inset-0 w-16 h-16 border border-cyan-400/20 rounded-full animate-orbital-slow"></div>
                 <div className="absolute inset-1 w-14 h-14 border border-purple-400/15 rounded-full animate-orbital-medium"></div>
                 <div className="absolute inset-2 w-12 h-12 border border-emerald-400/15 rounded-full animate-orbital-fast"></div>
-                
+
                 {/* Core icon */}
                 <div className="relative z-10 p-4 bg-gradient-to-br from-slate-800/60 via-slate-900/80 to-black/60 backdrop-blur-xl rounded-2xl border border-slate-700/40 group-hover:border-cyan-400/40 transition-all duration-500 group-hover:scale-105">
                   <Settings className="w-8 h-8 text-slate-300 group-hover:text-cyan-300 transition-all duration-500 group-hover:rotate-90" />
-                  
+
                   {/* Energy pulse */}
                   <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-cyan-400/0 via-cyan-400/0 to-cyan-400/0 group-hover:from-cyan-400/10 group-hover:via-cyan-400/5 group-hover:to-cyan-400/10 transition-all duration-500"></div>
                 </div>
-                
+
                 {/* Particle trail */}
                 <div className="absolute top-6 left-6 w-1 h-1 bg-cyan-400/60 rounded-full animate-particle-trail opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 <div className="absolute top-8 left-8 w-0.5 h-0.5 bg-purple-400/60 rounded-full animate-particle-trail-delayed opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               </div>
-              
+
               {/* Cinematic Typography */}
               <div className="space-y-2">
                 <div className="flex items-baseline space-x-3">
@@ -877,7 +906,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                     <div className="absolute -bottom-1 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-cyan-400/60 to-transparent transform scale-x-0 group-hover:scale-x-100 transition-transform duration-700"></div>
                   </h1>
                   <div className="px-2 py-0.5 bg-gradient-to-r from-cyan-500/20 to-purple-500/20 border border-cyan-400/30 rounded-full">
-                    <span className="text-xs font-bold text-cyan-300 tracking-wider">SETTINGS</span>
+                    <span className="text-xs font-bold text-cyan-300 tracking-wider">
+                      SETTINGS
+                    </span>
                   </div>
                 </div>
                 <p className="text-sm text-slate-400 font-medium tracking-wide opacity-80">
@@ -900,7 +931,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                   <span className="text-xs text-slate-500">to save</span>
                 </div>
               </div>
-              
+
               {/* Intelligent close button */}
               <button
                 onClick={() => {
@@ -918,12 +949,14 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                 {hasChanges && (
                   <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-amber-400/10 via-amber-400/20 to-amber-400/10 animate-pulse"></div>
                 )}
-                
+
                 <X className="relative w-6 h-6 text-slate-400 group-hover:text-white transition-all duration-300 group-hover:rotate-90" />
-                
+
                 {/* Smart tooltip */}
                 <div className="absolute right-0 top-full mt-2 px-3 py-1.5 bg-slate-900/90 backdrop-blur-xl rounded-lg border border-slate-700/40 text-xs text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap z-50">
-                  {hasChanges ? 'Close (unsaved changes will be lost)' : 'Close settings'}
+                  {hasChanges
+                    ? 'Close (unsaved changes will be lost)'
+                    : 'Close settings'}
                 </div>
               </button>
             </div>
@@ -1083,7 +1116,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                           <div className="text-xs font-medium text-slate-400 mb-3">
                             Quick Select
                           </div>
-                          
+
                           <div className="grid grid-cols-5 gap-2">
                             {[
                               { amount: 1000000, label: '10L' },
@@ -1092,13 +1125,16 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                               { amount: 5000000, label: '50L' },
                               { amount: 10000000, label: '1CR' },
                             ].map((item, index) => {
-                              const isSelected = Number(getDisplayCapital()) === item.amount;
+                              const isSelected =
+                                Number(getDisplayCapital()) === item.amount;
                               const isCrore = item.label === '1CR';
-                              
+
                               return (
                                 <button
                                   key={item.amount}
-                                  onClick={() => handleCapitalChange(item.amount.toString())}
+                                  onClick={() =>
+                                    handleCapitalChange(item.amount.toString())
+                                  }
                                   className={`group relative px-3 py-2.5 rounded-lg border text-sm font-medium transition-all duration-300 hover:scale-105 hover:-translate-y-0.5 overflow-hidden ${
                                     isSelected
                                       ? isCrore
@@ -1108,12 +1144,13 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                                   }`}
                                   style={{
                                     animationDelay: `${index * 100}ms`,
-                                    animation: 'slideInUp 0.4s ease-out forwards'
+                                    animation:
+                                      'slideInUp 0.4s ease-out forwards',
                                   }}
                                 >
                                   {/* Subtle shimmer effect on hover */}
                                   <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/10 to-transparent group-hover:translate-x-full transition-transform duration-700 ease-out"></div>
-                                  
+
                                   {/* Premium glow for 1CR */}
                                   {isCrore && (
                                     <>
@@ -1121,20 +1158,22 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                                       <div className="absolute inset-0 border border-amber-400/20 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                                     </>
                                   )}
-                                  
+
                                   {/* Content with micro-interaction */}
                                   <span className="relative z-10 group-hover:tracking-wide transition-all duration-300">
                                     ₹{item.label}
                                   </span>
-                                  
+
                                   {/* Bottom highlight bar */}
-                                  <div className={`absolute bottom-0 left-0 h-0.5 bg-gradient-to-r transition-all duration-300 ${
-                                    isSelected 
-                                      ? isCrore
-                                        ? 'from-amber-400 to-orange-400 w-full'
-                                        : 'from-emerald-400 to-teal-400 w-full'
-                                      : 'from-slate-400 to-slate-500 w-0 group-hover:w-full'
-                                  }`}></div>
+                                  <div
+                                    className={`absolute bottom-0 left-0 h-0.5 bg-gradient-to-r transition-all duration-300 ${
+                                      isSelected
+                                        ? isCrore
+                                          ? 'from-amber-400 to-orange-400 w-full'
+                                          : 'from-emerald-400 to-teal-400 w-full'
+                                        : 'from-slate-400 to-slate-500 w-0 group-hover:w-full'
+                                    }`}
+                                  ></div>
                                 </button>
                               );
                             })}
@@ -1297,18 +1336,23 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                                     </div>
                                   </div>
                                 )}
-                                
+
                                 {/* Subtle shimmer effect on hover */}
                                 <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/10 to-transparent group-hover:translate-x-full transition-transform duration-700 ease-out"></div>
-                                
+
                                 {/* Card Content - Icon, Input, Label */}
                                 <div className="flex flex-col items-center justify-center text-center space-y-2 h-full">
                                   {/* Enhanced Icon with Pulse */}
                                   <div className="relative">
-                                    <div className={`transform transition-transform duration-300 group-hover:scale-110 ${colors.accent}`}>
-                                      {React.createElement(getRiskIcon(level.id), {
-                                        className: "w-8 h-8"
-                                      })}
+                                    <div
+                                      className={`transform transition-transform duration-300 group-hover:scale-110 ${colors.accent}`}
+                                    >
+                                      {React.createElement(
+                                        getRiskIcon(level.id),
+                                        {
+                                          className: 'w-8 h-8',
+                                        }
+                                      )}
                                     </div>
                                     {hasError && (
                                       <div className="absolute -inset-1 bg-gradient-to-r from-red-500/20 to-orange-500/20 rounded-full animate-pulse"></div>
@@ -1523,15 +1567,20 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                               >
                                 {/* Subtle shimmer effect on hover */}
                                 <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/10 to-transparent group-hover:translate-x-full transition-transform duration-700 ease-out"></div>
-                                
+
                                 {/* Card Content - Icon, Input, Label */}
                                 <div className="flex flex-col items-center justify-center text-center space-y-2 h-full">
                                   {/* Enhanced Icon with Pulse */}
                                   <div className="relative">
-                                    <div className={`transform transition-transform duration-300 group-hover:scale-110 ${colors.accent}`}>
-                                      {React.createElement(getAllocationIcon(level.id), {
-                                        className: "w-8 h-8"
-                                      })}
+                                    <div
+                                      className={`transform transition-transform duration-300 group-hover:scale-110 ${colors.accent}`}
+                                    >
+                                      {React.createElement(
+                                        getAllocationIcon(level.id),
+                                        {
+                                          className: 'w-8 h-8',
+                                        }
+                                      )}
                                     </div>
                                     {hasError && (
                                       <div className="absolute -inset-1 bg-gradient-to-r from-red-500/20 to-orange-500/20 rounded-full animate-pulse"></div>

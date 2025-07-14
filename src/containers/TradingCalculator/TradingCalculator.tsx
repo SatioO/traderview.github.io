@@ -74,16 +74,22 @@ const TradingCalculator: React.FC = () => {
   const getAllocationThresholds = () => {
     const levels = getAllocationLevels();
     return {
-      conservative: levels.find(l => l.id === 'conservative')?.percentage || 10,
-      balanced: levels.find(l => l.id === 'balanced')?.percentage || 20,
-      high: levels.find(l => l.id === 'high')?.percentage || 30,
-      extreme: levels.find(l => l.id === 'extreme')?.percentage || 40,
+      conservative:
+        levels.find((l) => l.id === 'conservative')?.percentage || 10,
+      balanced: levels.find((l) => l.id === 'balanced')?.percentage || 20,
+      high: levels.find((l) => l.id === 'high')?.percentage || 30,
+      extreme: levels.find((l) => l.id === 'extreme')?.percentage || 40,
     };
   };
 
   // Helper function to get Lucide icon component from icon name
-  const getAllocationIcon = (iconName: string): React.ComponentType<{className?: string}> => {
-    const iconMap: Record<string, React.ComponentType<{className?: string}>> = {
+  const getAllocationIcon = (
+    iconName: string
+  ): React.ComponentType<{ className?: string }> => {
+    const iconMap: Record<
+      string,
+      React.ComponentType<{ className?: string }>
+    > = {
       Shield,
       BarChart3,
       TrendingUp,
@@ -603,17 +609,8 @@ const TradingCalculator: React.FC = () => {
         }}
       ></div>
 
-      {/* Settings Button */}
-      <div className="absolute top-3 left-6 z-20">
-        <SettingsButton 
-          isSettingsOpen={isSettingsOpen}
-          onSettingsToggle={setIsSettingsOpen}
-        />
-      </div>
-
       {/* Enhanced Market Outlook Command Center */}
-      {!isSettingsOpen && (
-        <div className="absolute top-3 right-6 z-20">
+      <div className="absolute top-3 right-6 z-20">
         <div className="group relative">
           {/* Advanced Market Outlook Display */}
           <div
@@ -961,8 +958,7 @@ const TradingCalculator: React.FC = () => {
             <div className="absolute -top-2 right-12 w-4 h-4 bg-gradient-to-br from-slate-900/98 to-slate-800/98 border-l-2 border-t-2 border-purple-400/30 transform rotate-45 shadow-lg"></div>
           </div>
         </div>
-        </div>
-      )}
+      </div>
 
       {/* Main Content */}
       <main className="relative z-10 mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -970,6 +966,14 @@ const TradingCalculator: React.FC = () => {
           {/* Gaming Control Panel */}
           <div className="lg:col-span-1">
             <div className="bg-black/40 backdrop-blur-xl rounded-3xl p-6 shadow-2xl border border-cyan-500/30 sticky top-8 hover:border-cyan-400/50 transition-all duration-500 hover:shadow-cyan-500/20 hover:shadow-2xl">
+              {/* Settings Button */}
+              <div className="flex absolute right-8 top-1  z-20">
+                <SettingsButton
+                  isSettingsOpen={isSettingsOpen}
+                  onSettingsToggle={setIsSettingsOpen}
+                />
+              </div>
+
               {/* Enhanced Gaming Wallet Display */}
               <div className="mb-6">
                 <div className="group relative bg-gradient-to-br from-emerald-500/20 via-green-500/20 to-teal-500/20 rounded-2xl p-4 border border-emerald-500/30 backdrop-blur-sm hover:border-emerald-400/50 transition-all duration-500 overflow-hidden">
@@ -978,14 +982,6 @@ const TradingCalculator: React.FC = () => {
                     <div className="absolute top-2 left-4 w-1 h-1 bg-emerald-400 rounded-full animate-ping opacity-60"></div>
                     <div className="absolute top-8 right-6 w-1 h-1 bg-green-400 rounded-full animate-ping opacity-40 delay-1000"></div>
                     <div className="absolute bottom-6 left-8 w-1 h-1 bg-teal-400 rounded-full animate-ping opacity-50 delay-2000"></div>
-                  </div>
-
-                  {/* Wallet Health Meter */}
-                  <div className="absolute top-3 right-3 flex items-center space-x-1">
-                    <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
-                    <div className="text-xs text-emerald-300 font-bold">
-                      ACTIVE
-                    </div>
                   </div>
 
                   <div className="relative">
@@ -1305,68 +1301,6 @@ const TradingCalculator: React.FC = () => {
                         placeholder="Enter risk %..."
                       />
                     </div>
-
-                    {/* Risk Assessment - Always Visible */}
-                    {formData.riskPercentage !== '' &&
-                      Number(formData.riskPercentage) > 0 && (
-                        <div className="mt-4 p-3 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-xl border border-purple-500/20">
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="text-xs text-purple-300">
-                              Risk Assessment:
-                            </span>
-                            <span className="text-xs text-purple-400 font-bold">
-                              {formatCurrency(
-                                (formData.accountBalance *
-                                  (Number(formData.riskPercentage) || 0)) /
-                                  100
-                              )}{' '}
-                              at risk
-                            </span>
-                          </div>
-
-                          {/* Visual risk level representation */}
-                          <div className="flex items-center space-x-2">
-                            <div className="w-16 h-3 bg-gray-700 rounded-full overflow-hidden">
-                              <div
-                                className={`h-full transition-all duration-500 ${
-                                  Number(formData.riskPercentage) >= 3
-                                    ? 'bg-gradient-to-r from-red-500 to-red-700 animate-pulse'
-                                    : Number(formData.riskPercentage) > 2
-                                    ? 'bg-gradient-to-r from-orange-400 to-red-400'
-                                    : Number(formData.riskPercentage) > 1
-                                    ? 'bg-gradient-to-r from-yellow-400 to-orange-400'
-                                    : 'bg-gradient-to-r from-green-400 to-emerald-400'
-                                }`}
-                                style={{
-                                  width: `${Math.min(
-                                    (Number(formData.riskPercentage) * 100) / 3,
-                                    100
-                                  )}%`,
-                                }}
-                              ></div>
-                            </div>
-                            <div
-                              className={`text-xs font-bold ${
-                                Number(formData.riskPercentage) >= 3
-                                  ? 'text-red-400 animate-pulse'
-                                  : Number(formData.riskPercentage) > 2
-                                  ? 'text-orange-400'
-                                  : Number(formData.riskPercentage) > 1
-                                  ? 'text-yellow-400'
-                                  : 'text-green-400'
-                              }`}
-                            >
-                              {Number(formData.riskPercentage) >= 3
-                                ? 'EXTREME'
-                                : Number(formData.riskPercentage) > 2
-                                ? 'HIGH'
-                                : Number(formData.riskPercentage) > 1
-                                ? 'MEDIUM'
-                                : 'LOW'}
-                            </div>
-                          </div>
-                        </div>
-                      )}
                   </div>
                 )}
 
@@ -1400,16 +1334,20 @@ const TradingCalculator: React.FC = () => {
                         </div>
                         <div
                           className={`text-xs font-bold ${
-                            (Number(formData.allocationPercentage) || 0) > getAllocationThresholds().high
+                            (Number(formData.allocationPercentage) || 0) >
+                            getAllocationThresholds().high
                               ? 'text-red-400'
-                              : (Number(formData.allocationPercentage) || 0) > getAllocationThresholds().balanced
+                              : (Number(formData.allocationPercentage) || 0) >
+                                getAllocationThresholds().balanced
                               ? 'text-yellow-400'
                               : 'text-green-400'
                           }`}
                         >
-                          {(Number(formData.allocationPercentage) || 0) > getAllocationThresholds().high
+                          {(Number(formData.allocationPercentage) || 0) >
+                          getAllocationThresholds().high
                             ? 'HIGH'
-                            : (Number(formData.allocationPercentage) || 0) > getAllocationThresholds().balanced
+                            : (Number(formData.allocationPercentage) || 0) >
+                              getAllocationThresholds().balanced
                             ? 'MED'
                             : 'LOW'}
                         </div>
@@ -1426,7 +1364,8 @@ const TradingCalculator: React.FC = () => {
                           'red',
                         ];
                         const isSelected =
-                          Number(formData.allocationPercentage) === allocationLevel.percentage;
+                          Number(formData.allocationPercentage) ===
+                          allocationLevel.percentage;
 
                         return (
                           <button
@@ -1445,16 +1384,24 @@ const TradingCalculator: React.FC = () => {
                             }`}
                           >
                             <div className="flex flex-col items-center space-y-1">
-                              <div className={`text-${allocationColors[index]}-400 transition-colors duration-300`}>
-                                {React.createElement(getAllocationIcon(allocationLevel.icon), {
-                                  className: "w-4 h-4"
-                                })}
+                              <div
+                                className={`text-${allocationColors[index]}-400 transition-colors duration-300`}
+                              >
+                                {React.createElement(
+                                  getAllocationIcon(allocationLevel.icon),
+                                  {
+                                    className: 'w-4 h-4',
+                                  }
+                                )}
                               </div>
                               <div className="text-sm font-bold">
                                 {allocationLevel.percentage}%
                               </div>
                               <div className="text-xs opacity-75">
-                                {allocationLevel.name.replace(' allocation', '')}
+                                {allocationLevel.name.replace(
+                                  ' allocation',
+                                  ''
+                                )}
                               </div>
                             </div>
 
@@ -1489,64 +1436,6 @@ const TradingCalculator: React.FC = () => {
                         placeholder="Enter allocation %..."
                       />
                     </div>
-
-                    {/* Risk Assessment Visualization */}
-                    {formData.allocationPercentage !== '' &&
-                      Number(formData.allocationPercentage) > 0 &&
-                      calculations && (
-                        <div className="mt-4 p-3 bg-gradient-to-r from-blue-500/10 to-cyan-500/10 rounded-xl border border-blue-500/20">
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="text-xs text-blue-300">
-                              Risk Assessment:
-                            </span>
-                            <span className="text-xs text-blue-400 font-bold">
-                              {formatCurrency(calculations.riskAmount)} at risk
-                            </span>
-                          </div>
-
-                          {/* Visual risk level representation */}
-                          <div className="flex items-center space-x-2">
-                            <div className="w-16 h-3 bg-gray-700 rounded-full overflow-hidden">
-                              <div
-                                className={`h-full transition-all duration-500 ${
-                                  (Number(formData.allocationPercentage) || 0) > getAllocationThresholds().high
-                                    ? 'bg-gradient-to-r from-red-500 to-red-700 animate-pulse'
-                                    : (Number(formData.allocationPercentage) || 0) > getAllocationThresholds().balanced
-                                    ? 'bg-gradient-to-r from-orange-400 to-red-400'
-                                    : (Number(formData.allocationPercentage) || 0) > getAllocationThresholds().conservative
-                                    ? 'bg-gradient-to-r from-yellow-400 to-orange-400'
-                                    : 'bg-gradient-to-r from-green-400 to-emerald-400'
-                                }`}
-                                style={{
-                                  width: `${Math.min(
-                                    ((Number(formData.allocationPercentage) || 0) * 100) / getAllocationThresholds().extreme,
-                                    100
-                                  )}%`,
-                                }}
-                              ></div>
-                            </div>
-                            <div
-                              className={`text-xs font-bold ${
-                                (Number(formData.allocationPercentage) || 0) > getAllocationThresholds().high
-                                  ? 'text-red-400 animate-pulse'
-                                  : (Number(formData.allocationPercentage) || 0) > getAllocationThresholds().balanced
-                                  ? 'text-orange-400'
-                                  : (Number(formData.allocationPercentage) || 0) > getAllocationThresholds().conservative
-                                  ? 'text-yellow-400'
-                                  : 'text-green-400'
-                              }`}
-                            >
-                              {(Number(formData.allocationPercentage) || 0) > getAllocationThresholds().high
-                                ? 'EXTREME'
-                                : (Number(formData.allocationPercentage) || 0) > getAllocationThresholds().balanced
-                                ? 'HIGH'
-                                : (Number(formData.allocationPercentage) || 0) > getAllocationThresholds().conservative
-                                ? 'MEDIUM'
-                                : 'LOW'}
-                            </div>
-                          </div>
-                        </div>
-                      )}
                   </div>
                 )}
 
@@ -1869,7 +1758,7 @@ const TradingCalculator: React.FC = () => {
                             {formatCurrency(calculations.brokerageCost)}
                           </div>
                           <div className="text-xs text-purple-200">
-                            auto-calculated
+                            buy side (auto-calculated)
                           </div>
                         </div>
 
