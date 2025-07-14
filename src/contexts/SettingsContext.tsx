@@ -21,8 +21,22 @@ export interface RiskLevel {
   color: string;
 }
 
+// Portfolio Allocation Level Configuration
+export interface AllocationLevel {
+  id: string;
+  name: string;
+  percentage: number;
+  description: string;
+  icon: string;
+  riskCategory: 'CONSERVATIVE' | 'MODERATE' | 'AGGRESSIVE' | 'EXTREME';
+  color: string;
+}
+
 // Enhanced Settings Interface
 export interface UserSettings {
+  // Version for migration
+  version?: number;
+
   // Account Settings
   accountBalance: number;
 
@@ -30,6 +44,10 @@ export interface UserSettings {
   riskLevels: RiskLevel[];
   defaultRiskLevel: string;
   marketHealth: MarketHealth;
+
+  // Portfolio Allocation
+  allocationLevels: AllocationLevel[];
+  defaultAllocationLevel: string;
 
   // UI Preferences
   activeTab: TabType;
@@ -86,12 +104,58 @@ const DEFAULT_RISK_LEVELS: RiskLevel[] = [
   },
 ];
 
+// Default Portfolio Allocation Levels (matching main screen)
+const DEFAULT_ALLOCATION_LEVELS: AllocationLevel[] = [
+  {
+    id: 'conservative',
+    name: 'Conservative allocation',
+    percentage: 10,
+    description: 'Low portfolio exposure',
+    icon: '🛡️',
+    riskCategory: 'CONSERVATIVE',
+    color: '#10B981',
+  },
+  {
+    id: 'balanced',
+    name: 'Balanced allocation',
+    percentage: 20,
+    description: 'Moderate portfolio exposure',
+    icon: '📊',
+    riskCategory: 'MODERATE',
+    color: '#F59E0B',
+  },
+  {
+    id: 'high',
+    name: 'High allocation',
+    percentage: 30,
+    description: 'Aggressive portfolio exposure',
+    icon: '🚀',
+    riskCategory: 'AGGRESSIVE',
+    color: '#EF4444',
+  },
+  {
+    id: 'extreme',
+    name: 'Extreme allocation',
+    percentage: 40,
+    description: 'Maximum concentration risk',
+    icon: '💥',
+    riskCategory: 'EXTREME',
+    color: '#991B1B',
+  },
+];
+
+// Settings version for migration
+const SETTINGS_VERSION = 2; // Increment when structure changes
+
 // Default Settings
 const DEFAULT_SETTINGS: UserSettings = {
+  version: SETTINGS_VERSION,
   accountBalance: 100000,
   riskLevels: DEFAULT_RISK_LEVELS,
   defaultRiskLevel: 'conservative',
   marketHealth: 'confirmed-uptrend',
+  allocationLevels: DEFAULT_ALLOCATION_LEVELS,
+  defaultAllocationLevel: 'conservative',
   activeTab: 'risk',
   darkMode: true,
   defaultBrokerageCost: 20,
@@ -109,8 +173,12 @@ interface SettingsContextType {
   updateRiskLevel: (riskLevel: RiskLevel) => void;
   addRiskLevel: (riskLevel: Omit<RiskLevel, 'id'>) => void;
   removeRiskLevel: (id: string) => void;
+  updateAllocationLevel: (allocationLevel: AllocationLevel) => void;
+  addAllocationLevel: (allocationLevel: Omit<AllocationLevel, 'id'>) => void;
+  removeAllocationLevel: (id: string) => void;
   resetSettings: () => void;
   getCurrentRiskLevel: () => RiskLevel | undefined;
+  getCurrentAllocationLevel: () => AllocationLevel | undefined;
   exportSettings: () => string;
   importSettings: (settingsJson: string) => boolean;
 }
@@ -137,8 +205,36 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({
       const savedSettings = localStorage.getItem('userSettings');
       if (savedSettings) {
         const parsed = JSON.parse(savedSettings);
+        
+        // Check if migration is needed
+        const needsMigration = !parsed.version || parsed.version < SETTINGS_VERSION;
+        
+        let migratedSettings = { ...DEFAULT_SETTINGS, ...parsed };
+        
+        if (needsMigration) {
+          console.log('Migrating settings from version', parsed.version || 'unknown', 'to', SETTINGS_VERSION);
+          
+          // Force update allocation levels to include all 4 defaults
+          migratedSettings.allocationLevels = DEFAULT_ALLOCATION_LEVELS;
+          migratedSettings.version = SETTINGS_VERSION;
+          
+          // Force save the migrated settings
+          localStorage.setItem('userSettings', JSON.stringify(migratedSettings));
+        } else {
+          // Even if not migrating, ensure all 4 allocation levels exist
+          const requiredLevelIds = ['conservative', 'balanced', 'high', 'extreme'];
+          const existingLevelIds = (migratedSettings.allocationLevels || []).map((l: AllocationLevel) => l.id);
+          const missingLevels = requiredLevelIds.filter(id => !existingLevelIds.includes(id));
+          
+          if (!migratedSettings.allocationLevels || migratedSettings.allocationLevels.length < 4 || missingLevels.length > 0) {
+            console.log('Fixing missing allocation levels:', missingLevels);
+            migratedSettings.allocationLevels = DEFAULT_ALLOCATION_LEVELS;
+            localStorage.setItem('userSettings', JSON.stringify(migratedSettings));
+          }
+        }
+        
         // Merge with defaults to ensure all properties exist
-        setSettings({ ...DEFAULT_SETTINGS, ...parsed });
+        setSettings(migratedSettings);
       } else {
         // Load legacy preferences if they exist
         const legacyAccountInfo = localStorage.getItem('accountInfo');
@@ -232,6 +328,40 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({
     }));
   };
 
+  // Update specific allocation level
+  const updateAllocationLevel = (updatedAllocationLevel: AllocationLevel) => {
+    setSettings((prev) => ({
+      ...prev,
+      allocationLevels: prev.allocationLevels.map((level) =>
+        level.id === updatedAllocationLevel.id ? updatedAllocationLevel : level
+      ),
+    }));
+  };
+
+  // Add new allocation level
+  const addAllocationLevel = (newAllocationLevel: Omit<AllocationLevel, 'id'>) => {
+    const id = `custom-${Date.now()}`;
+    const allocationLevel: AllocationLevel = { ...newAllocationLevel, id };
+
+    setSettings((prev) => ({
+      ...prev,
+      allocationLevels: [...prev.allocationLevels, allocationLevel],
+    }));
+  };
+
+  // Remove allocation level
+  const removeAllocationLevel = (id: string) => {
+    setSettings((prev) => ({
+      ...prev,
+      allocationLevels: prev.allocationLevels.filter((level) => level.id !== id),
+      // Reset default if we're removing it
+      defaultAllocationLevel:
+        prev.defaultAllocationLevel === id
+          ? prev.allocationLevels[0]?.id || 'conservative'
+          : prev.defaultAllocationLevel,
+    }));
+  };
+
   // Reset to default settings
   const resetSettings = () => {
     setSettings(DEFAULT_SETTINGS);
@@ -244,6 +374,13 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({
   const getCurrentRiskLevel = (): RiskLevel | undefined => {
     return settings.riskLevels.find(
       (level) => level.id === settings.defaultRiskLevel
+    );
+  };
+
+  // Get current allocation level object
+  const getCurrentAllocationLevel = (): AllocationLevel | undefined => {
+    return settings.allocationLevels.find(
+      (level) => level.id === settings.defaultAllocationLevel
     );
   };
 
@@ -274,8 +411,12 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({
     updateRiskLevel,
     addRiskLevel,
     removeRiskLevel,
+    updateAllocationLevel,
+    addAllocationLevel,
+    removeAllocationLevel,
     resetSettings,
     getCurrentRiskLevel,
+    getCurrentAllocationLevel,
     exportSettings,
     importSettings,
   };

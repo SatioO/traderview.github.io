@@ -16,7 +16,7 @@ export const useTradingSettings = ({
   setActiveTab,
   setIsDarkMode
 }: Omit<UseTradingSettingsProps, 'formData' | 'activeTab' | 'isDarkMode'>) => {
-  const { settings, updateSettings, getCurrentRiskLevel } = useSettings();
+  const { settings, updateSettings, getCurrentRiskLevel, getCurrentAllocationLevel } = useSettings();
 
   // Sync settings to local state on settings change
   useEffect(() => {
@@ -25,12 +25,13 @@ export const useTradingSettings = ({
       accountBalance: settings.accountBalance,
       marketHealth: settings.marketHealth,
       brokerageCost: settings.defaultBrokerageCost,
-      riskPercentage: getCurrentRiskLevel()?.percentage || 0.25
+      riskPercentage: getCurrentRiskLevel()?.percentage || 0.25,
+      allocationPercentage: getCurrentAllocationLevel()?.percentage || 10.0
     }));
 
     setActiveTab(settings.activeTab);
     setIsDarkMode(settings.darkMode);
-  }, [settings, setFormData, setActiveTab, setIsDarkMode, getCurrentRiskLevel]);
+  }, [settings, setFormData, setActiveTab, setIsDarkMode, getCurrentRiskLevel, getCurrentAllocationLevel]);
 
   // Update settings when local state changes
   const handleAccountBalanceChange = (accountBalance: number) => {
@@ -53,20 +54,33 @@ export const useTradingSettings = ({
     updateSettings({ defaultRiskLevel: riskLevelId });
   };
 
+  const handleAllocationLevelChange = (allocationLevelId: string) => {
+    updateSettings({ defaultAllocationLevel: allocationLevelId });
+  };
+
   // Get available risk levels for UI
   const getRiskLevels = () => settings.riskLevels;
+
+  // Get available allocation levels for UI
+  const getAllocationLevels = () => settings.allocationLevels;
 
   // Get current risk level info
   const getCurrentRiskInfo = () => getCurrentRiskLevel();
 
+  // Get current allocation level info
+  const getCurrentAllocationInfo = () => getCurrentAllocationLevel();
+
   return {
     settings,
     getRiskLevels,
+    getAllocationLevels,
     getCurrentRiskInfo,
+    getCurrentAllocationInfo,
     handleAccountBalanceChange,
     handleMarketHealthChange,
     handleActiveTabChange,
     handleDarkModeChange,
-    handleRiskLevelChange
+    handleRiskLevelChange,
+    handleAllocationLevelChange
   };
 };

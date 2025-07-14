@@ -58,15 +58,28 @@ const TradingCalculator: React.FC = () => {
   // Settings integration
   const {
     getRiskLevels,
+    getAllocationLevels,
     handleAccountBalanceChange: updateAccountBalance,
     handleMarketHealthChange: updateMarketHealth,
     handleActiveTabChange: updateActiveTab,
     handleRiskLevelChange: updateRiskLevel,
+    handleAllocationLevelChange: updateAllocationLevel,
   } = useTradingSettings({
     setFormData,
     setActiveTab,
     setIsDarkMode,
   });
+
+  // Get allocation level thresholds for risk assessment
+  const getAllocationThresholds = () => {
+    const levels = getAllocationLevels();
+    return {
+      conservative: levels.find(l => l.id === 'conservative')?.percentage || 10,
+      balanced: levels.find(l => l.id === 'balanced')?.percentage || 20,
+      high: levels.find(l => l.id === 'high')?.percentage || 30,
+      extreme: levels.find(l => l.id === 'extreme')?.percentage || 40,
+    };
+  };
 
   // Calculate brokerage automatically for delivery equity (buy only)
   const calculateBrokerage = useCallback(
@@ -1376,17 +1389,16 @@ const TradingCalculator: React.FC = () => {
                         </div>
                         <div
                           className={`text-xs font-bold ${
-                            (Number(formData.allocationPercentage) || 0) > 50
+                            (Number(formData.allocationPercentage) || 0) > getAllocationThresholds().high
                               ? 'text-red-400'
-                              : (Number(formData.allocationPercentage) || 0) >
-                                25
+                              : (Number(formData.allocationPercentage) || 0) > getAllocationThresholds().balanced
                               ? 'text-yellow-400'
                               : 'text-green-400'
                           }`}
                         >
-                          {(Number(formData.allocationPercentage) || 0) > 50
+                          {(Number(formData.allocationPercentage) || 0) > getAllocationThresholds().high
                             ? 'HIGH'
-                            : (Number(formData.allocationPercentage) || 0) > 25
+                            : (Number(formData.allocationPercentage) || 0) > getAllocationThresholds().balanced
                             ? 'MED'
                             : 'LOW'}
                         </div>
@@ -1395,31 +1407,26 @@ const TradingCalculator: React.FC = () => {
 
                     {/* Quick Allocation Buttons */}
                     <div className="grid grid-cols-4 gap-2 mb-4 p-2">
-                      {[10, 20, 30, 40].map((allocation, index) => {
+                      {getAllocationLevels().map((allocationLevel, index) => {
                         const allocationColors = [
                           'emerald',
                           'blue',
                           'orange',
                           'red',
                         ];
-                        const allocationLabels = [
-                          'Conservative',
-                          'Balanced',
-                          'High',
-                          'Extreme',
-                        ];
                         const isSelected =
-                          Number(formData.allocationPercentage) === allocation;
+                          Number(formData.allocationPercentage) === allocationLevel.percentage;
 
                         return (
                           <button
-                            key={allocation}
-                            onClick={() =>
+                            key={allocationLevel.id}
+                            onClick={() => {
                               handleInputChange(
                                 'allocationPercentage',
-                                allocation.toString()
-                              )
-                            }
+                                allocationLevel.percentage.toString()
+                              );
+                              updateAllocationLevel(allocationLevel.id);
+                            }}
                             className={`group relative py-3 px-2 text-xs font-bold rounded-lg border-2 transition-all duration-300 hover:scale-105 ${
                               isSelected
                                 ? `border-${allocationColors[index]}-400 bg-${allocationColors[index]}-500/10 shadow-lg shadow-${allocationColors[index]}-500/30 text-${allocationColors[index]}-300 transform scale-105`
@@ -1427,10 +1434,10 @@ const TradingCalculator: React.FC = () => {
                             }`}
                           >
                             <div className="text-sm font-bold mb-1">
-                              {allocation}%
+                              {allocationLevel.percentage}%
                             </div>
                             <div className="text-xs opacity-75">
-                              {allocationLabels[index]}
+                              {allocationLevel.name.replace(' allocation', '')}
                             </div>
 
                             {isSelected && (
@@ -1484,23 +1491,17 @@ const TradingCalculator: React.FC = () => {
                             <div className="w-16 h-3 bg-gray-700 rounded-full overflow-hidden">
                               <div
                                 className={`h-full transition-all duration-500 ${
-                                  (Number(formData.allocationPercentage) || 0) >
-                                  30
+                                  (Number(formData.allocationPercentage) || 0) > getAllocationThresholds().high
                                     ? 'bg-gradient-to-r from-red-500 to-red-700 animate-pulse'
-                                    : (Number(formData.allocationPercentage) ||
-                                        0) > 20
+                                    : (Number(formData.allocationPercentage) || 0) > getAllocationThresholds().balanced
                                     ? 'bg-gradient-to-r from-orange-400 to-red-400'
-                                    : (Number(formData.allocationPercentage) ||
-                                        0) > 10
+                                    : (Number(formData.allocationPercentage) || 0) > getAllocationThresholds().conservative
                                     ? 'bg-gradient-to-r from-yellow-400 to-orange-400'
                                     : 'bg-gradient-to-r from-green-400 to-emerald-400'
                                 }`}
                                 style={{
                                   width: `${Math.min(
-                                    ((Number(formData.allocationPercentage) ||
-                                      0) *
-                                      100) /
-                                      30,
+                                    ((Number(formData.allocationPercentage) || 0) * 100) / getAllocationThresholds().extreme,
                                     100
                                   )}%`,
                                 }}
@@ -1508,25 +1509,20 @@ const TradingCalculator: React.FC = () => {
                             </div>
                             <div
                               className={`text-xs font-bold ${
-                                (Number(formData.allocationPercentage) || 0) >
-                                30
+                                (Number(formData.allocationPercentage) || 0) > getAllocationThresholds().high
                                   ? 'text-red-400 animate-pulse'
-                                  : (Number(formData.allocationPercentage) ||
-                                      0) > 20
+                                  : (Number(formData.allocationPercentage) || 0) > getAllocationThresholds().balanced
                                   ? 'text-orange-400'
-                                  : (Number(formData.allocationPercentage) ||
-                                      0) > 10
+                                  : (Number(formData.allocationPercentage) || 0) > getAllocationThresholds().conservative
                                   ? 'text-yellow-400'
                                   : 'text-green-400'
                               }`}
                             >
-                              {(Number(formData.allocationPercentage) || 0) > 30
+                              {(Number(formData.allocationPercentage) || 0) > getAllocationThresholds().high
                                 ? 'EXTREME'
-                                : (Number(formData.allocationPercentage) || 0) >
-                                  20
+                                : (Number(formData.allocationPercentage) || 0) > getAllocationThresholds().balanced
                                 ? 'HIGH'
-                                : (Number(formData.allocationPercentage) || 0) >
-                                  10
+                                : (Number(formData.allocationPercentage) || 0) > getAllocationThresholds().conservative
                                 ? 'MEDIUM'
                                 : 'LOW'}
                             </div>
