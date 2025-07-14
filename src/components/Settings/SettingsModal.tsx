@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import {
   X,
   Settings,
@@ -758,9 +759,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
     return amount.toString();
   };
 
-  return (
+  const modalContent = (
     <div
-      className="fixed inset-0 flex items-center justify-center z-[10000] p-4"
+      className="fixed top-0 left-0 w-screen h-screen flex items-center justify-center z-[99999] p-4"
       onClick={(e) => {
         // Close modal if clicking on backdrop
         if (e.target === e.currentTarget) {
@@ -862,7 +863,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
 
       {/* Spectacular Settings Modal */}
       <div
-        className="relative bg-gradient-to-br from-slate-800/70 via-indigo-900/80 to-slate-800/70 backdrop-blur-3xl rounded-[2.5rem] shadow-2xl w-full max-w-5xl border border-slate-600/40 transition-all duration-300 overflow-hidden"
+        className="relative bg-gradient-to-br from-slate-800/70 via-indigo-900/80 to-slate-800/70 backdrop-blur-3xl rounded-[2.5rem] shadow-2xl w-full max-w-5xl mx-auto border border-slate-600/40 transition-all duration-300 overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Masterclass Header Design */}
@@ -1955,6 +1956,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
       </div>
     </div>
   );
+
+  // Use portal to render modal at document.body level
+  return createPortal(modalContent, document.body);
 };
 
 export default SettingsModal;
