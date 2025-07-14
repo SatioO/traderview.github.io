@@ -27,6 +27,17 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 getAnalytics(app);
 
+// Helper function to get risk level icons
+const getRiskLevelIcon = (iconName: string): React.ComponentType<{ className?: string }> => {
+  const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
+    Shield,
+    BarChart3,
+    TrendingUp,
+    Zap,
+  };
+  return iconMap[iconName] || Shield;
+};
+
 const TradingCalculator: React.FC = () => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [formData, setFormData] = useState<FormData>({
@@ -891,7 +902,7 @@ const TradingCalculator: React.FC = () => {
                           <div className="flex-1">
                             <div className="text-sm font-bold mb-1 flex items-center">
                               <span className="mr-1">
-                                {isSelected ? '⚡' : '🎯'}
+                                {isSelected ? <Zap className="w-4 h-4 inline" /> : '🎯'}
                               </span>
                               {sizingInfo.label}
                             </div>
@@ -1077,7 +1088,7 @@ const TradingCalculator: React.FC = () => {
                             : 'group-hover:scale-110'
                         }`}
                       >
-                        ⚡
+                        <Zap className="w-5 h-5" />
                       </span>
                       <span>RISK MODE</span>
                       <span className="text-xs opacity-80">High Stakes</span>
@@ -1143,7 +1154,7 @@ const TradingCalculator: React.FC = () => {
                     {/* Risk Level Header with Dynamic Meter */}
                     <div className="flex items-center justify-between mb-4">
                       <label className="text-sm font-medium text-purple-300 flex items-center">
-                        <span className="mr-2">⚡</span>
+                        <Zap className="w-4 h-4 mr-2" />
                         Risk Level
                         <Info
                           className="inline w-4 h-4 ml-2 text-purple-400 cursor-help"
@@ -1190,26 +1201,18 @@ const TradingCalculator: React.FC = () => {
                       </div>
                     </div>
 
-                    {/* Enhanced Gaming Risk Level Buttons - Dynamic */}
-                    <div
-                      className={`grid gap-2 mb-4 p-2 ${
-                        getRiskLevels().length <= 4
-                          ? 'grid-cols-4'
-                          : 'grid-cols-2'
-                      }`}
-                    >
-                      {getRiskLevels().map((riskLevel) => {
+                    {/* Risk Level Buttons - Matching Allocation Style */}
+                    <div className="grid grid-cols-4 gap-2 mb-4 p-2">
+                      {getRiskLevels().map((riskLevel, index) => {
+                        const riskColors = [
+                          'emerald',
+                          'yellow',
+                          'orange',
+                          'red',
+                        ];
                         const isSelected =
                           Number(formData.riskPercentage) ===
                           riskLevel.percentage;
-                        const colorClass =
-                          riskLevel.id === 'conservative'
-                            ? 'emerald'
-                            : riskLevel.id === 'balanced'
-                            ? 'yellow'
-                            : riskLevel.id === 'bold'
-                            ? 'orange'
-                            : 'red';
 
                         return (
                           <button
@@ -1221,60 +1224,38 @@ const TradingCalculator: React.FC = () => {
                               );
                               updateRiskLevel(riskLevel.id);
                             }}
-                            className={`group relative py-4 px-2 text-xs font-bold rounded-xl border-2 transition-all duration-500 hover:scale-105 overflow-hidden ${
+                            className={`group relative py-3 px-2 text-xs font-bold rounded-lg border-2 transition-all duration-300 hover:scale-105 ${
                               isSelected
-                                ? `border-${colorClass}-400 bg-${colorClass}-500/10 shadow-lg shadow-${colorClass}-500/30 text-${colorClass}-300 transform scale-105`
-                                : `border-purple-500/30 bg-black/30 text-purple-300 hover:border-${colorClass}-400/50 hover:bg-${colorClass}-500/5 hover:text-${colorClass}-300`
+                                ? `border-${riskColors[index]}-400 bg-${riskColors[index]}-500/10 shadow-lg shadow-${riskColors[index]}-500/30 text-${riskColors[index]}-300 transform scale-105`
+                                : `border-purple-500/30 bg-black/30 text-purple-300 hover:border-${riskColors[index]}-400/50 hover:bg-${riskColors[index]}-500/5 hover:text-${riskColors[index]}-300`
                             }`}
                             title={riskLevel.description}
                           >
-                            {/* Animated border glow for selected state */}
-                            {isSelected && (
+                            <div className="flex flex-col items-center space-y-1">
                               <div
-                                className={`absolute inset-0 rounded-xl border-2 border-${colorClass}-400 animate-pulse`}
-                              ></div>
-                            )}
-
-                            {/* Achievement unlock effect */}
-                            {isSelected && (
-                              <div className="absolute top-1 right-1 w-3 h-3 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full animate-ping"></div>
-                            )}
-
-                            <div className="relative z-10 flex flex-col items-center">
-                              {/* Icon with enhanced animations */}
-                              <div
-                                className={`text-lg mb-1 transition-transform duration-300 ${
-                                  isSelected
-                                    ? 'animate-bounce'
-                                    : 'group-hover:scale-110 group-hover:rotate-12'
-                                }`}
+                                className={`text-${riskColors[index]}-400 transition-colors duration-300`}
                               >
-                                {riskLevel.icon}
+                                {React.createElement(
+                                  getRiskLevelIcon(riskLevel.icon),
+                                  {
+                                    className: 'w-4 h-4',
+                                  }
+                                )}
                               </div>
-
-                              {/* Percentage with power level effect */}
-                              <div
-                                className={`text-sm font-bold mb-1 ${
-                                  isSelected ? 'animate-pulse' : ''
-                                }`}
-                              >
+                              <div className="text-sm font-bold">
                                 {riskLevel.percentage}%
                               </div>
-
-                              {/* Name */}
-                              <div className="text-xs opacity-60 text-center leading-tight">
-                                {riskLevel.name}
+                              <div className="text-xs opacity-75">
+                                {riskLevel.name
+                                  .replace(' play', '')
+                                  .replace(' approach', '')
+                                  .replace(' strategy', '')
+                                  .replace(' risk', '')}
                               </div>
                             </div>
 
-                            {/* Enhanced background effects */}
                             {isSelected && (
-                              <>
-                                <div
-                                  className={`absolute inset-0 bg-gradient-to-r from-${colorClass}-600/5 to-${colorClass}-500/5 rounded-xl animate-pulse`}
-                                ></div>
-                                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-pulse"></div>
-                              </>
+                              <div className="absolute top-1 right-1 w-2 h-2 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full animate-pulse"></div>
                             )}
                           </button>
                         );
@@ -1651,7 +1632,9 @@ const TradingCalculator: React.FC = () => {
 
                       <div className="relative z-10">
                         <div className="flex items-center justify-between mb-3">
-                          <div className="text-4xl">⚡</div>
+                          <div className="text-4xl">
+                            <Zap className="w-10 h-10" />
+                          </div>
                           <div
                             className={`border rounded-lg px-2 py-1 ${
                               calculations.riskPercentage > 2

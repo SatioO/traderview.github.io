@@ -71,7 +71,7 @@ const DEFAULT_RISK_LEVELS: RiskLevel[] = [
     name: 'Conservative play',
     percentage: 0.25,
     description: 'Low risk, steady growth approach',
-    icon: '🌱',
+    icon: 'Shield',
     threatLevel: 'LOW',
     color: '#10B981',
   },
@@ -80,7 +80,7 @@ const DEFAULT_RISK_LEVELS: RiskLevel[] = [
     name: 'Balanced approach',
     percentage: 0.5,
     description: 'Moderate risk with balanced returns',
-    icon: '🔥',
+    icon: 'BarChart3',
     threatLevel: 'MEDIUM',
     color: '#F59E0B',
   },
@@ -89,7 +89,7 @@ const DEFAULT_RISK_LEVELS: RiskLevel[] = [
     name: 'Bold strategy',
     percentage: 0.75,
     description: 'Higher risk for greater potential returns',
-    icon: '⚡',
+    icon: 'TrendingUp',
     threatLevel: 'HIGH',
     color: '#EF4444',
   },
@@ -98,7 +98,7 @@ const DEFAULT_RISK_LEVELS: RiskLevel[] = [
     name: 'Maximum risk',
     percentage: 1.0,
     description: 'Highest risk, highest potential reward',
-    icon: '💀',
+    icon: 'Zap',
     threatLevel: 'MAXIMUM',
     color: '#8B5CF6',
   },
@@ -209,7 +209,7 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({
         // Check if migration is needed
         const needsMigration = !parsed.version || parsed.version < SETTINGS_VERSION;
         
-        let migratedSettings = { ...DEFAULT_SETTINGS, ...parsed };
+        const migratedSettings = { ...DEFAULT_SETTINGS, ...parsed };
         
         if (needsMigration) {
           console.log('Migrating settings from version', parsed.version || 'unknown', 'to', SETTINGS_VERSION);
@@ -429,6 +429,7 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({
 };
 
 // Custom hook to use settings context
+// eslint-disable-next-line react-refresh/only-export-components
 export const useSettings = (): SettingsContextType => {
   const context = useContext(SettingsContext);
   if (context === undefined) {
