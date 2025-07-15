@@ -1148,7 +1148,8 @@ const TradingCalculator: React.FC = () => {
                     <div className="relative z-10 flex flex-col items-center space-y-2">
                       {/* Icon with glow effect */}
                       <div
-                        className={`relative transition-all duration-300 'group-hover:scale-110`}
+                        className={`relative transitio
+                          n-all duration-300 'group-hover:scale-110`}
                       >
                         <PieChart
                           className={`w-6 h-6 transition-colors duration-300 ${

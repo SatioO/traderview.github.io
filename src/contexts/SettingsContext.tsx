@@ -171,6 +171,7 @@ const DEFAULT_SETTINGS: UserSettings = {
 // Context Interface
 interface SettingsContextType {
   settings: UserSettings;
+  isLoading: boolean;
   updateSettings: (updates: Partial<UserSettings>) => void;
   updateRiskLevel: (riskLevel: RiskLevel) => void;
   addRiskLevel: (riskLevel: Omit<RiskLevel, 'id'>) => void;
@@ -200,73 +201,88 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({
 }) => {
   const [settings, setSettings] = useState<UserSettings>(DEFAULT_SETTINGS);
   const [isLoaded, setIsLoaded] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  // Load settings from localStorage on mount
+  // Load settings from localStorage on mount with enhanced UX delay
   useEffect(() => {
-    try {
-      const savedSettings = localStorage.getItem('userSettings');
-      if (savedSettings) {
-        const parsed = JSON.parse(savedSettings);
-        
-        // Check if migration is needed
-        const needsMigration = !parsed.version || parsed.version < SETTINGS_VERSION;
-        
-        const migratedSettings = { ...DEFAULT_SETTINGS, ...parsed };
-        
-        if (needsMigration) {
-          console.log('Migrating settings from version', parsed.version || 'unknown', 'to', SETTINGS_VERSION);
+    const loadSettings = async () => {
+      // Add a minimum delay for better UX
+      const startTime = Date.now();
+      
+      try {
+        const savedSettings = localStorage.getItem('userSettings');
+        if (savedSettings) {
+          const parsed = JSON.parse(savedSettings);
           
-          // Force update allocation levels to include all 4 defaults
-          migratedSettings.allocationLevels = DEFAULT_ALLOCATION_LEVELS;
-          migratedSettings.version = SETTINGS_VERSION;
+          // Check if migration is needed
+          const needsMigration = !parsed.version || parsed.version < SETTINGS_VERSION;
           
-          // Force save the migrated settings
-          localStorage.setItem('userSettings', JSON.stringify(migratedSettings));
-        } else {
-          // Even if not migrating, ensure all 4 allocation levels exist
-          const requiredLevelIds = ['conservative', 'balanced', 'high', 'extreme'];
-          const existingLevelIds = (migratedSettings.allocationLevels || []).map((l: AllocationLevel) => l.id);
-          const missingLevels = requiredLevelIds.filter(id => !existingLevelIds.includes(id));
+          const migratedSettings = { ...DEFAULT_SETTINGS, ...parsed };
           
-          if (!migratedSettings.allocationLevels || migratedSettings.allocationLevels.length < 4 || missingLevels.length > 0) {
-            console.log('Fixing missing allocation levels:', missingLevels);
+          if (needsMigration) {
+            console.log('Migrating settings from version', parsed.version || 'unknown', 'to', SETTINGS_VERSION);
+            
+            // Force update allocation levels to include all 4 defaults
             migratedSettings.allocationLevels = DEFAULT_ALLOCATION_LEVELS;
+            migratedSettings.version = SETTINGS_VERSION;
+            
+            // Force save the migrated settings
             localStorage.setItem('userSettings', JSON.stringify(migratedSettings));
+          } else {
+            // Even if not migrating, ensure all 4 allocation levels exist
+            const requiredLevelIds = ['conservative', 'balanced', 'high', 'extreme'];
+            const existingLevelIds = (migratedSettings.allocationLevels || []).map((l: AllocationLevel) => l.id);
+            const missingLevels = requiredLevelIds.filter(id => !existingLevelIds.includes(id));
+            
+            if (!migratedSettings.allocationLevels || migratedSettings.allocationLevels.length < 4 || missingLevels.length > 0) {
+              console.log('Fixing missing allocation levels:', missingLevels);
+              migratedSettings.allocationLevels = DEFAULT_ALLOCATION_LEVELS;
+              localStorage.setItem('userSettings', JSON.stringify(migratedSettings));
+            }
           }
+          
+          // Merge with defaults to ensure all properties exist
+          setSettings(migratedSettings);
+        } else {
+          // Load legacy preferences if they exist
+          const legacyAccountInfo = localStorage.getItem('accountInfo');
+          const legacyDarkMode = localStorage.getItem('darkMode');
+
+          let legacySettings = { ...DEFAULT_SETTINGS };
+
+          if (legacyAccountInfo) {
+            const legacy = JSON.parse(legacyAccountInfo);
+            legacySettings = {
+              ...legacySettings,
+              accountBalance:
+                legacy.accountBalance || legacySettings.accountBalance,
+              marketHealth: legacy.marketHealth || legacySettings.marketHealth,
+              activeTab: legacy.activeTab || legacySettings.activeTab,
+            };
+          }
+
+          if (legacyDarkMode) {
+            legacySettings.darkMode = JSON.parse(legacyDarkMode);
+          }
+
+          setSettings(legacySettings);
         }
-        
-        // Merge with defaults to ensure all properties exist
-        setSettings(migratedSettings);
-      } else {
-        // Load legacy preferences if they exist
-        const legacyAccountInfo = localStorage.getItem('accountInfo');
-        const legacyDarkMode = localStorage.getItem('darkMode');
-
-        let legacySettings = { ...DEFAULT_SETTINGS };
-
-        if (legacyAccountInfo) {
-          const legacy = JSON.parse(legacyAccountInfo);
-          legacySettings = {
-            ...legacySettings,
-            accountBalance:
-              legacy.accountBalance || legacySettings.accountBalance,
-            marketHealth: legacy.marketHealth || legacySettings.marketHealth,
-            activeTab: legacy.activeTab || legacySettings.activeTab,
-          };
-        }
-
-        if (legacyDarkMode) {
-          legacySettings.darkMode = JSON.parse(legacyDarkMode);
-        }
-
-        setSettings(legacySettings);
+      } catch (error) {
+        console.error('Error loading settings:', error);
+        setSettings(DEFAULT_SETTINGS);
       }
-    } catch (error) {
-      console.error('Error loading settings:', error);
-      setSettings(DEFAULT_SETTINGS);
-    } finally {
-      setIsLoaded(true);
-    }
+      
+      // Ensure minimum delay for smooth UX
+      const elapsedTime = Date.now() - startTime;
+      const remainingTime = Math.max(0, 1000 - elapsedTime); // 1 second minimum
+      
+      setTimeout(() => {
+        setIsLoaded(true);
+        setIsLoading(false);
+      }, remainingTime);
+    };
+
+    loadSettings();
   }, []);
 
   // Save settings to localStorage whenever they change (but only after initial load)
@@ -409,6 +425,7 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({
 
   const value: SettingsContextType = {
     settings,
+    isLoading,
     updateSettings,
     updateRiskLevel,
     addRiskLevel,

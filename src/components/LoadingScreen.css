@@ -1,0 +1,125 @@
+@keyframes grid-pulse {
+  0%, 100% { 
+    opacity: 0.1; 
+  }
+  50% { 
+    opacity: 0.3; 
+  }
+}
+
+@keyframes shimmer {
+  0% { 
+    transform: translateX(-100%); 
+  }
+  100% { 
+    transform: translateX(100%); 
+  }
+}
+
+@keyframes slide {
+  0% { 
+    transform: translateX(-100%); 
+  }
+  100% { 
+    transform: translateX(100%); 
+  }
+}
+
+@keyframes ambient-pulse {
+  0%, 100% { 
+    opacity: 0.2; 
+    transform: scale(1); 
+  }
+  50% { 
+    opacity: 0.4; 
+    transform: scale(1.1); 
+  }
+}
+
+@keyframes ambient-pulse-delayed {
+  0%, 100% { 
+    opacity: 0.15; 
+    transform: scale(1); 
+  }
+  50% { 
+    opacity: 0.35; 
+    transform: scale(1.05); 
+  }
+}
+
+@keyframes ambient-drift {
+  0%, 100% { 
+    transform: translateX(0) rotate(0deg); 
+  }
+  25% { 
+    transform: translateX(20px) rotate(5deg); 
+  }
+  50% { 
+    transform: translateX(0) rotate(0deg); 
+  }
+  75% { 
+    transform: translateX(-20px) rotate(-5deg); 
+  }
+}
+
+@keyframes data-float {
+  0%, 100% { 
+    transform: translateY(0) rotate(0deg); 
+    opacity: 0.3; 
+  }
+  50% { 
+    transform: translateY(-20px) rotate(5deg); 
+    opacity: 0.6; 
+  }
+}
+
+@keyframes data-float-reverse {
+  0%, 100% { 
+    transform: translateY(0) rotate(0deg); 
+    opacity: 0.3; 
+  }
+  50% { 
+    transform: translateY(20px) rotate(-5deg); 
+    opacity: 0.6; 
+  }
+}
+
+/* Animation utility classes */
+.animate-grid-pulse {
+  animation: grid-pulse 3s ease-in-out infinite;
+}
+
+.animate-shimmer {
+  animation: shimmer 2s linear infinite;
+}
+
+.animate-slide {
+  animation: slide 1.5s linear infinite;
+}
+
+.animate-ambient-pulse {
+  animation: ambient-pulse 4s ease-in-out infinite;
+}
+
+.animate-ambient-pulse-delayed {
+  animation: ambient-pulse-delayed 4s ease-in-out infinite;
+  animation-delay: 1s;
+}
+
+.animate-ambient-drift {
+  animation: ambient-drift 6s ease-in-out infinite;
+}
+
+.animate-data-float {
+  animation: data-float 3s ease-in-out infinite;
+}
+
+.animate-data-float-reverse {
+  animation: data-float-reverse 3s ease-in-out infinite;
+  animation-delay: 1s;
+}
+
+/* Gradient utility for radial gradients */
+.bg-gradient-radial {
+  background: radial-gradient(circle, var(--tw-gradient-stops));
+}
