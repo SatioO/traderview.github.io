@@ -77,6 +77,7 @@ const TradingCalculator: React.FC = () => {
 
   // Settings integration
   const {
+    settings,
     getRiskLevels,
     getAllocationLevels,
     handleAccountBalanceChange: updateAccountBalance,
@@ -536,9 +537,11 @@ const TradingCalculator: React.FC = () => {
       setFormData((prev) => {
         const newData: FormData = { ...prev, [field]: processedValue };
 
-        // Auto-calculate 3% stop loss when entry price is entered
+        // Auto-calculate stop loss when entry price is entered (using user's default percentage)
         if (field === 'entryPrice' && processedValue && processedValue > 0) {
-          newData.stopLoss = parseFloat((processedValue * 0.97).toFixed(2)); // Always calculate 3% below entry price, rounded to 2 decimals
+          const stopLossPercentage = settings.defaultStopLossPercentage || 3; // Use user setting or default to 3%
+          const multiplier = (100 - stopLossPercentage) / 100; // Convert percentage to multiplier
+          newData.stopLoss = parseFloat((processedValue * multiplier).toFixed(2)); // Calculate stop loss based on user preference
         }
 
         // Auto-calculate risk on investment when stop loss or entry price changes (for risk-based sizing)
@@ -562,7 +565,7 @@ const TradingCalculator: React.FC = () => {
         return newData;
       });
     },
-    [activeTab]
+    [activeTab, settings.defaultStopLossPercentage]
   );
 
   // Generate R-multiple targets
@@ -1502,7 +1505,7 @@ const TradingCalculator: React.FC = () => {
                         className="w-full px-4 py-3 pl-10 bg-black/40 border-2 border-red-500/50 rounded-xl focus:border-red-400 focus:ring-2 focus:ring-red-400/20 text-white placeholder-red-300/50 font-mono transition-all duration-300 focus:shadow-lg focus:shadow-red-500/20"
                         min="0"
                         step="0.01"
-                        placeholder="Auto: 3% below entry"
+                        placeholder={`Auto: ${settings.defaultStopLossPercentage || 3}% below entry`}
                       />
                       <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-red-400">
                         ₹

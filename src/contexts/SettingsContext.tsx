@@ -57,6 +57,7 @@ export interface UserSettings {
   defaultBrokerageCost: number;
   autoCalculateTargets: boolean;
   showAdvancedMetrics: boolean;
+  defaultStopLossPercentage: number;
 
   // Display Settings
   currencySymbol: string;
@@ -161,6 +162,7 @@ const DEFAULT_SETTINGS: UserSettings = {
   defaultBrokerageCost: 20,
   autoCalculateTargets: true,
   showAdvancedMetrics: false,
+  defaultStopLossPercentage: 3,
   currencySymbol: '₹',
   decimalPlaces: 2,
   showPercentages: true,

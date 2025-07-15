@@ -43,6 +43,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
     allocationLevels?: Record<string, string>;
     duplicates?: string[];
     allocationDuplicates?: string[];
+    stopLoss?: string;
   }>({});
   const [shakeAnimations, setShakeAnimations] = useState<
     Record<string, boolean>
@@ -259,6 +260,24 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
     } catch (error) {
       console.error('Error in validateCapital:', error);
       return 'Invalid amount';
+    }
+  };
+
+  const validateStopLoss = (value: number) => {
+    try {
+      if (value === undefined || value === null || isNaN(value)) {
+        return 'Stop loss percentage is required';
+      }
+      if (value <= 0) {
+        return 'Stop loss must be greater than 0%';
+      }
+      if (value > 8) {
+        return 'Maximum stop loss is 8% for risk management';
+      }
+      return null;
+    } catch (error) {
+      console.error('Error in validateStopLoss:', error);
+      return 'Invalid stop loss percentage';
     }
   };
 
@@ -479,6 +498,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
       updateSettings({ accountBalance: Number(editedCapital) });
     }
 
+    // Update stop loss setting if changed
+    if (localSettings.defaultStopLossPercentage !== settings.defaultStopLossPercentage) {
+      updateSettings({ defaultStopLossPercentage: localSettings.defaultStopLossPercentage });
+    }
+
     // Clear local edits after saving
     setEditedLevels({});
     setEditedAllocationLevels({});
@@ -511,14 +535,17 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
   };
 
   const hasCapitalChanged = editedCapital !== undefined;
+  const hasStopLossChanged = localSettings.defaultStopLossPercentage !== settings.defaultStopLossPercentage;
   const hasChanges =
     Object.keys(editedLevels).length > 0 ||
     Object.keys(editedAllocationLevels).length > 0 ||
-    hasCapitalChanged;
+    hasCapitalChanged ||
+    hasStopLossChanged;
 
   // Check if there are any validation errors
   const hasValidationErrors =
     validationErrors.capital ||
+    validationErrors.stopLoss ||
     (validationErrors.riskLevels &&
       Object.keys(validationErrors.riskLevels).length > 0) ||
     (validationErrors.allocationLevels &&
@@ -1154,6 +1181,93 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                                 </button>
                               );
                             })}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Stop Loss Configuration Section */}
+                <div className="relative">
+                  {/* Header */}
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center space-x-3">
+                      <div className="p-1.5 bg-gradient-to-r from-red-500/20 to-pink-500/20 border border-red-500/30 rounded-lg">
+                        <Shield className="w-4 h-4 text-red-400" />
+                      </div>
+                      <span className="text-sm font-bold bg-gradient-to-r from-red-300 to-pink-300 bg-clip-text text-transparent tracking-wider">
+                        Stop Loss Configuration
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Stop Loss Input Card */}
+                  <div className="relative">
+                    <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-red-400/10 via-pink-500/5 to-rose-500/10 opacity-50"></div>
+                    <div className="relative border border-red-400/30 hover:border-red-400/50 rounded-2xl overflow-hidden bg-slate-900/80 backdrop-blur-sm transition-all duration-500 hover:shadow-lg hover:shadow-red-500/20">
+                      <div className="p-6">
+                        <div className="flex items-center justify-between mb-4">
+                          <div>
+                            <h3 className="text-lg font-bold text-red-200 mb-1">
+                              Default Stop Loss
+                            </h3>
+                            <p className="text-sm text-red-300/80">
+                              Auto-calculate stop loss percentage
+                            </p>
+                          </div>
+                          <div className="px-3 py-1 bg-gradient-to-r from-red-500/20 to-pink-500/20 border border-red-400/40 rounded-lg">
+                            <span className="text-xs font-bold text-red-300">
+                              MAX 8%
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="space-y-4">
+                          <div className="relative">
+                            <input
+                              type="number"
+                              min="0.1"
+                              max="8"
+                              step="0.1"
+                              value={localSettings.defaultStopLossPercentage}
+                              onChange={(e) => {
+                                const value = parseFloat(e.target.value) || 0;
+                                setLocalSettings(prev => ({
+                                  ...prev,
+                                  defaultStopLossPercentage: value
+                                }));
+                                
+                                // Validate stop loss
+                                const error = validateStopLoss(value);
+                                setValidationErrors(prev => ({
+                                  ...prev,
+                                  stopLoss: error || undefined
+                                }));
+                              }}
+                              className={`w-full px-4 py-3 bg-slate-800/50 border rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 transition-all duration-300 ${
+                                validationErrors.stopLoss
+                                  ? 'border-red-500 focus:ring-red-500/50 animate-shake'
+                                  : 'border-slate-600 focus:border-red-400 focus:ring-red-500/20'
+                              }`}
+                              placeholder="3.0"
+                            />
+                            <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                              <span className="text-sm font-medium text-slate-400">%</span>
+                            </div>
+                          </div>
+
+                          {validationErrors.stopLoss && (
+                            <div className="flex items-center space-x-2 p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
+                              <AlertTriangle className="w-4 h-4 text-red-400" />
+                              <span className="text-xs text-red-300">
+                                {validationErrors.stopLoss}
+                              </span>
+                            </div>
+                          )}
+
+                          <div className="text-xs text-slate-400">
+                            This percentage will be automatically applied when you enter an entry price in the trading calculator.
                           </div>
                         </div>
                       </div>
