@@ -1057,93 +1057,126 @@ const TradingCalculator: React.FC = () => {
                 </div>
               </div>
 
-              {/* Enhanced Gaming Mode Selector */}
+              {/* Creative Tile-Style Mode Selector */}
               <div className="mb-6">
-                <div className="relative flex space-x-3 bg-black/30 p-2 rounded-2xl backdrop-blur-sm border border-purple-500/30 overflow-hidden">
-                  {/* Mode switching particle trail */}
-                  <div className="absolute inset-0 overflow-hidden">
-                    <div className="absolute top-1/2 left-1/2 w-32 h-32 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-full blur-xl animate-pulse transform -translate-x-1/2 -translate-y-1/2"></div>
-                  </div>
-
+                <div className="grid grid-cols-2 gap-4 p-3 bg-black/20 rounded-2xl backdrop-blur-sm border border-purple-500/20">
+                  {/* Risk Mode Tile */}
                   <button
                     onClick={() => {
                       setActiveTab('risk');
                       updateActiveTab('risk');
                     }}
-                    className={`group flex-1 py-4 px-3 text-sm font-bold rounded-xl transition-all duration-500 relative overflow-hidden ${
+                    className={`group relative p-4 text-sm font-bold rounded-xl border-2 transition-all duration-300 hover:scale-105 overflow-hidden ${
                       activeTab === 'risk'
-                        ? 'bg-gradient-to-r from-red-500 to-pink-500 text-white shadow-lg shadow-red-500/30 transform scale-105 border-2 border-red-400/50'
-                        : 'text-purple-300 hover:bg-purple-500/20 hover:text-white hover:scale-102 border-2 border-transparent hover:border-purple-400/30'
+                        ? 'border-red-400 bg-red-500/10 shadow-lg shadow-red-500/30 text-red-300 transform scale-105'
+                        : 'border-purple-500/30 bg-black/30 text-purple-300 hover:border-red-400/50 hover:bg-red-500/5 hover:text-red-300'
                     }`}
                   >
-                    {/* Achievement badge */}
+                    {/* Animated background */}
+                    <div className="absolute inset-0 opacity-20">
+                      <div
+                        className={`absolute inset-0 bg-gradient-to-br transition-all duration-500 ${
+                          activeTab === 'risk'
+                            ? 'from-red-600/40 via-pink-600/40 to-orange-600/40 animate-pulse'
+                            : 'from-transparent to-transparent'
+                        }`}
+                      ></div>
+                    </div>
+
+                    <div className="relative z-10 flex flex-col items-center space-y-2">
+                      {/* Icon with glow effect */}
+                      <div
+                        className={`relative transition-all duration-300 group-hover:scale-110`}
+                      >
+                        <TrendingUp
+                          className={`w-6 h-6 transition-colors duration-300 ${
+                            activeTab === 'risk'
+                              ? 'text-red-400'
+                              : 'text-purple-400 group-hover:text-red-400'
+                          }`}
+                        />
+                      </div>
+
+                      {/* Title */}
+                      <div className="text-center">
+                        <div className="font-bold text-sm mb-1">RISK MODE</div>
+                        <div className="text-xs opacity-75">High Stakes</div>
+                      </div>
+                    </div>
+
+                    {/* Achievement indicator */}
                     {activeTab === 'risk' && (
-                      <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full flex items-center justify-center">
-                        <span className="text-xs">🏆</span>
+                      <div className="absolute top-2 right-2 w-3 h-3 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full animate-pulse">
+                        <div className="absolute inset-0 w-3 h-3 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full animate-ping opacity-30"></div>
                       </div>
                     )}
 
-                    <div className="relative z-10 flex flex-col items-center">
-                      <span
-                        className={`text-lg mb-1 transition-transform duration-300 ${
-                          activeTab === 'risk'
-                            ? 'animate-bounce'
-                            : 'group-hover:scale-110'
-                        }`}
-                      >
-                        <TrendingUp className="w-5 h-5" />
-                      </span>
-                      <span>RISK MODE</span>
-                      <span className="text-xs opacity-80">High Stakes</span>
-                    </div>
-
-                    {/* Enhanced background effects */}
+                    {/* Shimmer effect */}
                     {activeTab === 'risk' && (
-                      <>
-                        <div className="absolute inset-0 bg-gradient-to-r from-red-600 to-pink-600 opacity-20 animate-pulse"></div>
-                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-pulse"></div>
-                      </>
+                      <div className="absolute inset-0 opacity-30">
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-pulse"></div>
+                      </div>
                     )}
                   </button>
 
+                  {/* Allocation Mode Tile */}
                   <button
                     onClick={() => {
                       setActiveTab('allocation');
                       updateActiveTab('allocation');
                     }}
-                    className={`group flex-1 py-4 px-3 text-sm font-bold rounded-xl transition-all duration-500 relative overflow-hidden ${
+                    className={`group relative p-4 text-sm font-bold rounded-xl border-2 transition-all duration-300 hover:scale-105 overflow-hidden ${
                       activeTab === 'allocation'
-                        ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg shadow-blue-500/30 transform scale-105 border-2 border-blue-400/50'
-                        : 'text-purple-300 hover:bg-purple-500/20 hover:text-white hover:scale-102 border-2 border-transparent hover:border-purple-400/30'
+                        ? 'border-blue-400 bg-blue-500/10 shadow-lg shadow-blue-500/30 text-blue-300 transform scale-105'
+                        : 'border-purple-500/30 bg-black/30 text-purple-300 hover:border-blue-400/50 hover:bg-blue-500/5 hover:text-blue-300'
                     }`}
                   >
-                    {/* Achievement badge */}
+                    {/* Animated background */}
+                    <div className="absolute inset-0 opacity-20">
+                      <div
+                        className={`absolute inset-0 bg-gradient-to-br transition-all duration-500 ${
+                          activeTab === 'allocation'
+                            ? 'from-blue-600/40 via-cyan-600/40 to-purple-600/40 animate-pulse'
+                            : 'from-transparent to-transparent'
+                        }`}
+                      ></div>
+                    </div>
+
+                    <div className="relative z-10 flex flex-col items-center space-y-2">
+                      {/* Icon with glow effect */}
+                      <div
+                        className={`relative transition-all duration-300 'group-hover:scale-110`}
+                      >
+                        <PieChart
+                          className={`w-6 h-6 transition-colors duration-300 ${
+                            activeTab === 'allocation'
+                              ? 'text-blue-400'
+                              : 'text-purple-400 group-hover:text-blue-400'
+                          }`}
+                        />
+                      </div>
+
+                      {/* Title */}
+                      <div className="text-center">
+                        <div className="font-bold text-sm mb-1">
+                          ALLOCATION MODE
+                        </div>
+                        <div className="text-xs opacity-75">Strategic</div>
+                      </div>
+                    </div>
+
+                    {/* Achievement indicator */}
                     {activeTab === 'allocation' && (
-                      <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-r from-blue-400 to-cyan-400 rounded-full flex items-center justify-center">
-                        <PieChart className="w-2 h-2 text-white" />
+                      <div className="absolute top-2 right-2 w-3 h-3 bg-gradient-to-r from-blue-400 to-cyan-400 rounded-full animate-pulse">
+                        <div className="absolute inset-0 w-3 h-3 bg-gradient-to-r from-blue-400 to-cyan-400 rounded-full animate-ping opacity-30"></div>
                       </div>
                     )}
 
-                    <div className="relative z-10 flex flex-col items-center">
-                      <span
-                        className={`text-lg mb-1 transition-transform duration-300 ${
-                          activeTab === 'allocation'
-                            ? 'animate-bounce'
-                            : 'group-hover:scale-110'
-                        }`}
-                      >
-                        <PieChart className="w-5 h-5" />
-                      </span>
-                      <span>ALLOCATION MODE</span>
-                      <span className="text-xs opacity-80">Strategic</span>
-                    </div>
-
-                    {/* Enhanced background effects */}
+                    {/* Shimmer effect */}
                     {activeTab === 'allocation' && (
-                      <>
-                        <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-cyan-600 opacity-20 animate-pulse"></div>
-                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-pulse"></div>
-                      </>
+                      <div className="absolute inset-0 opacity-30">
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-pulse"></div>
+                      </div>
                     )}
                   </button>
                 </div>
