@@ -64,7 +64,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
               ref={ref}
               type={inputType}
               className={`
-                relative w-full px-4 py-3 bg-transparent
+                relative w-full px-4 py-4 bg-transparent
                 text-slate-100 placeholder-slate-400 text-sm
                 focus:outline-none transition-all duration-300
                 font-medium tracking-wide
