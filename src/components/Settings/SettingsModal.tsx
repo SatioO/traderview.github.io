@@ -11,12 +11,14 @@ import {
   ChevronDown,
   ChevronUp,
   Shield,
+  LogOut,
 } from 'lucide-react';
 import {
   useSettings,
   type RiskLevel,
   type AllocationLevel,
 } from '../../contexts/SettingsContext';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -28,6 +30,7 @@ type SettingsTab = 'account' | 'risk';
 const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
   const { settings, updateSettings, updateRiskLevel, updateAllocationLevel } =
     useSettings();
+  const { logout, user } = useAuth();
   const [activeTab, setActiveTab] = useState<SettingsTab>('account');
   const [editedLevels, setEditedLevels] = useState<Record<string, string>>({});
   const [editedAllocationLevels, setEditedAllocationLevels] = useState<
@@ -935,6 +938,22 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                   <span className="text-xs text-slate-500">to save</span>
                 </div>
               </div>
+
+              {/* Logout button */}
+              <button
+                onClick={async () => {
+                  await logout();
+                  onClose();
+                }}
+                className="relative group p-3 hover:bg-red-800/60 rounded-2xl transition-all duration-300 border border-transparent hover:border-red-600/40 hover:scale-105"
+              >
+                <LogOut className="relative w-6 h-6 text-slate-400 group-hover:text-red-300 transition-all duration-300" />
+                
+                {/* Logout tooltip */}
+                <div className="absolute right-0 top-full mt-2 px-3 py-1.5 bg-slate-900/90 backdrop-blur-xl rounded-lg border border-slate-700/40 text-xs text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap z-50">
+                  {user ? `Sign out (${user.firstName} ${user.lastName})` : 'Sign out'}
+                </div>
+              </button>
 
               {/* Intelligent close button */}
               <button
