@@ -22,7 +22,7 @@ const LoginModal: React.FC<LoginModalProps> = ({
   onSwitchToForgotPassword,
 }) => {
   const { login, loginError, isLoginLoading, clearErrors } = useAuth();
-  
+
   const {
     register,
     handleSubmit,
@@ -61,25 +61,30 @@ const LoginModal: React.FC<LoginModalProps> = ({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={handleModalClose} maxWidth="md" showCloseButton={false}>
+    <Modal
+      isOpen={isOpen}
+      onClose={handleModalClose}
+      maxWidth="md"
+      showCloseButton={false}
+    >
       <div className="space-y-6">
         {/* Compact Brand Header */}
         <div className="text-center space-y-3">
           {/* Simplified Logo */}
           <div className="relative group mx-auto w-fit">
-            <div className="relative z-10 p-3 bg-gradient-to-br from-slate-800/60 via-slate-900/80 to-black/60 backdrop-blur-xl rounded-xl border border-slate-700/40 group-hover:border-cyan-400/40 transition-all duration-300">
-              <TrendingUp className="w-7 h-7 text-slate-300 group-hover:text-cyan-300 transition-all duration-300" />
+            <div className="relative z-10 p-3 bg-gradient-to-br from-slate-900/80 via-purple-900/60 to-slate-800/80 backdrop-blur-xl rounded-xl border border-purple-400/30 group-hover:border-purple-400/50 transition-all duration-300">
+              <TrendingUp className="w-7 h-7 text-slate-300 group-hover:text-purple-300 transition-all duration-300" />
             </div>
           </div>
 
           {/* Compact Typography */}
           <div className="space-y-2">
-            <h1 className="text-2xl font-black bg-gradient-to-r from-slate-100 via-cyan-200 to-slate-100 bg-clip-text text-transparent tracking-tight">
+            <h1 className="text-2xl font-black bg-gradient-to-r from-slate-100 via-purple-200 to-slate-100 bg-clip-text text-transparent tracking-tight">
               TradeView
             </h1>
-            <div className="mx-auto px-2 py-0.5 bg-gradient-to-r from-cyan-500/20 to-purple-500/20 border border-cyan-400/30 rounded-full w-fit">
-              <span className="text-xs font-bold text-cyan-300 tracking-wider">
-                PROFESSIONAL TRADING
+            <div className="mx-auto px-2 py-0.5 bg-gradient-to-r from-purple-500/20 to-purple-600/20 border border-purple-400/30 rounded-full w-fit">
+              <span className="text-xs font-bold text-purple-300 tracking-wider">
+                Risk Management Platform
               </span>
             </div>
           </div>
@@ -124,7 +129,7 @@ const LoginModal: React.FC<LoginModalProps> = ({
             className="w-full"
           >
             <Shield className="w-4 h-4 mr-2 flex-shrink-0" />
-            <span className="font-semibold">Access Trading Platform</span>
+            <span className="font-semibold">Access Platform</span>
           </Button>
         </form>
 
@@ -135,7 +140,7 @@ const LoginModal: React.FC<LoginModalProps> = ({
             <button
               type="button"
               onClick={handleSwitchToForgotPassword}
-              className="text-xs text-slate-400 hover:text-cyan-300 transition-colors duration-300 font-medium focus:outline-none focus:ring-2 focus:ring-cyan-400/50 focus:ring-offset-2 focus:ring-offset-slate-900 rounded px-2 py-1"
+              className="text-xs text-slate-400 hover:text-purple-300 transition-colors duration-300 font-medium focus:outline-none focus:ring-2 focus:ring-purple-400/50 focus:ring-offset-2 focus:ring-offset-slate-900 rounded px-2 py-1"
             >
               Forgot your password?
             </button>
@@ -147,7 +152,7 @@ const LoginModal: React.FC<LoginModalProps> = ({
             <button
               type="button"
               onClick={handleSwitchToSignup}
-              className="inline-flex items-center space-x-1 text-cyan-300 hover:text-cyan-200 transition-colors duration-300 font-medium focus:outline-none focus:ring-2 focus:ring-cyan-400/50 focus:ring-offset-2 focus:ring-offset-slate-900 rounded px-2 py-1"
+              className="inline-flex items-center space-x-1 text-purple-300 hover:text-purple-200 transition-colors duration-300 font-medium focus:outline-none focus:ring-2 focus:ring-purple-400/50 focus:ring-offset-2 focus:ring-offset-slate-900 rounded px-2 py-1"
             >
               <Zap className="w-3 h-3 flex-shrink-0" />
               <span>Create Account</span>

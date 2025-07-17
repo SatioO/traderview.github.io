@@ -71,26 +71,26 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({
                 <div className="absolute inset-2 w-16 h-16 border border-red-400/15 rounded-full animate-spin"></div>
 
                 {/* Core icon */}
-                <div className="relative z-10 p-5 bg-gradient-to-br from-slate-800/60 via-slate-900/80 to-black/60 backdrop-blur-xl rounded-2xl border border-slate-700/40 group-hover:border-yellow-400/40 transition-all duration-500">
-                  <Key className="w-10 h-10 text-slate-300 group-hover:text-yellow-300 transition-all duration-500" />
+                <div className="relative z-10 p-5 bg-gradient-to-br from-slate-900/80 via-purple-900/60 to-slate-800/80 backdrop-blur-xl rounded-2xl border border-purple-400/30 group-hover:border-purple-400/50 transition-all duration-500">
+                  <Key className="w-10 h-10 text-slate-300 group-hover:text-purple-300 transition-all duration-500" />
                   
                   {/* Energy pulse */}
-                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-yellow-400/0 via-yellow-400/0 to-yellow-400/0 group-hover:from-yellow-400/10 group-hover:via-yellow-400/5 group-hover:to-yellow-400/10 transition-all duration-500"></div>
+                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-purple-400/0 via-purple-400/0 to-purple-400/0 group-hover:from-purple-400/10 group-hover:via-purple-400/5 group-hover:to-purple-400/10 transition-all duration-500"></div>
                 </div>
 
                 {/* Particle effects */}
-                <div className="absolute top-8 left-8 w-1 h-1 bg-yellow-400/60 rounded-full animate-pulse"></div>
-                <div className="absolute top-10 left-10 w-0.5 h-0.5 bg-orange-400/60 rounded-full animate-pulse delay-300"></div>
+                <div className="absolute top-8 left-8 w-1 h-1 bg-purple-400/60 rounded-full animate-pulse"></div>
+                <div className="absolute top-10 left-10 w-0.5 h-0.5 bg-purple-300/60 rounded-full animate-pulse delay-300"></div>
               </div>
 
               {/* Brand Typography */}
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <h1 className="text-3xl font-black bg-gradient-to-r from-slate-100 via-yellow-200 to-slate-100 bg-clip-text text-transparent tracking-tight">
+                  <h1 className="text-3xl font-black bg-gradient-to-r from-slate-100 via-purple-200 to-slate-100 bg-clip-text text-transparent tracking-tight">
                     Reset Password
                   </h1>
-                  <div className="mx-auto px-3 py-1 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-400/30 rounded-full w-fit">
-                    <span className="text-xs font-bold text-yellow-300 tracking-wider">
+                  <div className="mx-auto px-3 py-1 bg-gradient-to-r from-purple-500/20 to-purple-600/20 border border-purple-400/30 rounded-full w-fit">
+                    <span className="text-xs font-bold text-purple-300 tracking-wider">
                       ACCOUNT RECOVERY
                     </span>
                   </div>
@@ -145,7 +145,7 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({
               <button
                 type="button"
                 onClick={handleSwitchToLogin}
-                className="inline-flex items-center space-x-2 text-slate-400 hover:text-cyan-300 transition-colors duration-300 font-medium"
+                className="inline-flex items-center space-x-2 text-slate-400 hover:text-purple-300 transition-colors duration-300 font-medium"
               >
                 <ArrowLeft className="w-4 h-4" />
                 <span>Back to Sign In</span>
@@ -193,8 +193,8 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({
             <div className="space-y-4">
               <div className="p-4 bg-slate-700/20 border border-slate-600/30 rounded-xl backdrop-blur-sm">
                 <div className="flex items-start space-x-3">
-                  <div className="w-8 h-8 bg-gradient-to-br from-cyan-500/20 to-cyan-500/5 rounded-lg flex items-center justify-center mt-0.5">
-                    <Mail className="w-4 h-4 text-cyan-400" />
+                  <div className="w-8 h-8 bg-gradient-to-br from-purple-500/20 to-purple-500/5 rounded-lg flex items-center justify-center mt-0.5">
+                    <Mail className="w-4 h-4 text-purple-400" />
                   </div>
                   <div className="space-y-1">
                     <p className="text-sm font-medium text-slate-300">Check your inbox</p>

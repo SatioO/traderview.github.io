@@ -33,7 +33,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
             ${error 
               ? 'border-red-500/50 bg-red-500/5' 
               : isFocused 
-                ? 'border-cyan-400/50 bg-cyan-400/5' 
+                ? 'border-purple-400/50 bg-purple-400/5' 
                 : 'border-slate-600/40 bg-slate-800/20'
             }
             backdrop-blur-sm
@@ -44,7 +44,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
               ${error
                 ? 'bg-gradient-to-r from-red-500/5 to-red-500/5'
                 : isFocused
-                  ? 'bg-gradient-to-r from-cyan-400/5 to-purple-400/5'
+                  ? 'bg-gradient-to-r from-purple-400/8 to-purple-500/5'
                   : 'bg-gradient-to-r from-slate-800/10 to-slate-800/5'
               }
             `} />
@@ -55,7 +55,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
               ${error
                 ? 'bg-gradient-to-r from-transparent via-red-400/60 to-transparent'
                 : isFocused
-                  ? 'bg-gradient-to-r from-transparent via-cyan-400/60 to-transparent'
+                  ? 'bg-gradient-to-r from-transparent via-purple-400/60 to-transparent'
                   : 'bg-gradient-to-r from-transparent via-slate-600/30 to-transparent'
               }
             `} />
@@ -79,7 +79,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
             {showPasswordToggle && isPassword && (
               <button
                 type="button"
-                className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-200 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-cyan-400/50 focus:ring-offset-2 focus:ring-offset-slate-900 rounded-lg"
+                className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-200 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-purple-400/50 focus:ring-offset-2 focus:ring-offset-slate-900 rounded-lg"
                 onClick={togglePasswordVisibility}
               >
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}

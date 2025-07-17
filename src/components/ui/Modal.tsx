@@ -53,7 +53,7 @@ const Modal: React.FC<ModalProps> = ({
         onClick={onClose}
       >
         {/* Premium Trading Dashboard Background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
           {/* Animated Grid Pattern */}
           <div className="absolute inset-0 opacity-10">
             <div className="absolute inset-0 bg-[linear-gradient(rgba(6,182,212,0.3)_1px,transparent_1px),linear-gradient(90deg,rgba(6,182,212,0.3)_1px,transparent_1px)] bg-[size:50px_50px] animate-grid-fade"></div>
@@ -168,8 +168,8 @@ const Modal: React.FC<ModalProps> = ({
       
       {/* Modal container with glass-morphism */}
       <div className={`
-        relative bg-gradient-to-br from-slate-800/70 via-indigo-900/80 to-slate-800/70 
-        backdrop-blur-3xl rounded-[2rem] shadow-2xl border border-slate-600/40
+        relative bg-gradient-to-br from-slate-900/95 via-purple-900/90 to-slate-800/95 
+        backdrop-blur-3xl rounded-[2rem] shadow-2xl border border-purple-400/30
         ${maxWidthClasses[maxWidth]}
         max-h-[90vh] overflow-hidden
         transform transition-all duration-500 ease-out
@@ -177,7 +177,7 @@ const Modal: React.FC<ModalProps> = ({
         mx-auto
       `}>
         {/* Dynamic light bar */}
-        <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-cyan-400/40 to-transparent" />
+        <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-purple-400/50 to-transparent" />
         
         {/* Glass morphism overlay */}
         <div className="absolute inset-0 bg-gradient-to-br from-white/[0.02] via-transparent to-black/10 pointer-events-none" />
@@ -185,14 +185,14 @@ const Modal: React.FC<ModalProps> = ({
         {(title || showCloseButton) && (
           <div className="relative flex items-center justify-between p-6 border-b border-slate-600/30">
             {title && (
-              <h2 className="text-xl font-bold bg-gradient-to-r from-slate-100 via-cyan-200 to-slate-100 bg-clip-text text-transparent">
+              <h2 className="text-xl font-bold bg-gradient-to-r from-slate-100 via-purple-200 to-slate-100 bg-clip-text text-transparent">
                 {title}
               </h2>
             )}
             {showCloseButton && (
               <button
                 onClick={onClose}
-                className="relative group p-2 hover:bg-slate-800/60 rounded-xl transition-all duration-300 border border-transparent hover:border-slate-600/40"
+                className="relative group p-2 hover:bg-purple-800/40 rounded-xl transition-all duration-300 border border-transparent hover:border-purple-400/40"
               >
                 <X className="w-5 h-5 text-slate-400 group-hover:text-white transition-all duration-300 group-hover:rotate-90" />
               </button>

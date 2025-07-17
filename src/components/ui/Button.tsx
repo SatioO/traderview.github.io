@@ -25,10 +25,10 @@ const Button: React.FC<ButtonProps> = ({
       text-white border border-slate-600/40 hover:border-slate-500/60
       shadow-xl hover:shadow-2xl hover:shadow-slate-900/50
       rounded-xl backdrop-blur-sm
-      before:absolute before:inset-0 before:bg-gradient-to-r before:from-cyan-400/0 before:via-cyan-400/0 before:to-cyan-400/0 
-      hover:before:from-cyan-400/10 hover:before:via-cyan-400/5 hover:before:to-cyan-400/10
+      before:absolute before:inset-0 before:bg-gradient-to-r before:from-purple-400/0 before:via-purple-400/0 before:to-purple-400/0 
+      hover:before:from-purple-400/15 hover:before:via-purple-400/8 hover:before:to-purple-400/15
       before:transition-all before:duration-300
-      focus:ring-2 focus:ring-cyan-400/50 focus:ring-offset-2 focus:ring-offset-slate-900
+      focus:ring-2 focus:ring-purple-400/50 focus:ring-offset-2 focus:ring-offset-slate-900
     `,
     secondary: `
       bg-gradient-to-r from-slate-700/50 via-slate-600/50 to-slate-700/50
@@ -72,7 +72,7 @@ const Button: React.FC<ButtonProps> = ({
     >
       {/* Dynamic top border light */}
       {variant === 'primary' && (
-        <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-cyan-400/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+        <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-purple-400/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
       )}
       
       {/* Loading spinner */}
