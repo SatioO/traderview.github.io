@@ -1,0 +1,222 @@
+/* Cinematic Trading Environment Animations */
+
+@keyframes grid-drift {
+  0%, 100% { transform: translateX(0) translateY(0); }
+  25% { transform: translateX(10px) translateY(-5px); }
+  50% { transform: translateX(-5px) translateY(10px); }
+  75% { transform: translateX(5px) translateY(5px); }
+}
+
+@keyframes chart-draw {
+  0% { stroke-dasharray: 0 2000; }
+  100% { stroke-dasharray: 2000 0; }
+}
+
+@keyframes chart-draw-delayed {
+  0%, 20% { stroke-dasharray: 0 2000; }
+  100% { stroke-dasharray: 2000 0; }
+}
+
+@keyframes chart-draw-slow {
+  0%, 40% { stroke-dasharray: 0 2000; }
+  100% { stroke-dasharray: 2000 0; }
+}
+
+@keyframes node-pulse {
+  0%, 100% { opacity: 0.8; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+
+@keyframes node-pulse-delayed {
+  0%, 100% { opacity: 0.7; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.3); }
+}
+
+@keyframes node-pulse-slow {
+  0%, 100% { opacity: 0.9; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.1); }
+}
+
+@keyframes terminal-float {
+  0%, 100% { transform: translateY(0px) translateX(0px) rotateX(0deg); }
+  33% { transform: translateY(-8px) translateX(3px) rotateX(1deg); }
+  66% { transform: translateY(5px) translateX(-2px) rotateX(-0.5deg); }
+}
+
+@keyframes terminal-float-delayed {
+  0%, 100% { transform: translateY(0px) translateX(0px) rotateY(0deg); }
+  25% { transform: translateY(-6px) translateX(-4px) rotateY(1deg); }
+  75% { transform: translateY(4px) translateX(3px) rotateY(-1deg); }
+}
+
+@keyframes terminal-float-slow {
+  0%, 100% { transform: translateY(0px) translateX(0px); }
+  50% { transform: translateY(-10px) translateX(5px); }
+}
+
+@keyframes terminal-float-fast {
+  0%, 100% { transform: translateY(0px) translateX(0px) scale(1); }
+  20% { transform: translateY(-4px) translateX(2px) scale(1.02); }
+  40% { transform: translateY(3px) translateX(-3px) scale(0.98); }
+  60% { transform: translateY(-2px) translateX(4px) scale(1.01); }
+  80% { transform: translateY(2px) translateX(-1px) scale(0.99); }
+}
+
+@keyframes progress-flow {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+@keyframes energy-pulse {
+  0%, 100% { transform: scale(1) rotate(0deg); opacity: 0.3; }
+  25% { transform: scale(1.1) rotate(90deg); opacity: 0.5; }
+  50% { transform: scale(0.9) rotate(180deg); opacity: 0.7; }
+  75% { transform: scale(1.05) rotate(270deg); opacity: 0.4; }
+}
+
+@keyframes energy-pulse-delayed {
+  0%, 100% { transform: scale(1) rotate(0deg); opacity: 0.25; }
+  33% { transform: scale(1.2) rotate(120deg); opacity: 0.6; }
+  66% { transform: scale(0.8) rotate(240deg); opacity: 0.8; }
+}
+
+@keyframes energy-pulse-slow {
+  0%, 100% { transform: scale(1) rotate(0deg); opacity: 0.35; }
+  50% { transform: scale(1.3) rotate(180deg); opacity: 0.7; }
+}
+
+@keyframes data-particle {
+  0% { transform: translateY(0px) translateX(0px) scale(1); opacity: 0.8; }
+  25% { transform: translateY(-30px) translateX(15px) scale(1.2); opacity: 1; }
+  50% { transform: translateY(-20px) translateX(-10px) scale(0.8); opacity: 0.6; }
+  75% { transform: translateY(-40px) translateX(20px) scale(1.1); opacity: 0.9; }
+  100% { transform: translateY(-60px) translateX(0px) scale(0.5); opacity: 0; }
+}
+
+@keyframes data-particle-delayed {
+  0%, 20% { transform: translateY(0px) translateX(0px) scale(1); opacity: 0; }
+  40% { transform: translateY(-25px) translateX(-15px) scale(1.3); opacity: 1; }
+  60% { transform: translateY(-15px) translateX(12px) scale(0.7); opacity: 0.7; }
+  80% { transform: translateY(-35px) translateX(-8px) scale(1.1); opacity: 0.8; }
+  100% { transform: translateY(-50px) translateX(5px) scale(0.4); opacity: 0; }
+}
+
+@keyframes data-particle-slow {
+  0% { transform: translateY(0px) translateX(0px) scale(1); opacity: 0.6; }
+  30% { transform: translateY(-20px) translateX(10px) scale(1.1); opacity: 1; }
+  60% { transform: translateY(-10px) translateX(-8px) scale(0.9); opacity: 0.7; }
+  100% { transform: translateY(-40px) translateX(15px) scale(0.6); opacity: 0; }
+}
+
+@keyframes data-particle-fast {
+  0% { transform: translateY(0px) translateX(0px) scale(1); opacity: 0.9; }
+  20% { transform: translateY(-15px) translateX(8px) scale(1.2); opacity: 1; }
+  40% { transform: translateY(-8px) translateX(-12px) scale(0.8); opacity: 0.8; }
+  60% { transform: translateY(-25px) translateX(6px) scale(1.1); opacity: 0.6; }
+  80% { transform: translateY(-18px) translateX(-4px) scale(0.9); opacity: 0.4; }
+  100% { transform: translateY(-35px) translateX(10px) scale(0.5); opacity: 0; }
+}
+
+@keyframes ambient-shift {
+  0%, 100% { transform: rotate(0deg) scale(1); }
+  25% { transform: rotate(1deg) scale(1.05); }
+  50% { transform: rotate(-0.5deg) scale(0.95); }
+  75% { transform: rotate(0.8deg) scale(1.02); }
+}
+
+@keyframes atmospheric-drift {
+  0%, 100% { opacity: 0.8; transform: translateX(0px) translateY(0px); }
+  25% { opacity: 0.6; transform: translateX(20px) translateY(-10px); }
+  50% { opacity: 1; transform: translateX(-15px) translateY(15px); }
+  75% { opacity: 0.7; transform: translateX(10px) translateY(-5px); }
+}
+
+/* Apply animations with different durations */
+.animate-grid-drift {
+  animation: grid-drift 20s ease-in-out infinite;
+}
+
+.animate-chart-draw {
+  animation: chart-draw 4s ease-out forwards;
+}
+
+.animate-chart-draw-delayed {
+  animation: chart-draw-delayed 5s ease-out forwards;
+}
+
+.animate-chart-draw-slow {
+  animation: chart-draw-slow 6s ease-out forwards;
+}
+
+.animate-node-pulse {
+  animation: node-pulse 3s ease-in-out infinite;
+}
+
+.animate-node-pulse-delayed {
+  animation: node-pulse-delayed 2.5s ease-in-out infinite 0.5s;
+}
+
+.animate-node-pulse-slow {
+  animation: node-pulse-slow 4s ease-in-out infinite 1s;
+}
+
+.animate-terminal-float {
+  animation: terminal-float 8s ease-in-out infinite;
+}
+
+.animate-terminal-float-delayed {
+  animation: terminal-float-delayed 10s ease-in-out infinite 2s;
+}
+
+.animate-terminal-float-slow {
+  animation: terminal-float-slow 12s ease-in-out infinite 1s;
+}
+
+.animate-terminal-float-fast {
+  animation: terminal-float-fast 6s ease-in-out infinite 0.5s;
+}
+
+.animate-progress-flow {
+  animation: progress-flow 3s ease-in-out infinite;
+}
+
+.animate-energy-pulse {
+  animation: energy-pulse 8s ease-in-out infinite;
+}
+
+.animate-energy-pulse-delayed {
+  animation: energy-pulse-delayed 10s ease-in-out infinite 3s;
+}
+
+.animate-energy-pulse-slow {
+  animation: energy-pulse-slow 12s ease-in-out infinite 1.5s;
+}
+
+.animate-data-particle {
+  animation: data-particle 4s linear infinite;
+}
+
+.animate-data-particle-delayed {
+  animation: data-particle-delayed 5s linear infinite 1s;
+}
+
+.animate-data-particle-slow {
+  animation: data-particle-slow 6s linear infinite 2s;
+}
+
+.animate-data-particle-fast {
+  animation: data-particle-fast 3s linear infinite 0.5s;
+}
+
+.animate-ambient-shift {
+  animation: ambient-shift 15s ease-in-out infinite;
+}
+
+.animate-atmospheric-drift {
+  animation: atmospheric-drift 18s ease-in-out infinite;
+}
+
+/* Utility classes for gradient effects */
+.bg-gradient-radial {
+  background: radial-gradient(circle, var(--tw-gradient-stops));
+}
