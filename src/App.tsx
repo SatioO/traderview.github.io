@@ -1,8 +1,9 @@
 import './App.css';
-import TradingCalculator from './containers/TradingCalculator';
+import { BrowserRouter } from 'react-router-dom';
 import { SettingsProvider, useSettings } from './contexts/SettingsContext';
 import { AuthProvider } from './contexts/AuthContext';
 import AuthGuard from './components/auth/AuthGuard';
+import AppRoutes from './routes/AppRoutes';
 import LoadingScreen from './components/LoadingScreen';
 
 function AppContent() {
@@ -11,18 +12,24 @@ function AppContent() {
   return (
     <AuthGuard>
       <LoadingScreen isLoading={isLoading} />
-      {!isLoading && <TradingCalculator />}
+      {!isLoading && <AppRoutes />}
     </AuthGuard>
   );
 }
 
 function App() {
+  const basename = import.meta.env.MODE === 'development' 
+    ? '/' 
+    : import.meta.env.VITE_BASE_PATH || '/';
+
   return (
-    <AuthProvider>
-      <SettingsProvider>
-        <AppContent />
-      </SettingsProvider>
-    </AuthProvider>
+    <BrowserRouter basename={basename}>
+      <AuthProvider>
+        <SettingsProvider>
+          <AppContent />
+        </SettingsProvider>
+      </AuthProvider>
+    </BrowserRouter>
   );
 }
 

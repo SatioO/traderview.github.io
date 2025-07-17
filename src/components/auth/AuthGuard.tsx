@@ -3,7 +3,6 @@ import { useAuth } from '../../contexts/AuthContext';
 import LoginModal from './LoginModal';
 import SignupModal from './SignupModal';
 import ForgotPasswordModal from './ForgotPasswordModal';
-import LoadingScreen from '../LoadingScreen';
 
 type AuthModalType = 'login' | 'signup' | 'forgotPassword' | null;
 
@@ -24,7 +23,7 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
   }, [isAuthenticated, isLoading]);
 
   if (isLoading) {
-    return <LoadingScreen isLoading={true} />;
+    return null;
   }
 
   if (!isAuthenticated) {
