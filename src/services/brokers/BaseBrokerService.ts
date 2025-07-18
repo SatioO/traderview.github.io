@@ -27,7 +27,7 @@ export abstract class BaseBrokerService implements BrokerAuthProvider {
   abstract isTokenValid(): boolean;
 
   // Default implementation for common methods
-  initiateLogin(additionalConfig?: any): void {
+  initiateLogin(additionalConfig?: Record<string, unknown>): void {
     if (!this.validateConfig()) {
       throw new Error(`${this.displayName} is not properly configured`);
     }
@@ -79,7 +79,7 @@ export abstract class BaseBrokerService implements BrokerAuthProvider {
     return true;
   }
 
-  protected async makeBackendRequest(endpoint: string, data: any): Promise<BrokerAuthResponse> {
+  protected async makeBackendRequest(endpoint: string, data: Record<string, unknown>): Promise<BrokerAuthResponse> {
     const response = await fetch(`${this.apiBaseUrl}/auth/${this.name}/${endpoint}`, {
       method: 'POST',
       headers: {
