@@ -10,9 +10,6 @@ export interface SignupRequest {
   password: string;
 }
 
-export interface ForgotPasswordRequest {
-  email: string;
-}
 
 export interface AuthResponse {
   token: string;
@@ -66,22 +63,6 @@ const authService = {
     return response.json();
   },
 
-  async forgotPassword(data: ForgotPasswordRequest): Promise<{ message: string }> {
-    const response = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data),
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Password reset failed');
-    }
-
-    return response.json();
-  },
 
   async logout(): Promise<void> {
     const token = localStorage.getItem('authToken');
@@ -135,6 +116,23 @@ const authService = {
   storeAuthData(token: string, user: AuthResponse['user']): void {
     localStorage.setItem('authToken', token);
     localStorage.setItem('user', JSON.stringify(user));
+  },
+
+  getStoredKiteToken(): string | null {
+    return localStorage.getItem('kite_access_token');
+  },
+
+  isKiteTokenValid(): boolean {
+    const token = this.getStoredKiteToken();
+    if (!token) return false;
+
+    // Check if token is expired (Kite tokens expire at 6 AM next day)
+    const now = new Date();
+    const nextDay = new Date(now);
+    nextDay.setDate(now.getDate() + 1);
+    nextDay.setHours(6, 0, 0, 0);
+
+    return now < nextDay;
   },
 };
 

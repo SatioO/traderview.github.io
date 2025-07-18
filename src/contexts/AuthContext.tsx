@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useState, type ReactNode } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import authService, { type LoginRequest, type SignupRequest, type ForgotPasswordRequest, type AuthResponse } from '../services/authService';
+import authService, { type LoginRequest, type SignupRequest, type AuthResponse } from '../services/authService';
+import { getAvailableBrokers, getBrokerService } from '../services/brokers';
+import { type BrokerAuthResponse, type BrokerCallbackData } from '../types/broker';
 
 interface AuthContextType {
   user: AuthResponse['user'] | null;
@@ -8,16 +10,16 @@ interface AuthContextType {
   isLoading: boolean;
   login: (credentials: LoginRequest) => Promise<AuthResponse>;
   signup: (userData: SignupRequest) => Promise<AuthResponse>;
-  forgotPassword: (data: ForgotPasswordRequest) => Promise<{ message: string }>;
   logout: () => Promise<void>;
   loginError: string | null;
   signupError: string | null;
-  forgotPasswordError: string | null;
   isLoginLoading: boolean;
   isSignupLoading: boolean;
-  isForgotPasswordLoading: boolean;
-  forgotPasswordSuccess: boolean;
   clearErrors: () => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  availableBrokers: any[];
+  loginWithBroker: (brokerName: string) => void;
+  handleBrokerCallback: (data: BrokerCallbackData) => Promise<BrokerAuthResponse>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -31,9 +33,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
   const [signupError, setSignupError] = useState<string | null>(null);
-  const [forgotPasswordError, setForgotPasswordError] = useState<string | null>(null);
-  const [forgotPasswordSuccess, setForgotPasswordSuccess] = useState(false);
   const queryClient = useQueryClient();
+  
+  // Get available brokers
+  const availableBrokers = getAvailableBrokers();
 
   const { isLoading: isVerifyLoading } = useQuery({
     queryKey: ['verifyToken'],
@@ -53,10 +56,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           throw error;
         }
       } else {
-        setUser(null);
-        setIsAuthenticated(false);
-        throw new Error('No stored credentials');
+        // Check if any broker has a valid token
+        const validBroker = availableBrokers.find(broker => broker.isTokenValid());
+        if (validBroker && storedUser) {
+          setUser(storedUser);
+          setIsAuthenticated(true);
+          return storedUser;
+        }
       }
+      
+      setUser(null);
+      setIsAuthenticated(false);
+      throw new Error('No stored credentials');
     },
     retry: false,
     staleTime: 5 * 60 * 1000,
@@ -96,20 +107,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     },
   });
 
-  const forgotPasswordMutation = useMutation({
-    mutationFn: async (data: ForgotPasswordRequest) => {
-      setForgotPasswordError(null);
-      setForgotPasswordSuccess(false);
-      const response = await authService.forgotPassword(data);
-      return response;
-    },
-    onSuccess: () => {
-      setForgotPasswordSuccess(true);
-    },
-    onError: (error: Error) => {
-      setForgotPasswordError(error.message);
-    },
-  });
 
   const logout = async () => {
     await authService.logout();
@@ -121,8 +118,37 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const clearErrors = () => {
     setLoginError(null);
     setSignupError(null);
-    setForgotPasswordError(null);
-    setForgotPasswordSuccess(false);
+  };
+
+  const loginWithBroker = (brokerName: string) => {
+    try {
+      const broker = getBrokerService(brokerName);
+      broker.initiateLogin();
+    } catch (error) {
+      setLoginError(error instanceof Error ? error.message : `${brokerName} login failed`);
+    }
+  };
+
+  const handleBrokerCallback = async (data: BrokerCallbackData): Promise<BrokerAuthResponse> => {
+    try {
+      setLoginError(null);
+      const broker = getBrokerService(data.broker);
+      const response = await broker.handleCallback(data);
+      
+      // Store auth data
+      authService.storeAuthData(response.accessToken, response.user);
+      broker.storeToken(response.accessToken);
+      
+      setUser(response.user);
+      setIsAuthenticated(true);
+      queryClient.invalidateQueries({ queryKey: ['verifyToken'] });
+      
+      return response;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Broker authentication failed';
+      setLoginError(errorMessage);
+      throw error;
+    }
   };
 
   const value: AuthContextType = {
@@ -131,16 +157,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     isLoading: isVerifyLoading,
     login: loginMutation.mutateAsync,
     signup: signupMutation.mutateAsync,
-    forgotPassword: forgotPasswordMutation.mutateAsync,
     logout,
     loginError,
     signupError,
-    forgotPasswordError,
     isLoginLoading: loginMutation.isPending,
     isSignupLoading: signupMutation.isPending,
-    isForgotPasswordLoading: forgotPasswordMutation.isPending,
-    forgotPasswordSuccess,
     clearErrors,
+    availableBrokers,
+    loginWithBroker,
+    handleBrokerCallback,
   };
 
   return (
