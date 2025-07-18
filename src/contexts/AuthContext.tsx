@@ -1,8 +1,21 @@
-import React, { createContext, useContext, useState, type ReactNode } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  type ReactNode,
+} from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import authService, { type LoginRequest, type SignupRequest, type AuthResponse } from '../services/authService';
+import authService, {
+  type LoginRequest,
+  type SignupRequest,
+  type AuthResponse,
+} from '../services/authService';
 import { getAvailableBrokers, getBrokerService } from '../services/brokers';
-import { type BrokerAuthResponse, type BrokerCallbackData } from '../types/broker';
+import {
+  type BrokerAuthResponse,
+  type BrokerCallbackData,
+} from '../types/broker';
 
 interface AuthContextType {
   user: AuthResponse['user'] | null;
@@ -19,7 +32,9 @@ interface AuthContextType {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   availableBrokers: any[];
   loginWithBroker: (brokerName: string) => void;
-  handleBrokerCallback: (data: BrokerCallbackData) => Promise<BrokerAuthResponse>;
+  handleBrokerCallback: (
+    data: BrokerCallbackData
+  ) => Promise<BrokerAuthResponse>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -34,7 +49,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [loginError, setLoginError] = useState<string | null>(null);
   const [signupError, setSignupError] = useState<string | null>(null);
   const queryClient = useQueryClient();
-  
+
   // Get available brokers
   const availableBrokers = getAvailableBrokers();
 
@@ -43,28 +58,24 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     queryFn: async () => {
       const token = authService.getStoredToken();
       const storedUser = authService.getStoredUser();
-      
+
+      // Check if we have a valid application token and user
       if (token && storedUser) {
-        try {
-          const verifiedUser = await authService.verifyToken();
-          setUser(verifiedUser);
-          setIsAuthenticated(true);
-          return verifiedUser;
-        } catch (error) {
-          setUser(null);
-          setIsAuthenticated(false);
-          throw error;
-        }
-      } else {
-        // Check if any broker has a valid token
-        const validBroker = availableBrokers.find(broker => broker.isTokenValid());
-        if (validBroker && storedUser) {
-          setUser(storedUser);
-          setIsAuthenticated(true);
-          return storedUser;
-        }
+        setUser(storedUser);
+        setIsAuthenticated(true);
+        return storedUser;
       }
-      
+
+      // Check if any broker has a valid token
+      const validBroker = availableBrokers.find((broker) =>
+        broker.isTokenValid()
+      );
+      if (validBroker && storedUser) {
+        setUser(storedUser);
+        setIsAuthenticated(true);
+        return storedUser;
+      }
+
       setUser(null);
       setIsAuthenticated(false);
       throw new Error('No stored credentials');
@@ -107,9 +118,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     },
   });
 
-
   const logout = async () => {
     await authService.logout();
+
+    // Clear broker tokens
+    availableBrokers.forEach((broker) => {
+      broker.removeToken();
+    });
+
     setUser(null);
     setIsAuthenticated(false);
     queryClient.clear();
@@ -120,36 +136,44 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setSignupError(null);
   };
 
-  const loginWithBroker = (brokerName: string) => {
+  const loginWithBroker = useCallback((brokerName: string) => {
     try {
       const broker = getBrokerService(brokerName);
       broker.initiateLogin();
     } catch (error) {
-      setLoginError(error instanceof Error ? error.message : `${brokerName} login failed`);
+      setLoginError(
+        error instanceof Error ? error.message : `${brokerName} login failed`
+      );
     }
-  };
+  }, []);
 
-  const handleBrokerCallback = async (data: BrokerCallbackData): Promise<BrokerAuthResponse> => {
-    try {
-      setLoginError(null);
-      const broker = getBrokerService(data.broker);
-      const response = await broker.handleCallback(data);
-      
-      // Store auth data
-      authService.storeAuthData(response.accessToken, response.user);
-      broker.storeToken(response.accessToken);
-      
-      setUser(response.user);
-      setIsAuthenticated(true);
-      queryClient.invalidateQueries({ queryKey: ['verifyToken'] });
-      
-      return response;
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Broker authentication failed';
-      setLoginError(errorMessage);
-      throw error;
-    }
-  };
+  const handleBrokerCallback = useCallback(
+    async (data: BrokerCallbackData): Promise<BrokerAuthResponse> => {
+      try {
+        setLoginError(null);
+        const broker = getBrokerService(data.broker);
+        const response = await broker.handleCallback(data);
+        console.log(response);
+
+        // Store tokens - use broker service as primary storage for broker tokens
+        // and authService for user data and general app authentication
+        broker.storeToken(response.accessToken);
+        authService.storeAuthData(response.accessToken, response.user);
+
+        setUser(response.user);
+        setIsAuthenticated(true);
+        queryClient.invalidateQueries({ queryKey: ['verifyToken'] });
+
+        return response;
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : 'Broker authentication failed';
+        setLoginError(errorMessage);
+        throw error;
+      }
+    },
+    [queryClient]
+  );
 
   const value: AuthContextType = {
     user,
@@ -168,11 +192,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     handleBrokerCallback,
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 // eslint-disable-next-line react-refresh/only-export-components

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useSearchParams, useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import LoadingScreen from '../LoadingScreen';
@@ -10,12 +10,19 @@ const BrokerCallback: React.FC = () => {
   const { handleBrokerCallback } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(true);
+  const hasProcessed = useRef(false);
 
   useEffect(() => {
     const processBrokerCallback = async () => {
+      // Prevent duplicate processing
+      if (hasProcessed.current) {
+        return;
+      }
+      
       try {
         if (!brokerName) {
           setError('Missing broker name');
+          setIsProcessing(false);
           return;
         }
 
@@ -23,6 +30,22 @@ const BrokerCallback: React.FC = () => {
         const authCode = searchParams.get('code');
         const state = searchParams.get('state');
         const action = searchParams.get('action');
+
+        // Validate that we have the required parameters
+        if (action !== 'login') {
+          setError('Invalid callback parameters');
+          setIsProcessing(false);
+          return;
+        }
+
+        if (!requestToken && !authCode) {
+          setError(`Missing authentication token from ${brokerName}`);
+          setIsProcessing(false);
+          return;
+        }
+
+        // Mark as processed before making the API call to prevent duplicates
+        hasProcessed.current = true;
 
         // Prepare callback data based on broker type
         const callbackData = {
@@ -32,23 +55,20 @@ const BrokerCallback: React.FC = () => {
           authCode: authCode || undefined,
         };
 
-        if (action === 'login' && (requestToken || authCode)) {
-          await handleBrokerCallback(callbackData);
-          navigate('/', { replace: true });
-        } else if (action === 'login') {
-          setError(`Missing authentication token from ${brokerName}`);
-        } else {
-          setError('Invalid callback parameters');
-        }
+        await handleBrokerCallback(callbackData);
+        navigate('/', { replace: true });
       } catch (error) {
+        hasProcessed.current = false; // Reset on error to allow retry
         setError(error instanceof Error ? error.message : 'Authentication failed');
-      } finally {
         setIsProcessing(false);
       }
     };
 
-    processBrokerCallback();
-  }, [searchParams, handleBrokerCallback, navigate, brokerName]);
+    // Only run once when component mounts with the URL parameters
+    if (!hasProcessed.current) {
+      processBrokerCallback();
+    }
+  }, []); // Empty dependency array to run only once
 
   if (isProcessing) {
     return <LoadingScreen isLoading={true} />;

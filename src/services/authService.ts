@@ -82,27 +82,6 @@ const authService = {
     localStorage.removeItem('user');
   },
 
-  async verifyToken(): Promise<AuthResponse['user']> {
-    const token = localStorage.getItem('authToken');
-    if (!token) {
-      throw new Error('No token found');
-    }
-
-    const response = await fetch(`${API_BASE_URL}/auth/verify`, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
-    });
-
-    if (!response.ok) {
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('user');
-      throw new Error('Token verification failed');
-    }
-
-    const data = await response.json();
-    return data.user;
-  },
 
   getStoredToken(): string | null {
     return localStorage.getItem('authToken');
@@ -116,23 +95,6 @@ const authService = {
   storeAuthData(token: string, user: AuthResponse['user']): void {
     localStorage.setItem('authToken', token);
     localStorage.setItem('user', JSON.stringify(user));
-  },
-
-  getStoredKiteToken(): string | null {
-    return localStorage.getItem('kite_access_token');
-  },
-
-  isKiteTokenValid(): boolean {
-    const token = this.getStoredKiteToken();
-    if (!token) return false;
-
-    // Check if token is expired (Kite tokens expire at 6 AM next day)
-    const now = new Date();
-    const nextDay = new Date(now);
-    nextDay.setDate(now.getDate() + 1);
-    nextDay.setHours(6, 0, 0, 0);
-
-    return now < nextDay;
   },
 };
 
