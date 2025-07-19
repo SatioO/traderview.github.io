@@ -1173,87 +1173,74 @@ const TradingCalculator: React.FC = () => {
                     </div>
 
                     {/* Trading Capital - Premium Compact Design */}
-                    <div className="relative group">
-                      {/* Level Indicator Strip */}
-                      <div
-                        className={`absolute left-0 top-0 bottom-0 w-1 rounded-l-xl transition-all duration-300 ${
-                          formData.accountBalance >= 50000000
-                            ? 'bg-gradient-to-b from-purple-400 to-pink-500'
-                            : formData.accountBalance >= 20000000
-                            ? 'bg-gradient-to-b from-indigo-400 to-purple-500'
-                            : formData.accountBalance >= 10000000
-                            ? 'bg-gradient-to-b from-blue-400 to-indigo-500'
-                            : formData.accountBalance >= 5000000
-                            ? 'bg-gradient-to-b from-cyan-400 to-blue-500'
-                            : formData.accountBalance >= 2500000
-                            ? 'bg-gradient-to-b from-green-400 to-cyan-500'
-                            : formData.accountBalance >= 1000000
-                            ? 'bg-gradient-to-b from-yellow-400 to-green-500'
-                            : formData.accountBalance >= 500000
-                            ? 'bg-gradient-to-b from-orange-400 to-yellow-500'
-                            : 'bg-gradient-to-b from-red-400 to-orange-500'
+                    <div 
+                      onClick={handleCapitalEdit}
+                      className="relative overflow-hidden rounded-2xl cursor-pointer group"
+                    >
+                      {/* Sophisticated Background Gradient */}
+                      <div className="absolute inset-0 bg-gradient-to-br from-black/30 via-purple-900/10 to-black/30"></div>
+                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-purple-500/5 to-transparent group-hover:via-purple-400/10 transition-all duration-300"></div>
+                      
+                      {/* Premium Border Treatment */}
+                      <div 
+                        className={`absolute inset-0 rounded-2xl border-2 transition-all duration-300 ${
+                          formData.accountBalance >= 50000000 ? 'border-purple-400/40 group-hover:border-purple-400/60 group-hover:shadow-lg group-hover:shadow-purple-500/20' :
+                          formData.accountBalance >= 20000000 ? 'border-indigo-400/40 group-hover:border-indigo-400/60 group-hover:shadow-lg group-hover:shadow-indigo-500/20' :
+                          formData.accountBalance >= 10000000 ? 'border-blue-400/40 group-hover:border-blue-400/60 group-hover:shadow-lg group-hover:shadow-blue-500/20' :
+                          formData.accountBalance >= 5000000 ? 'border-cyan-400/40 group-hover:border-cyan-400/60 group-hover:shadow-lg group-hover:shadow-cyan-500/20' :
+                          formData.accountBalance >= 2500000 ? 'border-green-400/40 group-hover:border-green-400/60 group-hover:shadow-lg group-hover:shadow-green-500/20' :
+                          formData.accountBalance >= 1000000 ? 'border-yellow-400/40 group-hover:border-yellow-400/60 group-hover:shadow-lg group-hover:shadow-yellow-500/20' :
+                          formData.accountBalance >= 500000 ? 'border-orange-400/40 group-hover:border-orange-400/60 group-hover:shadow-lg group-hover:shadow-orange-500/20' : 
+                          'border-red-400/40 group-hover:border-red-400/60 group-hover:shadow-lg group-hover:shadow-red-500/20'
                         }`}
                       />
-
-                      {/* Main Card */}
-                      <div
-                        onClick={handleCapitalEdit}
-                        className="relative bg-black/20 hover:bg-black/30 border border-purple-500/20 hover:border-purple-400/30 rounded-xl ml-1 transition-all duration-200 cursor-pointer group/card"
-                      >
-                        <div className="flex items-center justify-between p-4">
-                          {/* Left: Icon + Amount */}
-                          <div className="flex items-center space-x-3">
-                            <div className="relative">
-                              <div className="w-8 h-8 bg-purple-500/10 border border-purple-500/30 rounded-lg flex items-center justify-center group-hover/card:bg-purple-500/20 transition-colors">
-                                <Banknote className="w-4 h-4 text-purple-400" />
-                              </div>
+                      
+                      {/* Content Layer */}
+                      <div className="relative z-10">
+                        {/* Section Header */}
+                        <div className="flex items-center justify-between px-4 pt-3 pb-2">
+                          <div className="flex items-center space-x-2">
+                            <Banknote className="w-4 h-4 text-purple-400" />
+                            <h3 className="text-sm font-semibold text-gray-300">Trading Capital</h3>
+                          </div>
+                          <div className="text-xs text-gray-500">Initial Capital</div>
+                        </div>
+                        
+                        <div className="flex items-center justify-between px-4 pb-4">
+                          {/* Left: Amount + Progress */}
+                          <div className="space-y-1">
+                            <div className="flex items-baseline space-x-2">
+                              <span className="text-2xl font-bold text-white tracking-tight">
+                                {formatCurrencyWithSuffix(formData.accountBalance)}
+                              </span>
+                              {/* Future: Available balance will go here */}
                             </div>
 
-                            <div className="space-y-0.5">
-                              <div className="flex items-baseline space-x-1">
-                                <span className="text-xl font-bold text-white tracking-tight">
-                                  {formatCurrencyWithSuffix(
-                                    formData.accountBalance
-                                  )}
-                                </span>
-                                <span className="text-xs text-gray-500 font-medium">
-                                  Capital
-                                </span>
-                              </div>
-
-                              {/* Minimal Progress Dots */}
-                              <div className="flex items-center space-x-1">
-                                {[1, 2, 3, 4, 5].map((dot) => {
-                                  const progress = Math.min(
-                                    formData.accountBalance >= 50000000
-                                      ? 100
-                                      : formData.accountBalance >= 20000000
-                                      ? 80
-                                      : formData.accountBalance >= 10000000
-                                      ? 60
-                                      : formData.accountBalance >= 5000000
-                                      ? 40
-                                      : formData.accountBalance >= 2500000
-                                      ? 20
-                                      : formData.accountBalance >= 1000000
-                                      ? 10
-                                      : 5,
+                            {/* Elegant Progress Bar */}
+                            <div className="w-20 bg-black/40 rounded-full h-1.5 overflow-hidden">
+                              <div
+                                className={`h-full rounded-full transition-all duration-1000 ease-out ${
+                                  formData.accountBalance >= 50000000 ? 'bg-purple-400' :
+                                  formData.accountBalance >= 20000000 ? 'bg-indigo-400' :
+                                  formData.accountBalance >= 10000000 ? 'bg-blue-400' :
+                                  formData.accountBalance >= 5000000 ? 'bg-cyan-400' :
+                                  formData.accountBalance >= 2500000 ? 'bg-green-400' :
+                                  formData.accountBalance >= 1000000 ? 'bg-yellow-400' :
+                                  formData.accountBalance >= 500000 ? 'bg-orange-400' : 'bg-red-400'
+                                }`}
+                                style={{
+                                  width: `${Math.min(
+                                    formData.accountBalance >= 50000000 ? 100 :
+                                    formData.accountBalance >= 20000000 ? 85 :
+                                    formData.accountBalance >= 10000000 ? 70 :
+                                    formData.accountBalance >= 5000000 ? 55 :
+                                    formData.accountBalance >= 2500000 ? 40 :
+                                    formData.accountBalance >= 1000000 ? 25 :
+                                    formData.accountBalance >= 500000 ? 15 : 5,
                                     100
-                                  );
-                                  const isActive = progress >= dot * 20;
-
-                                  return (
-                                    <div
-                                      key={dot}
-                                      className={`w-1 h-1 rounded-full transition-all duration-300 ${
-                                        isActive
-                                          ? 'bg-purple-400'
-                                          : 'bg-gray-600'
-                                      }`}
-                                    />
-                                  );
-                                })}
-                              </div>
+                                  )}%`,
+                                }}
+                              />
                             </div>
                           </div>
 
@@ -1262,22 +1249,22 @@ const TradingCalculator: React.FC = () => {
                             {/* Level Badge */}
                             <div className="relative">
                               <div
-                                className={`px-2.5 py-1 rounded-md text-xs font-bold border transition-all duration-200 ${
+                                className={`px-3 py-1.5 rounded-xl text-xs font-bold border-2 transition-all duration-200 ${
                                   formData.accountBalance >= 50000000
-                                    ? 'bg-purple-500/15 border-purple-500/30 text-purple-300'
+                                    ? 'bg-purple-500/15 border-purple-500/40 text-purple-300'
                                     : formData.accountBalance >= 20000000
-                                    ? 'bg-indigo-500/15 border-indigo-500/30 text-indigo-300'
+                                    ? 'bg-indigo-500/15 border-indigo-500/40 text-indigo-300'
                                     : formData.accountBalance >= 10000000
-                                    ? 'bg-blue-500/15 border-blue-500/30 text-blue-300'
+                                    ? 'bg-blue-500/15 border-blue-500/40 text-blue-300'
                                     : formData.accountBalance >= 5000000
-                                    ? 'bg-cyan-500/15 border-cyan-500/30 text-cyan-300'
+                                    ? 'bg-cyan-500/15 border-cyan-500/40 text-cyan-300'
                                     : formData.accountBalance >= 2500000
-                                    ? 'bg-green-500/15 border-green-500/30 text-green-300'
+                                    ? 'bg-green-500/15 border-green-500/40 text-green-300'
                                     : formData.accountBalance >= 1000000
-                                    ? 'bg-yellow-500/15 border-yellow-500/30 text-yellow-300'
+                                    ? 'bg-yellow-500/15 border-yellow-500/40 text-yellow-300'
                                     : formData.accountBalance >= 500000
-                                    ? 'bg-orange-500/15 border-orange-500/30 text-orange-300'
-                                    : 'bg-red-500/15 border-red-500/30 text-red-300'
+                                    ? 'bg-orange-500/15 border-orange-500/40 text-orange-300'
+                                    : 'bg-red-500/15 border-red-500/40 text-red-300'
                                 }`}
                               >
                                 {(() => {
@@ -1295,7 +1282,7 @@ const TradingCalculator: React.FC = () => {
                             </div>
 
                             {/* Edit Icon */}
-                            <div className="w-6 h-6 flex items-center justify-center opacity-40 group-hover/card:opacity-100 transition-opacity">
+                            <div className="w-6 h-6 flex items-center justify-center opacity-40 group-hover:opacity-100 transition-opacity">
                               <Edit className="w-3.5 h-3.5 text-purple-400" />
                             </div>
                           </div>
