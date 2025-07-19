@@ -17,11 +17,13 @@ import {
   Settings,
   Plus,
   Minus,
+  LogOut,
 } from 'lucide-react';
 import { initializeApp } from 'firebase/app';
 import { getAnalytics } from 'firebase/analytics';
 import { useTradingSettings } from '../../hooks/useTradingSettings';
 import { useSettings } from '../../contexts/SettingsContext';
+import { useAuth } from '../../contexts/AuthContext';
 import Modal from '../../components/ui/Modal';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
@@ -102,6 +104,7 @@ const TradingCalculator: React.FC = () => {
 
   // Settings context for capital management
   const { settings: settingsContext, updateSettings } = useSettings();
+  const { logout } = useAuth();
 
   // Get allocation level thresholds for risk assessment
   const getAllocationThresholds = () => {
@@ -1115,13 +1118,22 @@ const TradingCalculator: React.FC = () => {
                         </h3>
                       </div>
 
-                      <button
-                        onClick={() => setIsSettingsOpen(true)}
-                        className="p-1.5 bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/30 rounded-lg transition-all duration-200 hover:scale-105"
-                        title="Settings"
-                      >
-                        <Settings className="w-3 h-3 text-emerald-400" />
-                      </button>
+                      <div className="flex items-center space-x-2">
+                        <button
+                          onClick={() => setIsSettingsOpen(true)}
+                          className="p-1.5 bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/30 rounded-lg transition-all duration-200 hover:scale-105"
+                          title="Settings"
+                        >
+                          <Settings className="w-3 h-3 text-emerald-400" />
+                        </button>
+                        <button
+                          onClick={logout}
+                          className="p-1.5 bg-red-600/20 hover:bg-red-600/30 border border-red-500/30 rounded-lg transition-all duration-200 hover:scale-105"
+                          title="Logout"
+                        >
+                          <LogOut className="w-3 h-3 text-red-400" />
+                        </button>
+                      </div>
                     </div>
 
                     {/* Trading Capital - Compact Threat Level Style */}
