@@ -1136,138 +1136,106 @@ const TradingCalculator: React.FC = () => {
                       </div>
                     </div>
 
-                    {/* Trading Capital - Compact Threat Level Style */}
-                    <div className="space-y-3">
-                      {/* Title Row with Capital Level on Right */}
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center">
-                          <Banknote className="w-4 h-4 mr-2 text-emerald-400" />
-                          <span className="text-sm font-medium text-emerald-300">
-                            Trading Capital
-                          </span>
-                          <Info className="inline w-4 h-4 ml-2 text-emerald-400 cursor-help" />
-                        </div>
-
-                        <div className="flex items-center space-x-2">
-                          <span className="text-xs text-emerald-300">
-                            CAPITAL LEVEL
-                          </span>
-                          <div
-                            className={`w-1 h-1 rounded-full animate-pulse ${
-                              formData.accountBalance >= 50000000
-                                ? 'bg-purple-400'
-                                : formData.accountBalance >= 20000000
-                                ? 'bg-indigo-400'
-                                : formData.accountBalance >= 10000000
-                                ? 'bg-blue-400'
-                                : formData.accountBalance >= 5000000
-                                ? 'bg-cyan-400'
-                                : formData.accountBalance >= 2500000
-                                ? 'bg-green-400'
-                                : formData.accountBalance >= 1000000
-                                ? 'bg-yellow-400'
-                                : formData.accountBalance >= 500000
-                                ? 'bg-orange-400'
-                                : 'bg-red-400'
-                            }`}
-                          ></div>
-                          <span
-                            className={`text-xs font-bold ${
-                              formData.accountBalance >= 50000000
-                                ? 'text-purple-400'
-                                : formData.accountBalance >= 20000000
-                                ? 'text-indigo-400'
-                                : formData.accountBalance >= 10000000
-                                ? 'text-blue-400'
-                                : formData.accountBalance >= 5000000
-                                ? 'text-cyan-400'
-                                : formData.accountBalance >= 2500000
-                                ? 'text-green-400'
-                                : formData.accountBalance >= 1000000
-                                ? 'text-yellow-400'
-                                : formData.accountBalance >= 500000
-                                ? 'text-orange-400'
-                                : 'text-red-400'
-                            }`}
-                          >
-                            {(() => {
-                              const amount = formData.accountBalance;
-                              if (amount >= 50000000) return 'ELITE';
-                              if (amount >= 20000000) return 'PROFESSIONAL';
-                              if (amount >= 10000000) return 'ADVANCED';
-                              if (amount >= 5000000) return 'INTERMEDIATE+';
-                              if (amount >= 2500000) return 'INTERMEDIATE';
-                              if (amount >= 1000000) return 'DEVELOPING';
-                              if (amount >= 500000) return 'BEGINNER+';
-                              return 'BEGINNER';
-                            })()}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Compact Progress Bar */}
-                      <div className="w-full bg-black/50 rounded-full h-2 overflow-hidden border border-emerald-500/20">
-                        <div
-                          className={`h-full rounded-full transition-all duration-1000 ease-out ${
-                            formData.accountBalance >= 50000000
-                              ? 'bg-gradient-to-r from-purple-500 to-pink-500'
-                              : formData.accountBalance >= 20000000
-                              ? 'bg-gradient-to-r from-indigo-500 to-purple-500'
-                              : formData.accountBalance >= 10000000
-                              ? 'bg-gradient-to-r from-blue-500 to-indigo-500'
-                              : formData.accountBalance >= 5000000
-                              ? 'bg-gradient-to-r from-cyan-500 to-blue-500'
-                              : formData.accountBalance >= 2500000
-                              ? 'bg-gradient-to-r from-green-500 to-cyan-500'
-                              : formData.accountBalance >= 1000000
-                              ? 'bg-gradient-to-r from-yellow-500 to-green-500'
-                              : formData.accountBalance >= 500000
-                              ? 'bg-gradient-to-r from-orange-500 to-yellow-500'
-                              : 'bg-gradient-to-r from-red-500 to-orange-500'
-                          }`}
-                          style={{
-                            width: `${Math.min(
-                              formData.accountBalance >= 50000000
-                                ? 100
-                                : formData.accountBalance >= 20000000
-                                ? 85
-                                : formData.accountBalance >= 10000000
-                                ? 70
-                                : formData.accountBalance >= 5000000
-                                ? 55
-                                : formData.accountBalance >= 2500000
-                                ? 40
-                                : formData.accountBalance >= 1000000
-                                ? 25
-                                : formData.accountBalance >= 500000
-                                ? 15
-                                : 5,
-                              100
-                            )}%`,
-                          }}
-                        ></div>
-                      </div>
-
-                      {/* Capital Amount Input - Clean Design */}
-                      <div className="relative">
-                        <div className="flex items-center justify-between bg-black/30 rounded-xl p-3 border border-emerald-500/30 group hover:border-emerald-400/50 transition-all duration-300">
-                          <div className="flex-1">
-                            <div className="text-lg font-bold text-white">
-                              {formatCurrencyWithSuffix(
-                                formData.accountBalance
-                              )}
+                    {/* Trading Capital - Premium Compact Design */}
+                    <div className="relative group">
+                      {/* Level Indicator Strip */}
+                      <div 
+                        className={`absolute left-0 top-0 bottom-0 w-1 rounded-l-xl transition-all duration-300 ${
+                          formData.accountBalance >= 50000000 ? 'bg-gradient-to-b from-purple-400 to-pink-500' :
+                          formData.accountBalance >= 20000000 ? 'bg-gradient-to-b from-indigo-400 to-purple-500' :
+                          formData.accountBalance >= 10000000 ? 'bg-gradient-to-b from-blue-400 to-indigo-500' :
+                          formData.accountBalance >= 5000000 ? 'bg-gradient-to-b from-cyan-400 to-blue-500' :
+                          formData.accountBalance >= 2500000 ? 'bg-gradient-to-b from-green-400 to-cyan-500' :
+                          formData.accountBalance >= 1000000 ? 'bg-gradient-to-b from-yellow-400 to-green-500' :
+                          formData.accountBalance >= 500000 ? 'bg-gradient-to-b from-orange-400 to-yellow-500' : 
+                          'bg-gradient-to-b from-red-400 to-orange-500'
+                        }`}
+                      />
+                      
+                      {/* Main Card */}
+                      <div 
+                        onClick={handleCapitalEdit}
+                        className="relative bg-black/20 hover:bg-black/30 border border-purple-500/20 hover:border-purple-400/30 rounded-xl ml-1 transition-all duration-200 cursor-pointer group/card"
+                      >
+                        <div className="flex items-center justify-between p-4">
+                          {/* Left: Icon + Amount */}
+                          <div className="flex items-center space-x-3">
+                            <div className="relative">
+                              <div className="w-8 h-8 bg-purple-500/10 border border-purple-500/30 rounded-lg flex items-center justify-center group-hover/card:bg-purple-500/20 transition-colors">
+                                <Banknote className="w-4 h-4 text-purple-400" />
+                              </div>
                             </div>
-                            <div className="text-xs text-emerald-400">
-                              {formatCapitalCurrency(formData.accountBalance)}
+                            
+                            <div className="space-y-0.5">
+                              <div className="flex items-baseline space-x-1">
+                                <span className="text-xl font-bold text-white tracking-tight">
+                                  {formatCurrencyWithSuffix(formData.accountBalance)}
+                                </span>
+                                <span className="text-xs text-gray-500 font-medium">Capital</span>
+                              </div>
+                              
+                              {/* Minimal Progress Dots */}
+                              <div className="flex items-center space-x-1">
+                                {[1,2,3,4,5].map((dot) => {
+                                  const progress = Math.min(
+                                    formData.accountBalance >= 50000000 ? 100 :
+                                    formData.accountBalance >= 20000000 ? 80 :
+                                    formData.accountBalance >= 10000000 ? 60 :
+                                    formData.accountBalance >= 5000000 ? 40 :
+                                    formData.accountBalance >= 2500000 ? 20 :
+                                    formData.accountBalance >= 1000000 ? 10 : 5,
+                                    100
+                                  );
+                                  const isActive = progress >= (dot * 20);
+                                  
+                                  return (
+                                    <div
+                                      key={dot}
+                                      className={`w-1 h-1 rounded-full transition-all duration-300 ${
+                                        isActive ? 'bg-purple-400' : 'bg-gray-600'
+                                      }`}
+                                    />
+                                  );
+                                })}
+                              </div>
                             </div>
                           </div>
-                          <button
-                            onClick={handleCapitalEdit}
-                            className="p-2 bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/30 rounded-lg transition-all duration-200 hover:scale-105 opacity-70 group-hover:opacity-100"
-                            title="Edit Capital"
-                          >
-                            <Edit className="w-4 h-4 text-emerald-400" />
-                          </button>
+                          
+                          {/* Right: Level Badge + Edit */}
+                          <div className="flex items-center space-x-3">
+                            {/* Level Badge */}
+                            <div className="relative">
+                              <div 
+                                className={`px-2.5 py-1 rounded-md text-xs font-bold border transition-all duration-200 ${
+                                  formData.accountBalance >= 50000000 ? 'bg-purple-500/15 border-purple-500/30 text-purple-300' :
+                                  formData.accountBalance >= 20000000 ? 'bg-indigo-500/15 border-indigo-500/30 text-indigo-300' :
+                                  formData.accountBalance >= 10000000 ? 'bg-blue-500/15 border-blue-500/30 text-blue-300' :
+                                  formData.accountBalance >= 5000000 ? 'bg-cyan-500/15 border-cyan-500/30 text-cyan-300' :
+                                  formData.accountBalance >= 2500000 ? 'bg-green-500/15 border-green-500/30 text-green-300' :
+                                  formData.accountBalance >= 1000000 ? 'bg-yellow-500/15 border-yellow-500/30 text-yellow-300' :
+                                  formData.accountBalance >= 500000 ? 'bg-orange-500/15 border-orange-500/30 text-orange-300' : 
+                                  'bg-red-500/15 border-red-500/30 text-red-300'
+                                }`}
+                              >
+                                {(() => {
+                                  const amount = formData.accountBalance;
+                                  if (amount >= 50000000) return 'ELITE';
+                                  if (amount >= 20000000) return 'PRO';
+                                  if (amount >= 10000000) return 'ADV';
+                                  if (amount >= 5000000) return 'INT+';
+                                  if (amount >= 2500000) return 'INT';
+                                  if (amount >= 1000000) return 'DEV';
+                                  if (amount >= 500000) return 'BEG+';
+                                  return 'BEG';
+                                })()}
+                              </div>
+                            </div>
+                            
+                            {/* Edit Icon */}
+                            <div className="w-6 h-6 flex items-center justify-center opacity-40 group-hover/card:opacity-100 transition-opacity">
+                              <Edit className="w-3.5 h-3.5 text-purple-400" />
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
