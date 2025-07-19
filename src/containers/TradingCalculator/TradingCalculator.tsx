@@ -13,11 +13,19 @@ import {
   PieChart,
   ArrowUp,
   OctagonX,
+  Edit,
+  Settings,
+  Plus,
+  Minus,
 } from 'lucide-react';
 import { initializeApp } from 'firebase/app';
 import { getAnalytics } from 'firebase/analytics';
-import SettingsButton from '../../components/Settings/SettingsButton';
 import { useTradingSettings } from '../../hooks/useTradingSettings';
+import { useSettings } from '../../contexts/SettingsContext';
+import Modal from '../../components/ui/Modal';
+import Button from '../../components/ui/Button';
+import Input from '../../components/ui/Input';
+import SettingsModal from '../../components/Settings/SettingsModal';
 import type {
   FormData,
   Calculations,
@@ -49,6 +57,8 @@ const getRiskLevelIcon = (): React.ComponentType<{ className?: string }> => {
 
 const TradingCalculator: React.FC = () => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [showCapitalEdit, setShowCapitalEdit] = useState(false);
+  const [tempCapital, setTempCapital] = useState('');
   const [formData, setFormData] = useState<FormData>({
     accountBalance: 1000000,
     riskPercentage: 0.25,
@@ -80,7 +90,6 @@ const TradingCalculator: React.FC = () => {
     settings,
     getRiskLevels,
     getAllocationLevels,
-    handleAccountBalanceChange: updateAccountBalance,
     handleMarketHealthChange: updateMarketHealth,
     handleActiveTabChange: updateActiveTab,
     handleRiskLevelChange: updateRiskLevel,
@@ -90,6 +99,9 @@ const TradingCalculator: React.FC = () => {
     setActiveTab,
     setIsDarkMode,
   });
+
+  // Settings context for capital management
+  const { settings: settingsContext, updateSettings } = useSettings();
 
   // Get allocation level thresholds for risk assessment
   const getAllocationThresholds = () => {
@@ -511,14 +523,73 @@ const TradingCalculator: React.FC = () => {
     setCalculations(result);
   }, [calculatePositionSize, activeTab]);
 
-  const handleAccountBalanceChange = (value: number) => {
-    setFormData({ ...formData, accountBalance: value });
-    updateAccountBalance(value);
-  };
-
   const handleMarketSizingChange = (health: MarketHealth) => {
     setFormData({ ...formData, marketHealth: health });
     updateMarketHealth(health);
+  };
+
+  // Capital management functions
+  const formatCapitalCurrency = (amount: number): string => {
+    return `${settingsContext.currencySymbol}${amount.toLocaleString('en-IN')}`;
+  };
+
+  const formatCurrencyShort = (amount: number): string => {
+    if (amount >= 10000000) {
+      return `${(amount / 10000000).toFixed(1)}Cr`;
+    } else if (amount >= 100000) {
+      return `${(amount / 100000).toFixed(1)}L`;
+    } else if (amount >= 1000) {
+      return `${(amount / 1000).toFixed(1)}K`;
+    }
+    return amount.toString();
+  };
+
+  const handleCapitalEdit = () => {
+    setTempCapital(settingsContext.accountBalance.toString());
+    setShowCapitalEdit(true);
+  };
+
+  const handleCapitalSave = () => {
+    const newAmount = parseFloat(tempCapital.replace(/,/g, ''));
+    if (!isNaN(newAmount) && newAmount > 0) {
+      updateSettings({ accountBalance: newAmount });
+      setFormData({ ...formData, accountBalance: newAmount });
+    }
+    setShowCapitalEdit(false);
+    setTempCapital('');
+  };
+
+  const handleIncrement = (step: number) => {
+    const current = parseFloat(tempCapital) || 0;
+    const newAmount = Math.max(0, current + step);
+    setTempCapital(newAmount.toString());
+  };
+
+  // Preset amounts for quick selection
+  const presetAmounts = [
+    { label: '1L', value: 100000, color: 'bg-blue-500' },
+    { label: '5L', value: 500000, color: 'bg-green-500' },
+    { label: '10L', value: 1000000, color: 'bg-yellow-500' },
+    { label: '25L', value: 2500000, color: 'bg-orange-500' },
+    { label: '50L', value: 5000000, color: 'bg-red-500' },
+    { label: '1Cr', value: 10000000, color: 'bg-purple-500' },
+    { label: '2Cr', value: 20000000, color: 'bg-pink-500' },
+    { label: '5Cr', value: 50000000, color: 'bg-indigo-500' },
+  ];
+
+  const handlePresetSelect = (amount: number) => {
+    setTempCapital(amount.toString());
+  };
+
+  const getCapitalLevel = (amount: number): { percentage: number; level: string; color: string } => {
+    if (amount >= 50000000) return { percentage: 100, level: 'ELITE', color: 'from-purple-500 to-pink-500' };
+    if (amount >= 20000000) return { percentage: 85, level: 'PROFESSIONAL', color: 'from-indigo-500 to-purple-500' };
+    if (amount >= 10000000) return { percentage: 70, level: 'ADVANCED', color: 'from-blue-500 to-indigo-500' };
+    if (amount >= 5000000) return { percentage: 55, level: 'INTERMEDIATE+', color: 'from-cyan-500 to-blue-500' };
+    if (amount >= 2500000) return { percentage: 40, level: 'INTERMEDIATE', color: 'from-green-500 to-cyan-500' };
+    if (amount >= 1000000) return { percentage: 25, level: 'DEVELOPING', color: 'from-yellow-500 to-green-500' };
+    if (amount >= 500000) return { percentage: 15, level: 'BEGINNER+', color: 'from-orange-500 to-yellow-500' };
+    return { percentage: 5, level: 'BEGINNER', color: 'from-red-500 to-orange-500' };
   };
 
   // Handle input changes with automatic calculations
@@ -541,7 +612,9 @@ const TradingCalculator: React.FC = () => {
         if (field === 'entryPrice' && processedValue && processedValue > 0) {
           const stopLossPercentage = settings.defaultStopLossPercentage || 3; // Use user setting or default to 3%
           const multiplier = (100 - stopLossPercentage) / 100; // Convert percentage to multiplier
-          newData.stopLoss = parseFloat((processedValue * multiplier).toFixed(2)); // Calculate stop loss based on user preference
+          newData.stopLoss = parseFloat(
+            (processedValue * multiplier).toFixed(2)
+          ); // Calculate stop loss based on user preference
         }
 
         // Auto-calculate risk on investment when stop loss or entry price changes (for risk-based sizing)
@@ -983,15 +1056,7 @@ const TradingCalculator: React.FC = () => {
           {/* Gaming Control Panel */}
           <div className="lg:col-span-1">
             <div className="bg-black/40 backdrop-blur-xl rounded-3xl p-6 shadow-2xl border border-cyan-500/30 sticky top-8 hover:border-cyan-400/50 transition-all duration-500 hover:shadow-cyan-500/20 hover:shadow-2xl">
-              {/* Settings Button */}
-              <div className="flex absolute right-8 top-1  z-20">
-                <SettingsButton
-                  isSettingsOpen={isSettingsOpen}
-                  onSettingsToggle={setIsSettingsOpen}
-                />
-              </div>
-
-              {/* Enhanced Gaming Wallet Display */}
+              {/* User Greeting Section */}
               <div className="mb-6">
                 <div className="group relative bg-gradient-to-br from-emerald-500/20 via-green-500/20 to-teal-500/20 rounded-2xl p-4 border border-emerald-500/30 backdrop-blur-sm hover:border-emerald-400/50 transition-all duration-500 overflow-hidden">
                   {/* Animated background particles */}
@@ -1002,58 +1067,196 @@ const TradingCalculator: React.FC = () => {
                   </div>
 
                   <div className="relative">
-                    <label className="text-sm font-medium text-emerald-300 mb-2 items-center">
-                      <span className="mr-2">💳</span>
-                      Trading Capital
-                      <Info className="inline w-4 h-4 ml-2 text-emerald-400 cursor-help" />
-                    </label>
-
-                    {/* Capital Power Gauge */}
-                    <div className="mb-3">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-xs text-emerald-300">
-                          POWER LEVEL
-                        </span>
-                        <span className="text-xs text-emerald-400 font-bold">
-                          {formData.accountBalance >= 10000000
-                            ? 'ELITE'
-                            : formData.accountBalance >= 1000000
-                            ? 'ADVANCED'
-                            : formData.accountBalance >= 100000
-                            ? 'INTERMEDIATE'
-                            : 'BEGINNER'}
-                        </span>
+                    {/* User Avatar and Greeting */}
+                    <div className="flex items-center space-x-3 mb-3">
+                      <div className="relative">
+                        <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-full flex items-center justify-center text-white font-bold text-sm border-2 border-emerald-400/30 shadow-lg">
+                          {(() => {
+                            try {
+                              const userData = localStorage.getItem('user');
+                              if (userData) {
+                                const user = JSON.parse(userData);
+                                const firstName = user.firstName || '';
+                                const lastName = user.lastName || '';
+                                return (
+                                  (
+                                    firstName.charAt(0) + lastName.charAt(0)
+                                  ).toUpperCase() || 'T'
+                                );
+                              }
+                              return 'T';
+                            } catch {
+                              return 'T';
+                            }
+                          })()}
+                        </div>
+                        {/* Online Status */}
+                        <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-400 rounded-full border-2 border-black animate-pulse"></div>
                       </div>
-                      <div className="h-2 bg-black/40 rounded-full overflow-hidden">
+
+                      <div className="flex-1">
+                        <h3 className="text-sm font-bold text-emerald-300 mb-1 flex items-center">
+                          <span className="mr-2">👋</span>
+                          Welcome,{' '}
+                          {(() => {
+                            try {
+                              const userData = localStorage.getItem('user');
+                              if (userData) {
+                                const user = JSON.parse(userData);
+                                return user.firstName || 'Trader';
+                              }
+                              return 'Trader';
+                            } catch {
+                              return 'Trader';
+                            }
+                          })()}
+                          !
+                          <Info className="inline w-4 h-4 ml-2 text-emerald-400 cursor-help" />
+                        </h3>
+                      </div>
+
+                      <button
+                        onClick={() => setIsSettingsOpen(true)}
+                        className="p-1.5 bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/30 rounded-lg transition-all duration-200 hover:scale-105"
+                        title="Settings"
+                      >
+                        <Settings className="w-3 h-3 text-emerald-400" />
+                      </button>
+                    </div>
+
+                    {/* Trading Capital - Compact Threat Level Style */}
+                    <div className="space-y-3">
+                      {/* Title Row with Capital Level on Right */}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center">
+                          <Banknote className="w-4 h-4 mr-2 text-emerald-400" />
+                          <span className="text-sm font-medium text-emerald-300">
+                            Trading Capital
+                          </span>
+                          <Info className="inline w-4 h-4 ml-2 text-emerald-400 cursor-help" />
+                        </div>
+
+                        <div className="flex items-center space-x-2">
+                          <span className="text-xs text-emerald-300">
+                            CAPITAL LEVEL
+                          </span>
+                          <div
+                            className={`w-1 h-1 rounded-full animate-pulse ${
+                              formData.accountBalance >= 50000000
+                                ? 'bg-purple-400'
+                                : formData.accountBalance >= 20000000
+                                ? 'bg-indigo-400'
+                                : formData.accountBalance >= 10000000
+                                ? 'bg-blue-400'
+                                : formData.accountBalance >= 5000000
+                                ? 'bg-cyan-400'
+                                : formData.accountBalance >= 2500000
+                                ? 'bg-green-400'
+                                : formData.accountBalance >= 1000000
+                                ? 'bg-yellow-400'
+                                : formData.accountBalance >= 500000
+                                ? 'bg-orange-400'
+                                : 'bg-red-400'
+                            }`}
+                          ></div>
+                          <span
+                            className={`text-xs font-bold ${
+                              formData.accountBalance >= 50000000
+                                ? 'text-purple-400'
+                                : formData.accountBalance >= 20000000
+                                ? 'text-indigo-400'
+                                : formData.accountBalance >= 10000000
+                                ? 'text-blue-400'
+                                : formData.accountBalance >= 5000000
+                                ? 'text-cyan-400'
+                                : formData.accountBalance >= 2500000
+                                ? 'text-green-400'
+                                : formData.accountBalance >= 1000000
+                                ? 'text-yellow-400'
+                                : formData.accountBalance >= 500000
+                                ? 'text-orange-400'
+                                : 'text-red-400'
+                            }`}
+                          >
+                            {(() => {
+                              const amount = formData.accountBalance;
+                              if (amount >= 50000000) return 'ELITE';
+                              if (amount >= 20000000) return 'PROFESSIONAL';
+                              if (amount >= 10000000) return 'ADVANCED';
+                              if (amount >= 5000000) return 'INTERMEDIATE+';
+                              if (amount >= 2500000) return 'INTERMEDIATE';
+                              if (amount >= 1000000) return 'DEVELOPING';
+                              if (amount >= 500000) return 'BEGINNER+';
+                              return 'BEGINNER';
+                            })()}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Compact Progress Bar */}
+                      <div className="w-full bg-black/50 rounded-full h-2 overflow-hidden border border-emerald-500/20">
                         <div
-                          className="h-full bg-gradient-to-r from-emerald-400 via-green-400 to-teal-400 rounded-full transition-all duration-1000 ease-out"
+                          className={`h-full rounded-full transition-all duration-1000 ease-out ${
+                            formData.accountBalance >= 50000000
+                              ? 'bg-gradient-to-r from-purple-500 to-pink-500'
+                              : formData.accountBalance >= 20000000
+                              ? 'bg-gradient-to-r from-indigo-500 to-purple-500'
+                              : formData.accountBalance >= 10000000
+                              ? 'bg-gradient-to-r from-blue-500 to-indigo-500'
+                              : formData.accountBalance >= 5000000
+                              ? 'bg-gradient-to-r from-cyan-500 to-blue-500'
+                              : formData.accountBalance >= 2500000
+                              ? 'bg-gradient-to-r from-green-500 to-cyan-500'
+                              : formData.accountBalance >= 1000000
+                              ? 'bg-gradient-to-r from-yellow-500 to-green-500'
+                              : formData.accountBalance >= 500000
+                              ? 'bg-gradient-to-r from-orange-500 to-yellow-500'
+                              : 'bg-gradient-to-r from-red-500 to-orange-500'
+                          }`}
                           style={{
                             width: `${Math.min(
-                              (formData.accountBalance / 10000000) * 100,
+                              formData.accountBalance >= 50000000
+                                ? 100
+                                : formData.accountBalance >= 20000000
+                                ? 85
+                                : formData.accountBalance >= 10000000
+                                ? 70
+                                : formData.accountBalance >= 5000000
+                                ? 55
+                                : formData.accountBalance >= 2500000
+                                ? 40
+                                : formData.accountBalance >= 1000000
+                                ? 25
+                                : formData.accountBalance >= 500000
+                                ? 15
+                                : 5,
                               100
                             )}%`,
                           }}
                         ></div>
                       </div>
-                    </div>
 
-                    <div className="relative">
-                      <input
-                        type="number"
-                        value={formData.accountBalance}
-                        onChange={(e) =>
-                          handleAccountBalanceChange(parseFloat(e.target.value))
-                        }
-                        className="w-full px-4 py-3 pl-10 bg-black/30 border-2 border-emerald-500/50 rounded-xl focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20 text-white placeholder-emerald-300/50 font-mono text-lg transition-all duration-300 focus:shadow-lg focus:shadow-emerald-500/20 group-hover:border-emerald-400/70"
-                        min="0"
-                        step="10000"
-                        placeholder="Enter credits..."
-                      />
-                      <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-emerald-400 animate-pulse">
-                        ₹
-                      </div>
-                      <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-emerald-400 text-sm font-bold">
-                        {formatCurrencyWithSuffix(formData.accountBalance)}
+                      {/* Capital Amount Input - Clean Design */}
+                      <div className="relative">
+                        <div className="flex items-center justify-between bg-black/30 rounded-xl p-3 border border-emerald-500/30 group hover:border-emerald-400/50 transition-all duration-300">
+                          <div className="flex-1">
+                            <div className="text-lg font-bold text-white">
+                              {formatCurrencyWithSuffix(
+                                formData.accountBalance
+                              )}
+                            </div>
+                            <div className="text-xs text-emerald-400">
+                              {formatCapitalCurrency(formData.accountBalance)}
+                            </div>
+                          </div>
+                          <button
+                            onClick={handleCapitalEdit}
+                            className="p-2 bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/30 rounded-lg transition-all duration-200 hover:scale-105 opacity-70 group-hover:opacity-100"
+                            title="Edit Capital"
+                          >
+                            <Edit className="w-4 h-4 text-emerald-400" />
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -1506,7 +1709,9 @@ const TradingCalculator: React.FC = () => {
                         className="w-full px-4 py-3 pl-10 bg-black/40 border-2 border-red-500/50 rounded-xl focus:border-red-400 focus:ring-2 focus:ring-red-400/20 text-white placeholder-red-300/50 font-mono transition-all duration-300 focus:shadow-lg focus:shadow-red-500/20"
                         min="0"
                         step="0.01"
-                        placeholder={`Auto: ${settings.defaultStopLossPercentage || 3}% below entry`}
+                        placeholder={`Auto: ${
+                          settings.defaultStopLossPercentage || 3
+                        }% below entry`}
                       />
                       <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-red-400">
                         ₹
@@ -1991,6 +2196,159 @@ const TradingCalculator: React.FC = () => {
           </div>
         </div>
       </main>
+
+      {/* Capital Edit Modal */}
+      <Modal
+        isOpen={showCapitalEdit}
+        onClose={() => setShowCapitalEdit(false)}
+        title="🚀 Set Your Trading Capital"
+      >
+        <div className="space-y-6">
+          {/* Header with current level */}
+          <div className="text-center space-y-2">
+            <p className="text-gray-300 text-sm">
+              Configure your trading capital for accurate position sizing and risk management
+            </p>
+            {tempCapital && (
+              <div className="flex items-center justify-center space-x-2">
+                <TrendingUp className="w-4 h-4 text-cyan-400" />
+                <span className={`text-sm font-semibold bg-gradient-to-r ${getCapitalLevel(parseFloat(tempCapital) || 0).color} bg-clip-text text-transparent`}>
+                  {getCapitalLevel(parseFloat(tempCapital) || 0).level}
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Current Amount Display */}
+          <div className="bg-gradient-to-r from-slate-800/50 to-gray-800/50 border border-white/10 rounded-2xl p-6">
+            <div className="text-center space-y-3">
+              <div className="text-3xl font-bold text-white">
+                {tempCapital ? formatCapitalCurrency(parseFloat(tempCapital)) : formatCapitalCurrency(settingsContext.accountBalance)}
+              </div>
+              <div className="text-lg text-cyan-300 font-semibold">
+                {tempCapital ? formatCurrencyShort(parseFloat(tempCapital)) : formatCurrencyShort(settingsContext.accountBalance)}
+              </div>
+              
+              {/* Progress bar showing capital level */}
+              {tempCapital && (
+                <div className="w-full bg-gray-700 rounded-full h-2 mt-4">
+                  <div 
+                    className={`h-2 rounded-full bg-gradient-to-r ${getCapitalLevel(parseFloat(tempCapital) || 0).color} transition-all duration-500`}
+                    style={{ width: `${getCapitalLevel(parseFloat(tempCapital) || 0).percentage}%` }}
+                  ></div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Quick Preset Buttons */}
+          <div className="space-y-3">
+            <h3 className="text-sm font-semibold text-gray-300 flex items-center space-x-2">
+              <Zap className="w-4 h-4 text-yellow-400" />
+              <span>Quick Select</span>
+            </h3>
+            <div className="grid grid-cols-4 gap-2">
+              {presetAmounts.map((preset) => (
+                <button
+                  key={preset.label}
+                  onClick={() => handlePresetSelect(preset.value)}
+                  className={`group relative px-3 py-2 rounded-lg border transition-all duration-200 hover:scale-105 ${
+                    parseFloat(tempCapital) === preset.value
+                      ? `${preset.color} border-white/30 text-white shadow-lg`
+                      : 'bg-gray-800/50 border-gray-600/30 text-gray-300 hover:border-gray-500/50'
+                  }`}
+                >
+                  <div className="text-xs font-bold">{preset.label}</div>
+                  {parseFloat(tempCapital) === preset.value && (
+                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Fine-tune Controls */}
+          <div className="space-y-3">
+            <h3 className="text-sm font-semibold text-gray-300">Fine Tune</h3>
+            <div className="flex items-center space-x-2">
+              {/* Decrement buttons */}
+              <button
+                onClick={() => handleIncrement(-1000000)}
+                className="p-2 bg-red-600/20 hover:bg-red-600/30 border border-red-500/30 rounded-lg transition-all duration-200 hover:scale-105"
+                title="-10L"
+              >
+                <Minus className="w-4 h-4 text-red-400" />
+              </button>
+              <button
+                onClick={() => handleIncrement(-100000)}
+                className="p-2 bg-orange-600/20 hover:bg-orange-600/30 border border-orange-500/30 rounded-lg transition-all duration-200 hover:scale-105"
+                title="-1L"
+              >
+                <Minus className="w-3 h-3 text-orange-400" />
+              </button>
+              
+              {/* Manual input */}
+              <div className="flex-1">
+                <Input
+                  type="number"
+                  value={tempCapital}
+                  onChange={(e) => setTempCapital(e.target.value)}
+                  placeholder="Enter custom amount"
+                  className="w-full text-center bg-black/30 border-gray-600/30 focus:border-cyan-500/50"
+                  min="1000"
+                  step="1000"
+                />
+              </div>
+              
+              {/* Increment buttons */}
+              <button
+                onClick={() => handleIncrement(100000)}
+                className="p-2 bg-green-600/20 hover:bg-green-600/30 border border-green-500/30 rounded-lg transition-all duration-200 hover:scale-105"
+                title="+1L"
+              >
+                <Plus className="w-3 h-3 text-green-400" />
+              </button>
+              <button
+                onClick={() => handleIncrement(1000000)}
+                className="p-2 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 rounded-lg transition-all duration-200 hover:scale-105"
+                title="+10L"
+              >
+                <Plus className="w-4 h-4 text-blue-400" />
+              </button>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex space-x-3 pt-4">
+            <Button
+              onClick={handleCapitalSave}
+              className="bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white px-6 py-3 flex-1 font-semibold"
+            >
+              💰 Update Capital
+            </Button>
+            <Button
+              onClick={() => setShowCapitalEdit(false)}
+              variant="outline"
+              className="px-6 py-3 border-gray-600/30 hover:border-gray-500/50"
+            >
+              Cancel
+            </Button>
+          </div>
+
+          {/* Tips */}
+          <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3">
+            <p className="text-xs text-blue-300">
+              💡 <strong>Tip:</strong> Your trading capital affects position sizing recommendations. Set it to match your actual available trading funds for optimal risk management.
+            </p>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Settings Modal */}
+      <SettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+      />
     </div>
   );
 };
