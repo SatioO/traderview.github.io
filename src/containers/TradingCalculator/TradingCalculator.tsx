@@ -2223,7 +2223,7 @@ const TradingCalculator: React.FC = () => {
           <div className="bg-gradient-to-r from-slate-800/50 to-gray-800/50 border border-white/10 rounded-2xl p-6">
             <div className="text-center space-y-3">
               <div className="text-3xl font-bold text-white">
-                {tempCapital ? formatCapitalCurrency(parseFloat(tempCapital)) : formatCapitalCurrency(settingsContext.accountBalance)}
+                {tempCapital ? formatCurrency(parseFloat(tempCapital)) : formatCurrency(settingsContext.accountBalance)}
               </div>
               <div className="text-lg text-cyan-300 font-semibold">
                 {tempCapital ? formatCurrencyShort(parseFloat(tempCapital)) : formatCurrencyShort(settingsContext.accountBalance)}
