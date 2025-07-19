@@ -531,11 +531,6 @@ const TradingCalculator: React.FC = () => {
     updateMarketHealth(health);
   };
 
-  // Capital management functions
-  const formatCapitalCurrency = (amount: number): string => {
-    return `${settingsContext.currencySymbol}${amount.toLocaleString('en-IN')}`;
-  };
-
   const formatCurrencyShort = (amount: number): string => {
     if (amount >= 10000000) {
       return `${(amount / 10000000).toFixed(1)}Cr`;
@@ -584,15 +579,56 @@ const TradingCalculator: React.FC = () => {
     setTempCapital(amount.toString());
   };
 
-  const getCapitalLevel = (amount: number): { percentage: number; level: string; color: string } => {
-    if (amount >= 50000000) return { percentage: 100, level: 'ELITE', color: 'from-purple-500 to-pink-500' };
-    if (amount >= 20000000) return { percentage: 85, level: 'PROFESSIONAL', color: 'from-indigo-500 to-purple-500' };
-    if (amount >= 10000000) return { percentage: 70, level: 'ADVANCED', color: 'from-blue-500 to-indigo-500' };
-    if (amount >= 5000000) return { percentage: 55, level: 'INTERMEDIATE+', color: 'from-cyan-500 to-blue-500' };
-    if (amount >= 2500000) return { percentage: 40, level: 'INTERMEDIATE', color: 'from-green-500 to-cyan-500' };
-    if (amount >= 1000000) return { percentage: 25, level: 'DEVELOPING', color: 'from-yellow-500 to-green-500' };
-    if (amount >= 500000) return { percentage: 15, level: 'BEGINNER+', color: 'from-orange-500 to-yellow-500' };
-    return { percentage: 5, level: 'BEGINNER', color: 'from-red-500 to-orange-500' };
+  const getCapitalLevel = (
+    amount: number
+  ): { percentage: number; level: string; color: string } => {
+    if (amount >= 50000000)
+      return {
+        percentage: 100,
+        level: 'ELITE',
+        color: 'from-purple-500 to-pink-500',
+      };
+    if (amount >= 20000000)
+      return {
+        percentage: 85,
+        level: 'PROFESSIONAL',
+        color: 'from-indigo-500 to-purple-500',
+      };
+    if (amount >= 10000000)
+      return {
+        percentage: 70,
+        level: 'ADVANCED',
+        color: 'from-blue-500 to-indigo-500',
+      };
+    if (amount >= 5000000)
+      return {
+        percentage: 55,
+        level: 'INTERMEDIATE+',
+        color: 'from-cyan-500 to-blue-500',
+      };
+    if (amount >= 2500000)
+      return {
+        percentage: 40,
+        level: 'INTERMEDIATE',
+        color: 'from-green-500 to-cyan-500',
+      };
+    if (amount >= 1000000)
+      return {
+        percentage: 25,
+        level: 'DEVELOPING',
+        color: 'from-yellow-500 to-green-500',
+      };
+    if (amount >= 500000)
+      return {
+        percentage: 15,
+        level: 'BEGINNER+',
+        color: 'from-orange-500 to-yellow-500',
+      };
+    return {
+      percentage: 5,
+      level: 'BEGINNER',
+      color: 'from-red-500 to-orange-500',
+    };
   };
 
   // Handle input changes with automatic calculations
@@ -1139,21 +1175,28 @@ const TradingCalculator: React.FC = () => {
                     {/* Trading Capital - Premium Compact Design */}
                     <div className="relative group">
                       {/* Level Indicator Strip */}
-                      <div 
+                      <div
                         className={`absolute left-0 top-0 bottom-0 w-1 rounded-l-xl transition-all duration-300 ${
-                          formData.accountBalance >= 50000000 ? 'bg-gradient-to-b from-purple-400 to-pink-500' :
-                          formData.accountBalance >= 20000000 ? 'bg-gradient-to-b from-indigo-400 to-purple-500' :
-                          formData.accountBalance >= 10000000 ? 'bg-gradient-to-b from-blue-400 to-indigo-500' :
-                          formData.accountBalance >= 5000000 ? 'bg-gradient-to-b from-cyan-400 to-blue-500' :
-                          formData.accountBalance >= 2500000 ? 'bg-gradient-to-b from-green-400 to-cyan-500' :
-                          formData.accountBalance >= 1000000 ? 'bg-gradient-to-b from-yellow-400 to-green-500' :
-                          formData.accountBalance >= 500000 ? 'bg-gradient-to-b from-orange-400 to-yellow-500' : 
-                          'bg-gradient-to-b from-red-400 to-orange-500'
+                          formData.accountBalance >= 50000000
+                            ? 'bg-gradient-to-b from-purple-400 to-pink-500'
+                            : formData.accountBalance >= 20000000
+                            ? 'bg-gradient-to-b from-indigo-400 to-purple-500'
+                            : formData.accountBalance >= 10000000
+                            ? 'bg-gradient-to-b from-blue-400 to-indigo-500'
+                            : formData.accountBalance >= 5000000
+                            ? 'bg-gradient-to-b from-cyan-400 to-blue-500'
+                            : formData.accountBalance >= 2500000
+                            ? 'bg-gradient-to-b from-green-400 to-cyan-500'
+                            : formData.accountBalance >= 1000000
+                            ? 'bg-gradient-to-b from-yellow-400 to-green-500'
+                            : formData.accountBalance >= 500000
+                            ? 'bg-gradient-to-b from-orange-400 to-yellow-500'
+                            : 'bg-gradient-to-b from-red-400 to-orange-500'
                         }`}
                       />
-                      
+
                       {/* Main Card */}
-                      <div 
+                      <div
                         onClick={handleCapitalEdit}
                         className="relative bg-black/20 hover:bg-black/30 border border-purple-500/20 hover:border-purple-400/30 rounded-xl ml-1 transition-all duration-200 cursor-pointer group/card"
                       >
@@ -1165,34 +1208,47 @@ const TradingCalculator: React.FC = () => {
                                 <Banknote className="w-4 h-4 text-purple-400" />
                               </div>
                             </div>
-                            
+
                             <div className="space-y-0.5">
                               <div className="flex items-baseline space-x-1">
                                 <span className="text-xl font-bold text-white tracking-tight">
-                                  {formatCurrencyWithSuffix(formData.accountBalance)}
+                                  {formatCurrencyWithSuffix(
+                                    formData.accountBalance
+                                  )}
                                 </span>
-                                <span className="text-xs text-gray-500 font-medium">Capital</span>
+                                <span className="text-xs text-gray-500 font-medium">
+                                  Capital
+                                </span>
                               </div>
-                              
+
                               {/* Minimal Progress Dots */}
                               <div className="flex items-center space-x-1">
-                                {[1,2,3,4,5].map((dot) => {
+                                {[1, 2, 3, 4, 5].map((dot) => {
                                   const progress = Math.min(
-                                    formData.accountBalance >= 50000000 ? 100 :
-                                    formData.accountBalance >= 20000000 ? 80 :
-                                    formData.accountBalance >= 10000000 ? 60 :
-                                    formData.accountBalance >= 5000000 ? 40 :
-                                    formData.accountBalance >= 2500000 ? 20 :
-                                    formData.accountBalance >= 1000000 ? 10 : 5,
+                                    formData.accountBalance >= 50000000
+                                      ? 100
+                                      : formData.accountBalance >= 20000000
+                                      ? 80
+                                      : formData.accountBalance >= 10000000
+                                      ? 60
+                                      : formData.accountBalance >= 5000000
+                                      ? 40
+                                      : formData.accountBalance >= 2500000
+                                      ? 20
+                                      : formData.accountBalance >= 1000000
+                                      ? 10
+                                      : 5,
                                     100
                                   );
-                                  const isActive = progress >= (dot * 20);
-                                  
+                                  const isActive = progress >= dot * 20;
+
                                   return (
                                     <div
                                       key={dot}
                                       className={`w-1 h-1 rounded-full transition-all duration-300 ${
-                                        isActive ? 'bg-purple-400' : 'bg-gray-600'
+                                        isActive
+                                          ? 'bg-purple-400'
+                                          : 'bg-gray-600'
                                       }`}
                                     />
                                   );
@@ -1200,21 +1256,28 @@ const TradingCalculator: React.FC = () => {
                               </div>
                             </div>
                           </div>
-                          
+
                           {/* Right: Level Badge + Edit */}
                           <div className="flex items-center space-x-3">
                             {/* Level Badge */}
                             <div className="relative">
-                              <div 
+                              <div
                                 className={`px-2.5 py-1 rounded-md text-xs font-bold border transition-all duration-200 ${
-                                  formData.accountBalance >= 50000000 ? 'bg-purple-500/15 border-purple-500/30 text-purple-300' :
-                                  formData.accountBalance >= 20000000 ? 'bg-indigo-500/15 border-indigo-500/30 text-indigo-300' :
-                                  formData.accountBalance >= 10000000 ? 'bg-blue-500/15 border-blue-500/30 text-blue-300' :
-                                  formData.accountBalance >= 5000000 ? 'bg-cyan-500/15 border-cyan-500/30 text-cyan-300' :
-                                  formData.accountBalance >= 2500000 ? 'bg-green-500/15 border-green-500/30 text-green-300' :
-                                  formData.accountBalance >= 1000000 ? 'bg-yellow-500/15 border-yellow-500/30 text-yellow-300' :
-                                  formData.accountBalance >= 500000 ? 'bg-orange-500/15 border-orange-500/30 text-orange-300' : 
-                                  'bg-red-500/15 border-red-500/30 text-red-300'
+                                  formData.accountBalance >= 50000000
+                                    ? 'bg-purple-500/15 border-purple-500/30 text-purple-300'
+                                    : formData.accountBalance >= 20000000
+                                    ? 'bg-indigo-500/15 border-indigo-500/30 text-indigo-300'
+                                    : formData.accountBalance >= 10000000
+                                    ? 'bg-blue-500/15 border-blue-500/30 text-blue-300'
+                                    : formData.accountBalance >= 5000000
+                                    ? 'bg-cyan-500/15 border-cyan-500/30 text-cyan-300'
+                                    : formData.accountBalance >= 2500000
+                                    ? 'bg-green-500/15 border-green-500/30 text-green-300'
+                                    : formData.accountBalance >= 1000000
+                                    ? 'bg-yellow-500/15 border-yellow-500/30 text-yellow-300'
+                                    : formData.accountBalance >= 500000
+                                    ? 'bg-orange-500/15 border-orange-500/30 text-orange-300'
+                                    : 'bg-red-500/15 border-red-500/30 text-red-300'
                                 }`}
                               >
                                 {(() => {
@@ -1230,7 +1293,7 @@ const TradingCalculator: React.FC = () => {
                                 })()}
                               </div>
                             </div>
-                            
+
                             {/* Edit Icon */}
                             <div className="w-6 h-6 flex items-center justify-center opacity-40 group-hover/card:opacity-100 transition-opacity">
                               <Edit className="w-3.5 h-3.5 text-purple-400" />
@@ -2187,12 +2250,17 @@ const TradingCalculator: React.FC = () => {
           {/* Header with current level */}
           <div className="text-center space-y-2">
             <p className="text-gray-300 text-sm">
-              Configure your trading capital for accurate position sizing and risk management
+              Configure your trading capital for accurate position sizing and
+              risk management
             </p>
             {tempCapital && (
               <div className="flex items-center justify-center space-x-2">
                 <TrendingUp className="w-4 h-4 text-cyan-400" />
-                <span className={`text-sm font-semibold bg-gradient-to-r ${getCapitalLevel(parseFloat(tempCapital) || 0).color} bg-clip-text text-transparent`}>
+                <span
+                  className={`text-sm font-semibold bg-gradient-to-r ${
+                    getCapitalLevel(parseFloat(tempCapital) || 0).color
+                  } bg-clip-text text-transparent`}
+                >
                   {getCapitalLevel(parseFloat(tempCapital) || 0).level}
                 </span>
               </div>
@@ -2203,18 +2271,28 @@ const TradingCalculator: React.FC = () => {
           <div className="bg-gradient-to-r from-slate-800/50 to-gray-800/50 border border-white/10 rounded-2xl p-6">
             <div className="text-center space-y-3">
               <div className="text-3xl font-bold text-white">
-                {tempCapital ? formatCurrency(parseFloat(tempCapital)) : formatCurrency(settingsContext.accountBalance)}
+                {tempCapital
+                  ? formatCurrency(parseFloat(tempCapital))
+                  : formatCurrency(settingsContext.accountBalance)}
               </div>
               <div className="text-lg text-cyan-300 font-semibold">
-                {tempCapital ? formatCurrencyShort(parseFloat(tempCapital)) : formatCurrencyShort(settingsContext.accountBalance)}
+                {tempCapital
+                  ? formatCurrencyShort(parseFloat(tempCapital))
+                  : formatCurrencyShort(settingsContext.accountBalance)}
               </div>
-              
+
               {/* Progress bar showing capital level */}
               {tempCapital && (
                 <div className="w-full bg-gray-700 rounded-full h-2 mt-4">
-                  <div 
-                    className={`h-2 rounded-full bg-gradient-to-r ${getCapitalLevel(parseFloat(tempCapital) || 0).color} transition-all duration-500`}
-                    style={{ width: `${getCapitalLevel(parseFloat(tempCapital) || 0).percentage}%` }}
+                  <div
+                    className={`h-2 rounded-full bg-gradient-to-r ${
+                      getCapitalLevel(parseFloat(tempCapital) || 0).color
+                    } transition-all duration-500`}
+                    style={{
+                      width: `${
+                        getCapitalLevel(parseFloat(tempCapital) || 0).percentage
+                      }%`,
+                    }}
                   ></div>
                 </div>
               )}
@@ -2266,7 +2344,7 @@ const TradingCalculator: React.FC = () => {
               >
                 <Minus className="w-3 h-3 text-orange-400" />
               </button>
-              
+
               {/* Manual input */}
               <div className="flex-1">
                 <Input
@@ -2279,7 +2357,7 @@ const TradingCalculator: React.FC = () => {
                   step="1000"
                 />
               </div>
-              
+
               {/* Increment buttons */}
               <button
                 onClick={() => handleIncrement(100000)}
@@ -2318,7 +2396,9 @@ const TradingCalculator: React.FC = () => {
           {/* Tips */}
           <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3">
             <p className="text-xs text-blue-300">
-              💡 <strong>Tip:</strong> Your trading capital affects position sizing recommendations. Set it to match your actual available trading funds for optimal risk management.
+              💡 <strong>Tip:</strong> Your trading capital affects position
+              sizing recommendations. Set it to match your actual available
+              trading funds for optimal risk management.
             </p>
           </div>
         </div>
