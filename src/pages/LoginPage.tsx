@@ -13,7 +13,7 @@ import '../components/ui/CinematicAnimations.css';
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login, loginError, isLoginLoading, clearErrors, availableBrokers, loginWithBroker, isAuthenticated } = useAuth();
+  const { login, loginError, isLoginLoading, clearErrors, isAuthenticated } = useAuth();
   
   // Get the intended destination from location state, or default to home
   const from = location.state?.from?.pathname || ROUTES.HOME;
@@ -294,48 +294,6 @@ const LoginPage: React.FC = () => {
               <span className="font-semibold">Access Platform</span>
             </Button>
           </form>
-
-          {/* Divider */}
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-slate-700"></div>
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-slate-800 px-2 text-slate-400">Or</span>
-            </div>
-          </div>
-
-          {/* Broker Login Buttons */}
-          {availableBrokers.length > 0 && (
-            <div className="space-y-2">
-              {availableBrokers.map((broker) => (
-                <Button
-                  key={broker.name}
-                  type="button"
-                  variant="outline"
-                  size="md"
-                  onClick={() => loginWithBroker(broker.name)}
-                  className="w-full"
-                  style={{
-                    backgroundColor: `${broker.color}10`,
-                    borderColor: `${broker.color}30`,
-                    color: `${broker.color}`,
-                  }}
-                >
-                  <div className="flex items-center justify-center space-x-2">
-                    <svg 
-                      className="w-4 h-4 flex-shrink-0" 
-                      viewBox="0 0 24 24" 
-                      fill="currentColor"
-                    >
-                      <path d="M12 2L2 7v10c0 5.55 3.84 9.74 9 11 5.16-1.26 9-5.45 9-11V7l-10-5z"/>
-                    </svg>
-                    <span className="font-semibold">Login with {broker.displayName}</span>
-                  </div>
-                </Button>
-              ))}
-            </div>
-          )}
 
           {/* Action Links */}
           <div className="space-y-3">

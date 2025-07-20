@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { LogOut, Settings, ChevronDown, DollarSign, Link, Edit, Plus, Minus, TrendingUp, Zap } from 'lucide-react';
+import { LogOut, Settings, ChevronDown, DollarSign, Edit, Plus, Minus, TrendingUp, Zap } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useSettings } from '../../contexts/SettingsContext';
 import Button from '../ui/Button';
 import Modal from '../ui/Modal';
 import Input from '../ui/Input';
 import SettingsModal from '../Settings/SettingsModal';
+import BrokerStatusIndicator from '../broker/BrokerStatusIndicator';
 
 interface HeaderProps {
   isSettingsOpen?: boolean;
@@ -16,11 +17,10 @@ const Header: React.FC<HeaderProps> = ({
   isSettingsOpen = false, 
   onSettingsToggle 
 }) => {
-  const { logout, availableBrokers, loginWithBroker } = useAuth();
+  const { logout } = useAuth();
   const { settings, updateSettings } = useSettings();
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showCapitalEdit, setShowCapitalEdit] = useState(false);
-  const [showBrokerModal, setShowBrokerModal] = useState(false);
   const [localSettingsOpen, setLocalSettingsOpen] = useState(false);
   const [tempCapital, setTempCapital] = useState('');
   const [user, setUser] = useState<any>(null);
@@ -80,11 +80,6 @@ const Header: React.FC<HeaderProps> = ({
     setShowCapitalEdit(true);
   };
 
-  const handleConnectBroker = (brokerName: string) => {
-    loginWithBroker(brokerName);
-    setShowBrokerModal(false);
-    setShowUserMenu(false);
-  };
 
   const handleSettingsClick = () => {
     setShowUserMenu(false);
@@ -177,8 +172,12 @@ const Header: React.FC<HeaderProps> = ({
                 </div>
               </div>
 
-              {/* Center - Trading Capital Display */}
-              <div className="hidden sm:flex items-center">
+              {/* Center - Trading Capital Display & Broker Status */}
+              <div className="hidden sm:flex items-center space-x-4">
+                {/* Broker Status */}
+                <BrokerStatusIndicator />
+                
+                {/* Trading Capital */}
                 <div className="group relative">
                   <button
                     onClick={handleCapitalEdit}
@@ -251,19 +250,6 @@ const Header: React.FC<HeaderProps> = ({
 
                     {/* Menu Items */}
                     <div className="py-2">
-                      {/* Connect Broker */}
-                      <button
-                        onClick={() => setShowBrokerModal(true)}
-                        className="w-full flex items-center space-x-3 px-4 py-3 text-left hover:bg-white/5 transition-colors group"
-                      >
-                        <div className="p-2 bg-blue-500/20 rounded-lg group-hover:bg-blue-500/30 transition-colors">
-                          <Link className="w-4 h-4 text-blue-400" />
-                        </div>
-                        <div>
-                          <div className="font-medium text-white">Connect Broker</div>
-                          <div className="text-xs text-gray-400">Link your trading account</div>
-                        </div>
-                      </button>
 
                       {/* Settings */}
                       <button
@@ -470,34 +456,6 @@ const Header: React.FC<HeaderProps> = ({
         </div>
       </Modal>
 
-      {/* Connect Broker Modal */}
-      <Modal
-        isOpen={showBrokerModal}
-        onClose={() => setShowBrokerModal(false)}
-        title="Connect Your Broker"
-      >
-        <div className="space-y-4">
-          <p className="text-gray-300 text-sm">
-            Connect your broker account to enable live trading and real-time data.
-          </p>
-          <div className="grid gap-3">
-            {availableBrokers?.map((broker) => (
-              <Button
-                key={broker.name}
-                onClick={() => handleConnectBroker(broker.name)}
-                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
-              >
-                Connect {broker.name}
-              </Button>
-            ))}
-            {(!availableBrokers || availableBrokers.length === 0) && (
-              <div className="text-center py-8">
-                <p className="text-gray-400">No brokers available</p>
-              </div>
-            )}
-          </div>
-        </div>
-      </Modal>
 
       {/* Settings Modal */}
       <SettingsModal
