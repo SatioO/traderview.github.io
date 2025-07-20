@@ -15,23 +15,20 @@ import { useSettings } from '../../contexts/SettingsContext';
 import Button from '../ui/Button';
 import Modal from '../ui/Modal';
 import Input from '../ui/Input';
-import SettingsModal from '../Settings/SettingsModal';
 
 interface EnhancedHeaderProps {
   isSettingsOpen?: boolean;
-  onSettingsToggle?: (open: boolean) => void;
+  onSettingsToggle: (open: boolean) => void;
   marketHealth?: string;
 }
 
 const EnhancedHeader: React.FC<EnhancedHeaderProps> = ({
-  isSettingsOpen = false,
   onSettingsToggle,
 }) => {
   const { logout } = useAuth();
   const { settings, updateSettings } = useSettings();
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showCapitalEdit, setShowCapitalEdit] = useState(false);
-  const [localSettingsOpen, setLocalSettingsOpen] = useState(false);
   const [tempCapital, setTempCapital] = useState('');
   const [user, setUser] = useState<any>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
@@ -96,19 +93,7 @@ const EnhancedHeader: React.FC<EnhancedHeaderProps> = ({
 
   const handleSettingsClick = () => {
     setShowUserMenu(false);
-    if (onSettingsToggle) {
-      onSettingsToggle(true);
-    } else {
-      setLocalSettingsOpen(true);
-    }
-  };
-
-  const handleSettingsClose = () => {
-    if (onSettingsToggle) {
-      onSettingsToggle(false);
-    } else {
-      setLocalSettingsOpen(false);
-    }
+    onSettingsToggle(true);
   };
 
   const formatCurrency = (amount: number): string => {
@@ -512,12 +497,6 @@ const EnhancedHeader: React.FC<EnhancedHeaderProps> = ({
           </div>
         </div>
       </Modal>
-
-      {/* Settings Modal */}
-      <SettingsModal
-        isOpen={onSettingsToggle ? isSettingsOpen : localSettingsOpen}
-        onClose={handleSettingsClose}
-      />
     </>
   );
 };
