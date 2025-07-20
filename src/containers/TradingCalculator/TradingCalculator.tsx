@@ -370,10 +370,24 @@ const TradingCalculator: React.FC = () => {
     fetchMarketSmithData();
   }, [fetchMarketSmithData]);
 
-  // Initialize stop loss percentage with user settings (only once)
+  // Initialize stop loss percentage with user settings
   useEffect(() => {
     setStopLossPercentage(settings.defaultStopLossPercentage);
   }, [settings.defaultStopLossPercentage]);
+
+  // Recalculate stop loss price when percentage changes and entry price exists
+  useEffect(() => {
+    if (formData.entryPrice > 0 && stopLossPercentage > 0) {
+      const multiplier = (100 - stopLossPercentage) / 100;
+      const newStopLoss = parseFloat(
+        (formData.entryPrice * multiplier).toFixed(2)
+      );
+      setFormData(prev => ({
+        ...prev,
+        stopLoss: newStopLoss
+      }));
+    }
+  }, [stopLossPercentage, formData.entryPrice]);
 
   // Validate inputs
   const validateInputs = useCallback((): string[] => {
