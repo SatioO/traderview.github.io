@@ -123,8 +123,88 @@ const BrokerConnectionModal: React.FC<BrokerConnectionModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[100000] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-      <div className="relative w-full max-w-4xl bg-gradient-to-br from-slate-900/98 via-purple-900/95 to-slate-800/98 backdrop-blur-3xl rounded-[2rem] border border-purple-400/40 shadow-2xl shadow-purple-500/20 max-h-[90vh] overflow-hidden">
+    <div className="fixed inset-0 z-[100000] flex items-center justify-center p-4">
+      {/* Cinematic Trading Environment Overlay */}
+      <div className="fixed inset-0 bg-black/80 backdrop-blur-2xl">
+        {/* Multi-layered Trading Dashboard Background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+          {/* Dynamic Depth Layers */}
+          <div className="absolute inset-0 overflow-hidden">
+            {/* Layer 1: Deep Background Grid */}
+            <div className="absolute inset-0 opacity-20">
+              <div className="absolute inset-0 bg-[linear-gradient(rgba(168,85,247,0.4)_1px,transparent_1px),linear-gradient(90deg,rgba(168,85,247,0.4)_1px,transparent_1px)] bg-[size:100px_100px] animate-grid-drift"></div>
+            </div>
+
+            {/* Layer 2: Mid-ground Chart Network */}
+            <div className="absolute inset-0 opacity-30">
+              <svg className="w-full h-full" viewBox="0 0 1200 800">
+                {/* Animated Trading Chart Lines */}
+                <path
+                  d="M0,400 Q150,200 300,250 T600,180 T900,150 T1200,120"
+                  stroke="url(#primaryGradient)"
+                  strokeWidth="3"
+                  fill="none"
+                  className="animate-chart-draw"
+                />
+                <path
+                  d="M0,500 Q200,350 400,400 T800,320 T1200,280"
+                  stroke="url(#secondaryGradient)"
+                  strokeWidth="2"
+                  fill="none"
+                  className="animate-chart-draw-delayed"
+                />
+
+                {/* Trading Connection Nodes */}
+                <circle cx="300" cy="250" r="4" fill="rgba(168,85,247,0.8)" className="animate-node-pulse">
+                  <animate attributeName="r" values="4;8;4" dur="3s" repeatCount="indefinite" />
+                </circle>
+                <circle cx="600" cy="180" r="3" fill="rgba(6,182,212,0.8)" className="animate-node-pulse-delayed">
+                  <animate attributeName="r" values="3;6;3" dur="2.5s" repeatCount="indefinite" />
+                </circle>
+
+                <defs>
+                  <linearGradient id="primaryGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stopColor="rgb(168,85,247)" stopOpacity="0.9" />
+                    <stop offset="50%" stopColor="rgb(236,72,153)" stopOpacity="0.7" />
+                    <stop offset="100%" stopColor="rgb(6,182,212)" stopOpacity="0.5" />
+                  </linearGradient>
+                  <linearGradient id="secondaryGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stopColor="rgb(6,182,212)" stopOpacity="0.8" />
+                    <stop offset="100%" stopColor="rgb(16,185,129)" stopOpacity="0.4" />
+                  </linearGradient>
+                </defs>
+              </svg>
+            </div>
+
+            {/* Layer 3: Trading Particles & Energy Fields */}
+            <div className="absolute inset-0 pointer-events-none">
+              {/* Energy Orbs */}
+              <div className="absolute top-1/4 left-1/4 w-32 h-32 bg-gradient-radial from-purple-500/30 via-purple-500/10 to-transparent rounded-full blur-xl animate-energy-pulse"></div>
+              <div className="absolute bottom-1/3 right-1/3 w-40 h-40 bg-gradient-radial from-cyan-500/25 via-cyan-500/8 to-transparent rounded-full blur-2xl animate-energy-pulse-delayed"></div>
+              <div className="absolute top-1/2 right-1/4 w-24 h-24 bg-gradient-radial from-green-500/35 via-green-500/12 to-transparent rounded-full blur-xl animate-energy-pulse-slow"></div>
+
+              {/* Floating Trading Particles */}
+              <div className="absolute top-40 left-80 w-1 h-1 bg-purple-400/80 rounded-full animate-data-particle"></div>
+              <div className="absolute top-80 right-96 w-0.5 h-0.5 bg-cyan-400/80 rounded-full animate-data-particle-delayed"></div>
+              <div className="absolute bottom-60 left-96 w-1 h-1 bg-green-400/80 rounded-full animate-data-particle-slow"></div>
+              <div className="absolute bottom-80 right-80 w-0.5 h-0.5 bg-yellow-400/80 rounded-full animate-data-particle-fast"></div>
+            </div>
+
+            {/* Layer 4: Environmental Lighting */}
+            <div className="absolute inset-0 pointer-events-none">
+              <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-purple-500/5 via-transparent to-cyan-500/5 animate-ambient-shift"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Enhanced Cinematic Atmosphere */}
+      <div className="fixed inset-0 bg-gradient-to-br from-purple-500/8 via-transparent to-cyan-500/8 pointer-events-none animate-atmospheric-drift" />
+
+      {/* Depth of Field Blur Effect */}
+      <div className="fixed inset-0 bg-gradient-radial from-transparent via-transparent to-black/20 pointer-events-none" />
+
+      <div className="relative w-full max-w-4xl bg-gradient-to-br from-slate-900/98 via-purple-900/95 to-slate-800/98 backdrop-blur-3xl rounded-[2rem] border border-purple-400/40 max-h-[90vh] overflow-hidden transform transition-all duration-700 ease-out animate-terminal-float mx-auto shadow-[0_0_50px_rgba(168,85,247,0.3)]">
         
         {/* Floating Premium Elements */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">

@@ -17,7 +17,6 @@ import {
   Wifi,
 } from 'lucide-react';
 import SessionManager from '../auth/SessionManager';
-import BrokerConnectionModal from '../broker/BrokerConnectionModal';
 import {
   useSettings,
   type RiskLevel,
@@ -31,7 +30,7 @@ interface SettingsModalProps {
   onClose: () => void;
 }
 
-type SettingsTab = 'account' | 'risk' | 'stopLoss' | 'brokers' | 'sessions';
+type SettingsTab = 'account' | 'risk' | 'stopLoss' | 'sessions';
 
 const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
   const {
@@ -74,7 +73,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
     Record<string, { type: 'decrease' | 'increase'; conflictWith: string }>
   >({});
   const [isSessionManagerOpen, setIsSessionManagerOpen] = useState(false);
-  const [isBrokerModalOpen, setIsBrokerModalOpen] = useState(false);
 
   // Update local settings when settings prop changes
   useEffect(() => {
@@ -1347,24 +1345,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                 </div>
               </button>
               
-              {/* Broker Connections Tab */}
-              <button
-                onClick={() => setActiveTab('brokers')}
-                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-300 text-left ${
-                  activeTab === 'brokers'
-                    ? 'bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-blue-400/40 text-blue-300 shadow-lg shadow-blue-500/20'
-                    : 'hover:bg-slate-800/40 text-slate-400 hover:text-slate-300'
-                }`}
-              >
-                <div className="p-2 bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-blue-500/30 rounded-lg">
-                  <ExternalLink className="w-4 h-4" />
-                </div>
-                <div>
-                  <div className="font-semibold text-sm">Broker Connections</div>
-                  <div className="text-xs opacity-80">Trading Account Links</div>
-                </div>
-              </button>
-              
               {/* Session Management Tab */}
               <button
                 onClick={() => setActiveTab('sessions')}
@@ -2466,92 +2446,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
               </>
             )}
 
-            {/* Broker Connections Tab Content */}
-            {activeTab === 'brokers' && (
-              <>
-                <div className="relative">
-                  <div className="flex items-center justify-between mb-6">
-                    <div className="flex items-center space-x-3">
-                      <div className="p-1.5 bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-blue-500/30 rounded-lg">
-                        <ExternalLink className="w-4 h-4 text-blue-400" />
-                      </div>
-                      <div>
-                        <span className="text-sm font-bold bg-gradient-to-r from-blue-300 to-purple-300 bg-clip-text text-transparent tracking-wider">
-                          Broker Connections
-                        </span>
-                        <div className="text-xs text-slate-400 mt-0.5">
-                          Manage your trading account connections
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Broker Connection Interface */}
-                  <div className="space-y-6">
-                    {/* Connect New Broker Section */}
-                    <div className="relative p-6 bg-gradient-to-r from-slate-800/60 via-slate-900/80 to-slate-800/60 backdrop-blur-xl rounded-xl border border-slate-600/40">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-4">
-                          <div className="p-3 bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-blue-500/30 rounded-lg">
-                            <Wifi className="w-5 h-5 text-blue-400" />
-                          </div>
-                          <div>
-                            <h3 className="text-sm font-semibold text-slate-200">Connect Trading Account</h3>
-                            <p className="text-xs text-slate-400 mt-1">
-                              Link your broker account to enable live trading and portfolio tracking
-                            </p>
-                          </div>
-                        </div>
-                        <button
-                          onClick={() => setIsBrokerModalOpen(true)}
-                          className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white text-sm font-medium rounded-lg transition-all duration-200 hover:scale-105"
-                        >
-                          <ExternalLink className="w-4 h-4 mr-2 inline" />
-                          Connect Broker
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Connected Brokers Section - This will show user's connected brokers */}
-                    <div className="space-y-4">
-                      <h3 className="text-sm font-semibold text-slate-300">Connected Accounts</h3>
-                      {user?.connectedBrokers?.length > 0 ? (
-                        <div className="space-y-3">
-                          {user.connectedBrokers.map((broker: any) => (
-                            <div key={broker._id} className="p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-lg">
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center space-x-3">
-                                  <div className="w-8 h-8 bg-emerald-500/20 border border-emerald-500/30 rounded-lg flex items-center justify-center">
-                                    {broker.broker === 'kite' ? '🛡️' : '📊'}
-                                  </div>
-                                  <div>
-                                    <div className="text-sm font-medium text-emerald-300">
-                                      {broker.broker === 'kite' ? 'Zerodha Kite' : broker.broker}
-                                    </div>
-                                    <div className="text-xs text-emerald-400/80">
-                                      Account: {broker.brokerUserName}
-                                    </div>
-                                  </div>
-                                </div>
-                                <div className="text-xs text-emerald-400">
-                                  Connected {new Date(broker.connectedAt).toLocaleDateString()}
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="text-center py-8">
-                          <ExternalLink className="w-12 h-12 text-slate-500 mx-auto mb-3" />
-                          <p className="text-slate-400 text-sm">No broker accounts connected</p>
-                          <p className="text-slate-500 text-xs mt-1">Connect your first trading account to get started</p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </>
-            )}
 
             {/* Sessions Tab Content */}
             {activeTab === 'sessions' && (
@@ -2559,11 +2453,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                 <div className="relative">
                   <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center space-x-3">
-                      <div className="p-1.5 bg-gradient-to-r from-cyan-500/20 to-teal-500/20 border border-cyan-500/30 rounded-lg">
-                        <Shield className="w-4 h-4 text-cyan-400" />
+                      <div className="p-1.5 bg-gradient-to-r from-purple-500/20 to-cyan-500/20 border border-purple-500/30 rounded-lg">
+                        <Shield className="w-4 h-4 text-purple-400" />
                       </div>
                       <div>
-                        <span className="text-sm font-bold bg-gradient-to-r from-cyan-300 to-teal-300 bg-clip-text text-transparent tracking-wider">
+                        <span className="text-sm font-bold bg-gradient-to-r from-purple-300 to-cyan-300 bg-clip-text text-transparent tracking-wider">
                           Active Sessions
                         </span>
                         <div className="text-xs text-slate-400 mt-0.5">
@@ -2579,8 +2473,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                     <div className="relative p-6 bg-gradient-to-r from-slate-800/60 via-slate-900/80 to-slate-800/60 backdrop-blur-xl rounded-xl border border-slate-600/40">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-4">
-                          <div className="p-3 bg-gradient-to-r from-cyan-500/20 to-teal-500/20 border border-cyan-500/30 rounded-lg">
-                            <Shield className="w-5 h-5 text-cyan-400" />
+                          <div className="p-3 bg-gradient-to-r from-purple-500/20 to-cyan-500/20 border border-purple-500/30 rounded-lg">
+                            <Shield className="w-5 h-5 text-purple-400" />
                           </div>
                           <div>
                             <h3 className="text-sm font-semibold text-slate-200">Session Management</h3>
@@ -2591,7 +2485,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                         </div>
                         <button
                           onClick={() => setIsSessionManagerOpen(true)}
-                          className="px-4 py-2 bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-500 hover:to-teal-500 text-white text-sm font-medium rounded-lg transition-all duration-200 hover:scale-105"
+                          className="px-4 py-2 bg-gradient-to-r from-purple-600 to-cyan-600 hover:from-purple-500 hover:to-cyan-500 text-white text-sm font-medium rounded-lg transition-all duration-200 hover:scale-105"
                         >
                           <Users className="w-4 h-4 mr-2 inline" />
                           Manage Sessions
@@ -2605,12 +2499,12 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                       
                       <div className="grid gap-4">
                         {/* Current Session */}
-                        <div className="p-4 bg-gradient-to-r from-emerald-500/10 to-cyan-500/10 border border-emerald-500/30 rounded-lg">
+                        <div className="p-4 bg-gradient-to-r from-purple-500/10 to-cyan-500/10 border border-purple-500/30 rounded-lg">
                           <div className="flex items-center space-x-3">
-                            <div className="w-3 h-3 bg-emerald-400 rounded-full animate-pulse"></div>
+                            <div className="w-3 h-3 bg-purple-400 rounded-full animate-pulse"></div>
                             <div>
-                              <div className="text-sm font-medium text-emerald-300">Current Session</div>
-                              <div className="text-xs text-emerald-400/80">This device - Active now</div>
+                              <div className="text-sm font-medium text-purple-300">Current Session</div>
+                              <div className="text-xs text-cyan-400/80">This device - Active now</div>
                             </div>
                           </div>
                         </div>
@@ -2619,7 +2513,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           <button
                             onClick={() => setIsSessionManagerOpen(true)}
-                            className="p-3 bg-slate-800/50 border border-slate-600/40 rounded-lg hover:bg-slate-700/50 transition-all duration-200 text-left"
+                            className="p-3 bg-gradient-to-r from-purple-500/5 to-cyan-500/5 border border-purple-500/20 rounded-lg hover:from-purple-500/10 hover:to-cyan-500/10 hover:border-purple-500/30 transition-all duration-200 text-left"
                           >
                             <div className="text-sm font-medium text-slate-300">View All Sessions</div>
                             <div className="text-xs text-slate-500 mt-1">See active devices</div>
@@ -2627,7 +2521,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                           
                           <button
                             onClick={() => setIsSessionManagerOpen(true)}
-                            className="p-3 bg-slate-800/50 border border-slate-600/40 rounded-lg hover:bg-slate-700/50 transition-all duration-200 text-left"
+                            className="p-3 bg-gradient-to-r from-purple-500/5 to-cyan-500/5 border border-purple-500/20 rounded-lg hover:from-purple-500/10 hover:to-cyan-500/10 hover:border-purple-500/30 transition-all duration-200 text-left"
                           >
                             <div className="text-sm font-medium text-slate-300">Security Settings</div>
                             <div className="text-xs text-slate-500 mt-1">Logout remote devices</div>
@@ -2925,10 +2819,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
       <SessionManager 
         isOpen={isSessionManagerOpen} 
         onClose={() => setIsSessionManagerOpen(false)} 
-      />
-      <BrokerConnectionModal 
-        isOpen={isBrokerModalOpen} 
-        onClose={() => setIsBrokerModalOpen(false)} 
       />
     </>
   );
