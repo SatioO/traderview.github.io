@@ -1880,17 +1880,21 @@ const TradingCalculator: React.FC = () => {
                           </div>
                         </div>
 
-                        {/* Quick Preset Buttons - Previous Better Style */}
+                        {/* Quick Preset Buttons - From Settings */}
                         <div className="flex flex-wrap gap-2">
-                          {[1, 2, 3, 5].map((preset) => (
+                          {settings.stopLossLevels
+                            .filter((level) =>
+                              ['tight', 'normal', 'loose', 'wide'].includes(level.id)
+                            )
+                            .map((level) => (
                             <button
-                              key={preset}
+                              key={level.id}
                               type="button"
                               onClick={() => {
-                                setStopLossPercentage(preset);
+                                setStopLossPercentage(level.percentage);
                                 if (formData.entryPrice > 0) {
                                   const stopPrice =
-                                    formData.entryPrice * (1 - preset / 100);
+                                    formData.entryPrice * (1 - level.percentage / 100);
                                   handleInputChange(
                                     'stopLoss',
                                     stopPrice.toFixed(2)
@@ -1899,7 +1903,7 @@ const TradingCalculator: React.FC = () => {
                               }}
                               className="px-3 py-1.5 text-xs bg-red-500/20 hover:bg-red-500/30 border border-red-500/40 rounded-lg text-red-300 transition-all duration-200 hover:scale-105"
                             >
-                              {preset}%
+                              {level.percentage}%
                             </button>
                           ))}
                         </div>

@@ -32,6 +32,17 @@ export interface AllocationLevel {
   color: string;
 }
 
+// Stop Loss Level Configuration
+export interface StopLossLevel {
+  id: string;
+  name: string;
+  percentage: number;
+  description: string;
+  icon: string;
+  urgencyLevel: 'TIGHT' | 'NORMAL' | 'LOOSE' | 'WIDE';
+  color: string;
+}
+
 // Enhanced Settings Interface
 export interface UserSettings {
   // Version for migration
@@ -48,6 +59,10 @@ export interface UserSettings {
   // Portfolio Allocation
   allocationLevels: AllocationLevel[];
   defaultAllocationLevel: string;
+
+  // Stop Loss Management
+  stopLossLevels: StopLossLevel[];
+  defaultStopLossLevel: string;
 
   // UI Preferences
   activeTab: TabType;
@@ -145,6 +160,46 @@ const DEFAULT_ALLOCATION_LEVELS: AllocationLevel[] = [
   },
 ];
 
+// Default Stop Loss Levels (using Shield icon for all levels like risk and allocation levels)
+const DEFAULT_STOP_LOSS_LEVELS: StopLossLevel[] = [
+  {
+    id: 'tight',
+    name: 'Tight stop loss',
+    percentage: 1,
+    description: 'Very close protection, minimal loss tolerance',
+    icon: 'Shield',
+    urgencyLevel: 'TIGHT',
+    color: '#10B981',
+  },
+  {
+    id: 'normal',
+    name: 'Normal stop loss',
+    percentage: 2,
+    description: 'Standard protection with moderate tolerance',
+    icon: 'Shield',
+    urgencyLevel: 'NORMAL',
+    color: '#F59E0B',
+  },
+  {
+    id: 'loose',
+    name: 'Loose stop loss',
+    percentage: 3,
+    description: 'Relaxed protection for volatile conditions',
+    icon: 'Shield',
+    urgencyLevel: 'LOOSE',
+    color: '#EF4444',
+  },
+  {
+    id: 'wide',
+    name: 'Wide stop loss',
+    percentage: 5,
+    description: 'Maximum tolerance for high volatility',
+    icon: 'Shield',
+    urgencyLevel: 'WIDE',
+    color: '#8B5CF6',
+  },
+];
+
 // Settings version for migration
 const SETTINGS_VERSION = 2; // Increment when structure changes
 
@@ -157,6 +212,8 @@ const DEFAULT_SETTINGS: UserSettings = {
   marketHealth: 'confirmed-uptrend',
   allocationLevels: DEFAULT_ALLOCATION_LEVELS,
   defaultAllocationLevel: 'conservative',
+  stopLossLevels: DEFAULT_STOP_LOSS_LEVELS,
+  defaultStopLossLevel: 'normal',
   activeTab: 'risk',
   darkMode: true,
   defaultBrokerageCost: 20,
@@ -179,9 +236,13 @@ interface SettingsContextType {
   updateAllocationLevel: (allocationLevel: AllocationLevel) => void;
   addAllocationLevel: (allocationLevel: Omit<AllocationLevel, 'id'>) => void;
   removeAllocationLevel: (id: string) => void;
+  updateStopLossLevel: (stopLossLevel: StopLossLevel) => void;
+  addStopLossLevel: (stopLossLevel: Omit<StopLossLevel, 'id'>) => void;
+  removeStopLossLevel: (id: string) => void;
   resetSettings: () => void;
   getCurrentRiskLevel: () => RiskLevel | undefined;
   getCurrentAllocationLevel: () => AllocationLevel | undefined;
+  getCurrentStopLossLevel: () => StopLossLevel | undefined;
   exportSettings: () => string;
   importSettings: (settingsJson: string) => boolean;
 }
@@ -224,19 +285,38 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({
             
             // Force update allocation levels to include all 4 defaults
             migratedSettings.allocationLevels = DEFAULT_ALLOCATION_LEVELS;
+            // Force update stop loss levels to include all 4 defaults
+            migratedSettings.stopLossLevels = DEFAULT_STOP_LOSS_LEVELS;
             migratedSettings.version = SETTINGS_VERSION;
             
             // Force save the migrated settings
             localStorage.setItem('userSettings', JSON.stringify(migratedSettings));
           } else {
             // Even if not migrating, ensure all 4 allocation levels exist
-            const requiredLevelIds = ['conservative', 'balanced', 'high', 'extreme'];
-            const existingLevelIds = (migratedSettings.allocationLevels || []).map((l: AllocationLevel) => l.id);
-            const missingLevels = requiredLevelIds.filter(id => !existingLevelIds.includes(id));
+            const requiredAllocationIds = ['conservative', 'balanced', 'high', 'extreme'];
+            const existingAllocationIds = (migratedSettings.allocationLevels || []).map((l: AllocationLevel) => l.id);
+            const missingAllocationLevels = requiredAllocationIds.filter(id => !existingAllocationIds.includes(id));
             
-            if (!migratedSettings.allocationLevels || migratedSettings.allocationLevels.length < 4 || missingLevels.length > 0) {
-              console.log('Fixing missing allocation levels:', missingLevels);
+            // Ensure all 4 stop loss levels exist
+            const requiredStopLossIds = ['tight', 'normal', 'loose', 'wide'];
+            const existingStopLossIds = (migratedSettings.stopLossLevels || []).map((l: StopLossLevel) => l.id);
+            const missingStopLossLevels = requiredStopLossIds.filter(id => !existingStopLossIds.includes(id));
+            
+            let needsUpdate = false;
+            
+            if (!migratedSettings.allocationLevels || migratedSettings.allocationLevels.length < 4 || missingAllocationLevels.length > 0) {
+              console.log('Fixing missing allocation levels:', missingAllocationLevels);
               migratedSettings.allocationLevels = DEFAULT_ALLOCATION_LEVELS;
+              needsUpdate = true;
+            }
+            
+            if (!migratedSettings.stopLossLevels || migratedSettings.stopLossLevels.length < 4 || missingStopLossLevels.length > 0) {
+              console.log('Fixing missing stop loss levels:', missingStopLossLevels);
+              migratedSettings.stopLossLevels = DEFAULT_STOP_LOSS_LEVELS;
+              needsUpdate = true;
+            }
+            
+            if (needsUpdate) {
               localStorage.setItem('userSettings', JSON.stringify(migratedSettings));
             }
           }
@@ -380,6 +460,40 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({
     }));
   };
 
+  // Update specific stop loss level
+  const updateStopLossLevel = (updatedStopLossLevel: StopLossLevel) => {
+    setSettings((prev) => ({
+      ...prev,
+      stopLossLevels: prev.stopLossLevels.map((level) =>
+        level.id === updatedStopLossLevel.id ? updatedStopLossLevel : level
+      ),
+    }));
+  };
+
+  // Add new stop loss level
+  const addStopLossLevel = (newStopLossLevel: Omit<StopLossLevel, 'id'>) => {
+    const id = `custom-${Date.now()}`;
+    const stopLossLevel: StopLossLevel = { ...newStopLossLevel, id };
+
+    setSettings((prev) => ({
+      ...prev,
+      stopLossLevels: [...prev.stopLossLevels, stopLossLevel],
+    }));
+  };
+
+  // Remove stop loss level
+  const removeStopLossLevel = (id: string) => {
+    setSettings((prev) => ({
+      ...prev,
+      stopLossLevels: prev.stopLossLevels.filter((level) => level.id !== id),
+      // Reset default if we're removing it
+      defaultStopLossLevel:
+        prev.defaultStopLossLevel === id
+          ? prev.stopLossLevels[0]?.id || 'normal'
+          : prev.defaultStopLossLevel,
+    }));
+  };
+
   // Reset to default settings
   const resetSettings = () => {
     setSettings(DEFAULT_SETTINGS);
@@ -399,6 +513,13 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({
   const getCurrentAllocationLevel = (): AllocationLevel | undefined => {
     return settings.allocationLevels.find(
       (level) => level.id === settings.defaultAllocationLevel
+    );
+  };
+
+  // Get current stop loss level object
+  const getCurrentStopLossLevel = (): StopLossLevel | undefined => {
+    return settings.stopLossLevels.find(
+      (level) => level.id === settings.defaultStopLossLevel
     );
   };
 
@@ -433,9 +554,13 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({
     updateAllocationLevel,
     addAllocationLevel,
     removeAllocationLevel,
+    updateStopLossLevel,
+    addStopLossLevel,
+    removeStopLossLevel,
     resetSettings,
     getCurrentRiskLevel,
     getCurrentAllocationLevel,
+    getCurrentStopLossLevel,
     exportSettings,
     importSettings,
   };

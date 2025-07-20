@@ -17,6 +17,7 @@ import {
   useSettings,
   type RiskLevel,
   type AllocationLevel,
+  type StopLossLevel,
 } from '../../contexts/SettingsContext';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -25,15 +26,23 @@ interface SettingsModalProps {
   onClose: () => void;
 }
 
-type SettingsTab = 'account' | 'risk';
+type SettingsTab = 'account' | 'risk' | 'stopLoss';
 
 const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
-  const { settings, updateSettings, updateRiskLevel, updateAllocationLevel } =
-    useSettings();
+  const {
+    settings,
+    updateSettings,
+    updateRiskLevel,
+    updateAllocationLevel,
+    updateStopLossLevel,
+  } = useSettings();
   const { logout, user } = useAuth();
   const [activeTab, setActiveTab] = useState<SettingsTab>('account');
   const [editedLevels, setEditedLevels] = useState<Record<string, string>>({});
   const [editedAllocationLevels, setEditedAllocationLevels] = useState<
+    Record<string, string>
+  >({});
+  const [editedStopLossLevels, setEditedStopLossLevels] = useState<
     Record<string, string>
   >({});
   const [editedCapital, setEditedCapital] = useState<string | undefined>(
@@ -44,14 +53,19 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
     capital?: string;
     riskLevels?: Record<string, string>;
     allocationLevels?: Record<string, string>;
+    stopLossLevels?: Record<string, string>;
     duplicates?: string[];
     allocationDuplicates?: string[];
+    stopLossDuplicates?: string[];
     stopLoss?: string;
   }>({});
   const [shakeAnimations, setShakeAnimations] = useState<
     Record<string, boolean>
   >({});
   const [orderConflicts, setOrderConflicts] = useState<
+    Record<string, { type: 'decrease' | 'increase'; conflictWith: string }>
+  >({});
+  const [stopLossOrderConflicts, setStopLossOrderConflicts] = useState<
     Record<string, { type: 'decrease' | 'increase'; conflictWith: string }>
   >({});
 
@@ -71,9 +85,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
         // Reset any unsaved changes before closing
         setEditedLevels({});
         setEditedAllocationLevels({});
+        setEditedStopLossLevels({});
         setEditedCapital(undefined);
         setValidationErrors({});
         setOrderConflicts({});
+        setStopLossOrderConflicts({});
         setShakeAnimations({});
         onClose();
         return;
@@ -468,6 +484,147 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
     }
   };
 
+  // Validate stop loss levels (similar to risk levels)
+  const validateStopLossLevels = (levels: Record<string, string>) => {
+    const errors: Record<string, string> = {};
+    const duplicates: string[] = [];
+    const values: number[] = [];
+    const processedValues: { [key: string]: number } = {};
+    const conflicts: Record<
+      string,
+      { type: 'decrease' | 'increase'; conflictWith: string }
+    > = {};
+
+    try {
+      // Get all stop loss level values (including unchanged ones)
+      const allLevels = { ...levels };
+      localSettings.stopLossLevels.forEach((level) => {
+        if (['tight', 'normal', 'loose', 'wide'].includes(level.id)) {
+          // If no edited value exists, use the original value
+          if (!allLevels[level.id] && allLevels[level.id] !== '') {
+            allLevels[level.id] = level.percentage.toString();
+          }
+        }
+      });
+
+      // Check each stop loss level
+      Object.entries(allLevels).forEach(([levelId, value]) => {
+        if (value === undefined || value === null) {
+          return;
+        }
+
+        const stringValue = String(value).trim();
+
+        // Check if empty
+        if (stringValue === '') {
+          errors[levelId] = 'Value required';
+          return;
+        }
+
+        const numValue = Number(stringValue);
+
+        // Check if valid number
+        if (isNaN(numValue) || !isFinite(numValue)) {
+          errors[levelId] = 'Invalid number';
+          return;
+        }
+
+        // Check range (0.1 <= value <= 8)
+        if (numValue < 0.1) {
+          errors[levelId] = 'Minimum 0.1%';
+          return;
+        }
+
+        if (numValue > 8) {
+          errors[levelId] = 'Maximum 8%';
+          return;
+        }
+
+        processedValues[levelId] = numValue;
+        values.push(numValue);
+      });
+
+      // Check for duplicates
+      const valueCount: { [key: string]: string[] } = {};
+      Object.entries(processedValues).forEach(([levelId, value]) => {
+        const key = value.toString();
+        if (!valueCount[key]) {
+          valueCount[key] = [];
+        }
+        valueCount[key].push(levelId);
+      });
+
+      Object.entries(valueCount).forEach(([value, levelIds]) => {
+        if (levelIds.length > 1) {
+          levelIds.forEach((levelId) => {
+            duplicates.push(levelId);
+            errors[levelId] = `Duplicate value: ${value}%`;
+          });
+        }
+      });
+
+      // Check order conflicts (tight < normal < loose < wide)
+      const levelOrder = ['tight', 'normal', 'loose', 'wide'];
+
+      for (let i = 0; i < levelOrder.length - 1; i++) {
+        const currentLevel = levelOrder[i];
+        const nextLevel = levelOrder[i + 1];
+
+        const currentValue = processedValues[currentLevel];
+        const nextValue = processedValues[nextLevel];
+
+        if (currentValue !== undefined && nextValue !== undefined) {
+          if (currentValue >= nextValue) {
+            // Current level should be less than next level
+            conflicts[currentLevel] = {
+              type: 'increase',
+              conflictWith: nextLevel,
+            };
+            conflicts[nextLevel] = {
+              type: 'decrease',
+              conflictWith: currentLevel,
+            };
+          }
+        }
+      }
+
+      return { errors, duplicates, conflicts };
+    } catch (error) {
+      console.error('Error in validateStopLossLevels:', error);
+      return { errors: {}, duplicates: [], conflicts: {} };
+    }
+  };
+
+  const handleStopLossChange = (levelId: string, value: string) => {
+    try {
+      // Update the value
+      const newLevels = { ...editedStopLossLevels, [levelId]: value };
+      setEditedStopLossLevels(newLevels);
+
+      // Validate all stop loss levels
+      const { errors, duplicates, conflicts } =
+        validateStopLossLevels(newLevels);
+
+      // Update validation errors and order conflicts
+      setValidationErrors((prev) => ({
+        ...prev,
+        stopLossLevels: errors,
+        stopLossDuplicates: duplicates,
+      }));
+      setStopLossOrderConflicts(conflicts);
+
+      // Trigger shake animation for errors
+      if (errors[levelId] || duplicates.includes(levelId)) {
+        setShakeAnimations((prev) => ({ ...prev, [levelId]: true }));
+        setTimeout(() => {
+          setShakeAnimations((prev) => ({ ...prev, [levelId]: false }));
+        }, 600);
+      }
+    } catch (error) {
+      console.error('Error in handleStopLossChange:', error);
+    }
+  };
+
   const handleSave = () => {
     // Final validation before save
     if (hasValidationErrors) {
@@ -496,19 +653,36 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
       }
     });
 
+    // Update stop loss levels with new percentages
+    localSettings.stopLossLevels.forEach((level) => {
+      if (editedStopLossLevels[level.id] !== undefined) {
+        const updatedLevel: StopLossLevel = {
+          ...level,
+          percentage: Number(editedStopLossLevels[level.id]),
+        };
+        updateStopLossLevel(updatedLevel);
+      }
+    });
+
     // Update trading capital if changed
     if (editedCapital !== undefined) {
       updateSettings({ accountBalance: Number(editedCapital) });
     }
 
     // Update stop loss setting if changed
-    if (localSettings.defaultStopLossPercentage !== settings.defaultStopLossPercentage) {
-      updateSettings({ defaultStopLossPercentage: localSettings.defaultStopLossPercentage });
+    if (
+      localSettings.defaultStopLossPercentage !==
+      settings.defaultStopLossPercentage
+    ) {
+      updateSettings({
+        defaultStopLossPercentage: localSettings.defaultStopLossPercentage,
+      });
     }
 
     // Clear local edits after saving
     setEditedLevels({});
     setEditedAllocationLevels({});
+    setEditedStopLossLevels({});
     setEditedCapital(undefined);
     setValidationErrors({});
     setOrderConflicts({});
@@ -531,6 +705,13 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
     return level.percentage.toString();
   };
 
+  const getStopLossDisplayValue = (level: StopLossLevel) => {
+    if (editedStopLossLevels[level.id] !== undefined) {
+      return editedStopLossLevels[level.id];
+    }
+    return level.percentage.toString();
+  };
+
   const getDisplayCapital = () => {
     return editedCapital !== undefined
       ? editedCapital
@@ -538,10 +719,13 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
   };
 
   const hasCapitalChanged = editedCapital !== undefined;
-  const hasStopLossChanged = localSettings.defaultStopLossPercentage !== settings.defaultStopLossPercentage;
+  const hasStopLossChanged =
+    localSettings.defaultStopLossPercentage !==
+    settings.defaultStopLossPercentage;
   const hasChanges =
     Object.keys(editedLevels).length > 0 ||
     Object.keys(editedAllocationLevels).length > 0 ||
+    Object.keys(editedStopLossLevels).length > 0 ||
     hasCapitalChanged ||
     hasStopLossChanged;
 
@@ -553,9 +737,15 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
       Object.keys(validationErrors.riskLevels).length > 0) ||
     (validationErrors.allocationLevels &&
       Object.keys(validationErrors.allocationLevels).length > 0) ||
+    (validationErrors.stopLossLevels &&
+      Object.keys(validationErrors.stopLossLevels).length > 0) ||
     (validationErrors.duplicates && validationErrors.duplicates.length > 0) ||
     (validationErrors.allocationDuplicates &&
-      validationErrors.allocationDuplicates.length > 0);
+      validationErrors.allocationDuplicates.length > 0) ||
+    (validationErrors.stopLossDuplicates &&
+      validationErrors.stopLossDuplicates.length > 0) ||
+    Object.keys(orderConflicts).length > 0 ||
+    Object.keys(stopLossOrderConflicts).length > 0;
 
   const canSave = hasChanges && !hasValidationErrors;
 
@@ -578,6 +768,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
       field?: string;
       severity: 'high' | 'medium' | 'low';
     }[] = [];
+    const duplicateGroups: Set<string> = new Set();
 
     try {
       // Capital errors
@@ -606,24 +797,34 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
               const isRange =
                 isMaximumRange || error.includes('Must be greater than 0');
 
-              errors.push({
-                type: isDuplicate
-                  ? 'duplicate'
-                  : isOrderError
-                  ? 'order'
-                  : isRange
-                  ? 'range'
-                  : 'invalid',
-                message: error,
-                field: level?.name || levelId,
-                severity: isDuplicate
-                  ? 'medium'
-                  : isOrderError
-                  ? 'high'
-                  : isRange
-                  ? 'high'
-                  : 'low',
-              });
+              if (isDuplicate) {
+                // Group duplicates - only add once per unique duplicate value
+                const duplicateKey = `risk-${error}`;
+                if (!duplicateGroups.has(duplicateKey)) {
+                  duplicateGroups.add(duplicateKey);
+                  errors.push({
+                    type: 'duplicate',
+                    message: error.replace('Duplicate value:', 'Risk levels have duplicate value:'),
+                    field: 'Risk Levels',
+                    severity: 'medium',
+                  });
+                }
+              } else {
+                errors.push({
+                  type: isOrderError
+                    ? 'order'
+                    : isRange
+                    ? 'range'
+                    : 'invalid',
+                  message: error,
+                  field: level?.name || levelId,
+                  severity: isOrderError
+                    ? 'high'
+                    : isRange
+                    ? 'high'
+                    : 'low',
+                });
+              }
             }
           }
         );
@@ -650,28 +851,117 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                 isMinimumRange ||
                 error.includes('Must be greater than 0');
 
-              errors.push({
-                type: isDuplicate
-                  ? 'duplicate'
-                  : isOrderError
-                  ? 'order'
-                  : isRange
-                  ? 'range'
-                  : 'invalid',
-                message: error,
-                field: level?.name || levelId,
-                severity: isDuplicate
-                  ? 'medium'
-                  : isOrderError
-                  ? 'high'
-                  : isRange
-                  ? 'high'
-                  : 'low',
-              });
+              if (isDuplicate) {
+                // Group duplicates - only add once per unique duplicate value
+                const duplicateKey = `allocation-${error}`;
+                if (!duplicateGroups.has(duplicateKey)) {
+                  duplicateGroups.add(duplicateKey);
+                  errors.push({
+                    type: 'duplicate',
+                    message: error.replace('Duplicate value:', 'Allocation levels have duplicate value:'),
+                    field: 'Allocation Levels',
+                    severity: 'medium',
+                  });
+                }
+              } else {
+                errors.push({
+                  type: isOrderError
+                    ? 'order'
+                    : isRange
+                    ? 'range'
+                    : 'invalid',
+                  message: error,
+                  field: level?.name || levelId,
+                  severity: isOrderError
+                    ? 'high'
+                    : isRange
+                    ? 'high'
+                    : 'low',
+                });
+              }
             }
           }
         );
       }
+
+      // Stop Loss level errors
+      if (
+        validationErrors.stopLossLevels &&
+        typeof validationErrors.stopLossLevels === 'object'
+      ) {
+        Object.entries(validationErrors.stopLossLevels).forEach(
+          ([levelId, error]) => {
+            if (error && typeof error === 'string') {
+              const level = localSettings.stopLossLevels.find(
+                (l) => l.id === levelId
+              );
+              const isDuplicate = error.includes('Duplicate');
+              const isMaximumRange = error.includes('Maximum value is 8%');
+              const isMinimumRange = error.includes('Minimum value is 0.1%');
+              const isOrderError =
+                error.includes('Must be greater than') && error.includes('%');
+              const isRange =
+                isMaximumRange ||
+                isMinimumRange ||
+                error.includes('Must be greater than 0');
+
+              if (isDuplicate) {
+                // Group duplicates - only add once per unique duplicate value
+                const duplicateKey = `stopLoss-${error}`;
+                if (!duplicateGroups.has(duplicateKey)) {
+                  duplicateGroups.add(duplicateKey);
+                  errors.push({
+                    type: 'duplicate',
+                    message: error.replace('Duplicate value:', 'Stop loss levels have duplicate value:'),
+                    field: 'Stop Loss Levels',
+                    severity: 'medium',
+                  });
+                }
+              } else {
+                errors.push({
+                  type: isOrderError
+                    ? 'order'
+                    : isRange
+                    ? 'range'
+                    : 'invalid',
+                  message: error,
+                  field: level?.name || levelId,
+                  severity: isOrderError
+                    ? 'high'
+                    : isRange
+                    ? 'high'
+                    : 'low',
+                });
+              }
+            }
+          }
+        );
+      }
+
+      // Stop Loss Order Conflicts (only add if not caused by duplicates)
+      Object.entries(stopLossOrderConflicts).forEach(([levelId, conflict]) => {
+        const level = localSettings.stopLossLevels.find(
+          (l) => l.id === levelId
+        );
+        
+        // Check if this order conflict is caused by duplicate values
+        const isDuplicateCaused = validationErrors.stopLossDuplicates?.includes(levelId) || 
+                                  validationErrors.stopLossDuplicates?.includes(conflict.conflictWith);
+        
+        // Only add order conflict error if it's not caused by duplicates
+        if (!isDuplicateCaused) {
+          errors.push({
+            type: 'order',
+            message: `Stop loss order conflict: ${
+              conflict.type === 'decrease'
+                ? 'Value should be higher'
+                : 'Value should be lower'
+            } than ${conflict.conflictWith}`,
+            field: level?.name || levelId,
+            severity: 'high',
+          });
+        }
+      });
 
       return errors.sort((a, b) => {
         const severityOrder = { high: 3, medium: 2, low: 1 };
@@ -774,6 +1064,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
           // Reset any unsaved changes before closing
           setEditedLevels({});
           setEditedAllocationLevels({});
+          setEditedStopLossLevels({});
           setEditedCapital(undefined);
           setValidationErrors({});
           setOrderConflicts({});
@@ -869,7 +1160,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
 
       {/* Spectacular Settings Modal */}
       <div
-        className="relative bg-gradient-to-br from-slate-800/70 via-indigo-900/80 to-slate-800/70 backdrop-blur-3xl rounded-[2.5rem] shadow-2xl w-full max-w-5xl mx-auto border border-slate-600/40 transition-all duration-300 overflow-hidden"
+        className="relative bg-gradient-to-br from-slate-800/70 via-indigo-900/80 to-slate-800/70 backdrop-blur-3xl rounded-[2.5rem] shadow-2xl w-full max-w-5xl max-h-[80vh] mx-auto border border-slate-600/40 transition-all duration-300 overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Masterclass Header Design */}
@@ -948,10 +1239,12 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                 className="relative group p-3 hover:bg-red-800/60 rounded-2xl transition-all duration-300 border border-transparent hover:border-red-600/40 hover:scale-105"
               >
                 <LogOut className="relative w-6 h-6 text-slate-400 group-hover:text-red-300 transition-all duration-300" />
-                
+
                 {/* Logout tooltip */}
                 <div className="absolute right-0 top-full mt-2 px-3 py-1.5 bg-slate-900/90 backdrop-blur-xl rounded-lg border border-slate-700/40 text-xs text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap z-50">
-                  {user ? `Sign out (${user.firstName} ${user.lastName})` : 'Sign out'}
+                  {user
+                    ? `Sign out (${user.firstName} ${user.lastName})`
+                    : 'Sign out'}
                 </div>
               </button>
 
@@ -960,6 +1253,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                 onClick={() => {
                   setEditedLevels({});
                   setEditedAllocationLevels({});
+                  setEditedStopLossLevels({});
                   setEditedCapital(undefined);
                   setValidationErrors({});
                   setOrderConflicts({});
@@ -1026,6 +1320,23 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                   <div className="text-xs opacity-80">
                     Risk & Allocation Levels
                   </div>
+                </div>
+              </button>
+
+              <button
+                onClick={() => setActiveTab('stopLoss')}
+                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-300 text-left ${
+                  activeTab === 'stopLoss'
+                    ? 'bg-gradient-to-r from-red-500/20 to-pink-500/20 border border-red-400/40 text-red-300 shadow-lg shadow-red-500/20'
+                    : 'hover:bg-slate-800/40 text-slate-400 hover:text-slate-300'
+                }`}
+              >
+                <div className="p-2 bg-gradient-to-r from-red-500/20 to-pink-500/20 border border-red-500/30 rounded-lg">
+                  <X className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="font-semibold text-sm">Stop Loss</div>
+                  <div className="text-xs opacity-80">Stop Loss Management</div>
                 </div>
               </button>
             </div>
@@ -1206,93 +1517,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                     </div>
                   </div>
                 </div>
-
-                {/* Stop Loss Configuration Section */}
-                <div className="relative">
-                  {/* Header */}
-                  <div className="flex items-center justify-between mb-6">
-                    <div className="flex items-center space-x-3">
-                      <div className="p-1.5 bg-gradient-to-r from-red-500/20 to-pink-500/20 border border-red-500/30 rounded-lg">
-                        <Shield className="w-4 h-4 text-red-400" />
-                      </div>
-                      <span className="text-sm font-bold bg-gradient-to-r from-red-300 to-pink-300 bg-clip-text text-transparent tracking-wider">
-                        Stop Loss Configuration
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Stop Loss Input Card */}
-                  <div className="relative">
-                    <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-red-400/10 via-pink-500/5 to-rose-500/10 opacity-50"></div>
-                    <div className="relative border border-red-400/30 hover:border-red-400/50 rounded-2xl overflow-hidden bg-slate-900/80 backdrop-blur-sm transition-all duration-500 hover:shadow-lg hover:shadow-red-500/20">
-                      <div className="p-6">
-                        <div className="flex items-center justify-between mb-4">
-                          <div>
-                            <h3 className="text-lg font-bold text-red-200 mb-1">
-                              Default Stop Loss
-                            </h3>
-                            <p className="text-sm text-red-300/80">
-                              Auto-calculate stop loss percentage
-                            </p>
-                          </div>
-                          <div className="px-3 py-1 bg-gradient-to-r from-red-500/20 to-pink-500/20 border border-red-400/40 rounded-lg">
-                            <span className="text-xs font-bold text-red-300">
-                              MAX 8%
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className="space-y-4">
-                          <div className="relative">
-                            <input
-                              type="number"
-                              min="0.1"
-                              max="8"
-                              step="0.1"
-                              value={localSettings.defaultStopLossPercentage}
-                              onChange={(e) => {
-                                const value = parseFloat(e.target.value) || 0;
-                                setLocalSettings(prev => ({
-                                  ...prev,
-                                  defaultStopLossPercentage: value
-                                }));
-                                
-                                // Validate stop loss
-                                const error = validateStopLoss(value);
-                                setValidationErrors(prev => ({
-                                  ...prev,
-                                  stopLoss: error || undefined
-                                }));
-                              }}
-                              className={`w-full px-4 py-3 bg-slate-800/50 border rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 transition-all duration-300 ${
-                                validationErrors.stopLoss
-                                  ? 'border-red-500 focus:ring-red-500/50 animate-shake'
-                                  : 'border-slate-600 focus:border-red-400 focus:ring-red-500/20'
-                              }`}
-                              placeholder="3.0"
-                            />
-                            <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                              <span className="text-sm font-medium text-slate-400">%</span>
-                            </div>
-                          </div>
-
-                          {validationErrors.stopLoss && (
-                            <div className="flex items-center space-x-2 p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
-                              <AlertTriangle className="w-4 h-4 text-red-400" />
-                              <span className="text-xs text-red-300">
-                                {validationErrors.stopLoss}
-                              </span>
-                            </div>
-                          )}
-
-                          <div className="text-xs text-slate-400">
-                            This percentage will be automatically applied when you enter an entry price in the trading calculator.
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
               </>
             )}
 
@@ -1457,12 +1681,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                                     <div
                                       className={`transform transition-transform duration-300 group-hover:scale-110 ${colors.accent}`}
                                     >
-                                      {React.createElement(
-                                        getRiskIcon(),
-                                        {
-                                          className: 'w-8 h-8',
-                                        }
-                                      )}
+                                      {React.createElement(getRiskIcon(), {
+                                        className: 'w-8 h-8',
+                                      })}
                                     </div>
                                     {hasError && (
                                       <div className="absolute -inset-1 bg-gradient-to-r from-red-500/20 to-orange-500/20 rounded-full animate-pulse"></div>
@@ -1788,6 +2009,379 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                 </div>
               </>
             )}
+
+            {activeTab === 'stopLoss' && (
+              <>
+                {/* Optimized Stop Loss Management */}
+                <div className="relative">
+                  {/* Main Header */}
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center space-x-3">
+                      <div className="p-1.5 bg-gradient-to-r from-red-500/20 to-pink-500/20 border border-red-500/30 rounded-lg">
+                        <X className="w-4 h-4 text-red-400" />
+                      </div>
+                      <div>
+                        <span className="text-sm font-bold bg-gradient-to-r from-red-300 to-pink-300 bg-clip-text text-transparent tracking-wider">
+                          Stop Loss Management
+                        </span>
+                        <div className="text-xs text-slate-400 mt-0.5">
+                          Range: 0.1% - 8%
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Default Stop Loss Section - Integrated */}
+                  <div className="relative mb-6 p-4 bg-gradient-to-r from-slate-800/60 to-slate-900/80 border border-slate-600/40 rounded-xl">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <Shield className="w-4 h-4 text-red-400" />
+                        <div>
+                          <span className="text-sm font-medium text-slate-300">
+                            Default Stop Loss
+                          </span>
+                          <div className="text-xs text-slate-400">
+                            Applied automatically in trading calculator
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center space-x-3">
+                        <div className="relative">
+                          <input
+                            type="number"
+                            min="0.1"
+                            max="8"
+                            step="0.1"
+                            value={
+                              localSettings.defaultStopLossPercentage === 0
+                                ? ''
+                                : localSettings.defaultStopLossPercentage.toString()
+                            }
+                            onChange={(e) => {
+                              const inputValue = e.target.value;
+                              if (inputValue === '') {
+                                setLocalSettings((prev) => ({
+                                  ...prev,
+                                  defaultStopLossPercentage: 0,
+                                }));
+                                // Validate empty value
+                                setValidationErrors((prev) => ({
+                                  ...prev,
+                                  stopLoss: 'Stop loss percentage is required',
+                                }));
+                                return;
+                              }
+
+                              const value = parseFloat(inputValue);
+                              if (!isNaN(value)) {
+                                setLocalSettings((prev) => ({
+                                  ...prev,
+                                  defaultStopLossPercentage: value,
+                                }));
+
+                                // Validate stop loss
+                                const error = validateStopLoss(value);
+                                setValidationErrors((prev) => ({
+                                  ...prev,
+                                  stopLoss: error || undefined,
+                                }));
+                              }
+                            }}
+                            className={`w-20 h-10 px-3 pr-7 bg-slate-800/50 border-2 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 transition-all duration-300 text-sm font-bold text-center ${
+                              validationErrors.stopLoss
+                                ? 'border-red-500 focus:ring-red-500/50'
+                                : 'border-slate-600 focus:border-red-400 focus:ring-red-500/20'
+                            }`}
+                            placeholder="3.0"
+                          />
+                          <div className="absolute right-2 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                            <span className="text-xs font-bold text-slate-400">
+                              %
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Live Preview */}
+                        <div className="px-3 py-2 bg-gradient-to-r from-slate-700/60 to-slate-600/60 border border-slate-500/40 rounded-lg">
+                          <div className="text-xs text-slate-300">
+                            ₹1000 → ₹
+                            {(
+                              1000 *
+                              (1 -
+                                localSettings.defaultStopLossPercentage / 100)
+                            ).toFixed(0)}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {validationErrors.stopLoss && (
+                      <div className="flex items-center space-x-2 mt-3 p-2 bg-red-500/10 border border-red-500/30 rounded-lg">
+                        <AlertTriangle className="w-4 h-4 text-red-400" />
+                        <span className="text-xs text-red-300">
+                          {validationErrors.stopLoss}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Quick Access Tiles */}
+                  <div className="relative mb-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <span className="text-sm font-medium text-slate-300">
+                        Customizable Presets
+                      </span>
+                      <span className="text-xs text-slate-400">
+                        Override default for individual trades
+                      </span>
+                    </div>
+
+                    {/* Stop Loss Level Cards - Matching Risk Matrix Design */}
+                    <div className="relative">
+                      {/* Background Gradient Track */}
+                      <div className="absolute inset-x-0 top-1/2 transform -translate-y-1/2 h-1 bg-gradient-to-r from-emerald-500/30 via-amber-500/30 to-red-500/30 rounded-full"></div>
+
+                      <div className="relative flex items-center justify-center space-x-2">
+                        {localSettings.stopLossLevels
+                          .filter((level) =>
+                            ['tight', 'normal', 'loose', 'wide'].includes(
+                              level.id
+                            )
+                          )
+                          .map((level, index) => {
+                            const displayValue = getStopLossDisplayValue(level);
+                            const hasError =
+                              validationErrors.stopLossLevels?.[level.id];
+                            const isShaking = shakeAnimations[level.id];
+                            const orderConflict =
+                              stopLossOrderConflicts[level.id];
+                            const hasOrderConflict = !!orderConflict;
+                            const isDuplicate =
+                              validationErrors.stopLossDuplicates?.includes(
+                                level.id
+                              );
+                            const errorType = isDuplicate
+                              ? 'duplicate'
+                              : hasError?.includes('Maximum')
+                              ? 'high'
+                              : hasOrderConflict
+                              ? 'order'
+                              : hasError
+                              ? 'invalid'
+                              : null;
+
+                            const levelColors = {
+                              tight: {
+                                bg: 'from-emerald-500/10 via-green-500/5 to-teal-500/10',
+                                border:
+                                  'border-emerald-400/30 hover:border-emerald-400/50',
+                                text: 'text-emerald-300',
+                                accent: 'text-emerald-400',
+                                inputBg: 'bg-emerald-500/10',
+                                inputBorder: 'border-emerald-400/40',
+                              },
+                              normal: {
+                                bg: 'from-amber-500/10 via-yellow-500/5 to-orange-500/10',
+                                border:
+                                  'border-amber-400/30 hover:border-amber-400/50',
+                                text: 'text-amber-300',
+                                accent: 'text-amber-400',
+                                inputBg: 'bg-amber-500/10',
+                                inputBorder: 'border-amber-400/40',
+                              },
+                              loose: {
+                                bg: 'from-orange-500/10 via-red-500/5 to-pink-500/10',
+                                border:
+                                  'border-orange-400/30 hover:border-orange-400/50',
+                                text: 'text-orange-300',
+                                accent: 'text-orange-400',
+                                inputBg: 'bg-orange-500/10',
+                                inputBorder: 'border-orange-400/40',
+                              },
+                              wide: {
+                                bg: 'from-red-500/10 via-pink-500/5 to-rose-500/10',
+                                border:
+                                  'border-red-400/30 hover:border-red-400/50',
+                                text: 'text-red-300',
+                                accent: 'text-red-400',
+                                inputBg: 'bg-red-500/10',
+                                inputBorder: 'border-red-400/40',
+                              },
+                            };
+
+                            const colors =
+                              levelColors[
+                                level.id as keyof typeof levelColors
+                              ] || levelColors['tight'];
+
+                            return (
+                              <React.Fragment key={level.id}>
+                                {/* Stop Loss Level Card - Matching Risk Matrix Size */}
+                                <div className="relative flex-shrink-0">
+                                  <div
+                                    className={`group relative bg-gradient-to-br ${
+                                      colors.bg
+                                    } rounded-xl p-3 border transition-all duration-300 hover:scale-105 overflow-hidden w-32 h-36 ${
+                                      hasError
+                                        ? errorType === 'duplicate'
+                                          ? 'ring-2 ring-purple-500/60 border-purple-500/70 shadow-lg shadow-purple-500/20 bg-purple-500/10'
+                                          : errorType === 'high'
+                                          ? 'ring-2 ring-red-500/60 border-red-500/70 shadow-lg shadow-red-500/20 bg-red-500/10'
+                                          : errorType === 'order'
+                                          ? orderConflict?.type === 'decrease'
+                                            ? 'ring-2 ring-amber-500/60 border-amber-500/70 shadow-lg shadow-amber-500/20 bg-amber-500/10'
+                                            : 'ring-2 ring-cyan-500/60 border-cyan-500/70 shadow-lg shadow-cyan-500/20 bg-cyan-500/10'
+                                          : 'ring-2 ring-orange-500/60 border-orange-500/70 shadow-lg shadow-orange-500/20 bg-orange-500/10'
+                                        : colors.border
+                                    }`}
+                                    style={{
+                                      animation: isShaking
+                                        ? 'shake 0.6s ease-in-out'
+                                        : hasError
+                                        ? 'pulse-error 2s ease-in-out infinite'
+                                        : undefined,
+                                    }}
+                                  >
+                                    {/* Order Conflict Indicator */}
+                                    {hasOrderConflict && (
+                                      <div className="absolute -top-2 -right-2 z-10">
+                                        <div
+                                          className={`p-1.5 rounded-full shadow-lg animate-bounce ${
+                                            orderConflict?.type === 'decrease'
+                                              ? 'bg-gradient-to-r from-amber-500/80 to-orange-500/80 border border-amber-400/90'
+                                              : 'bg-gradient-to-r from-cyan-500/80 to-blue-500/80 border border-cyan-400/90'
+                                          }`}
+                                        >
+                                          {orderConflict?.type ===
+                                          'decrease' ? (
+                                            <ChevronDown className="w-3 h-3 text-white" />
+                                          ) : (
+                                            <ChevronUp className="w-3 h-3 text-white" />
+                                          )}
+                                        </div>
+                                      </div>
+                                    )}
+
+                                    {/* Shimmer effect */}
+                                    <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/10 to-transparent group-hover:translate-x-full transition-transform duration-700 ease-out"></div>
+
+                                    {/* Card Content */}
+                                    <div className="flex flex-col items-center justify-center text-center space-y-2 h-full">
+                                      {/* Icon */}
+                                      <div className="relative">
+                                        <div
+                                          className={`transform transition-transform duration-300 group-hover:scale-110 ${colors.accent}`}
+                                        >
+                                          {React.createElement(Shield, {
+                                            className: 'w-8 h-8',
+                                          })}
+                                        </div>
+                                        {hasError && (
+                                          <div className="absolute -inset-1 bg-gradient-to-r from-red-500/20 to-orange-500/20 rounded-full animate-pulse"></div>
+                                        )}
+                                      </div>
+
+                                      {/* Input */}
+                                      <div className="relative group">
+                                        <input
+                                          type="number"
+                                          min="0.1"
+                                          max="8"
+                                          step="0.1"
+                                          value={displayValue}
+                                          onChange={(e) => {
+                                            handleStopLossChange(
+                                              level.id,
+                                              e.target.value
+                                            );
+                                          }}
+                                          className={`w-16 h-8 border-2 rounded-xl px-2 pr-5 text-center font-bold text-sm focus:outline-none transition-all duration-300 backdrop-blur-sm ${
+                                            hasError
+                                              ? errorType === 'duplicate'
+                                                ? 'bg-purple-900/40 border-purple-400/80 text-purple-200 focus:border-purple-300/90 focus:ring-2 focus:ring-purple-400/40 shadow-lg shadow-purple-500/20'
+                                                : errorType === 'high'
+                                                ? 'bg-red-900/40 border-red-400/80 text-red-200 focus:border-red-300/90 focus:ring-2 focus:ring-red-400/40 shadow-lg shadow-red-500/20'
+                                                : errorType === 'order'
+                                                ? orderConflict?.type ===
+                                                  'decrease'
+                                                  ? 'bg-amber-900/40 border-amber-400/80 text-amber-200 focus:border-amber-300/90 focus:ring-2 focus:ring-amber-400/40 shadow-lg shadow-amber-500/20'
+                                                  : 'bg-cyan-900/40 border-cyan-400/80 text-cyan-200 focus:border-cyan-300/90 focus:ring-2 focus:ring-cyan-400/40 shadow-lg shadow-cyan-500/20'
+                                                : 'bg-orange-900/40 border-orange-400/80 text-orange-200 focus:border-orange-300/90 focus:ring-2 focus:ring-orange-400/40 shadow-lg shadow-orange-500/20'
+                                              : `bg-black/20 ${colors.inputBorder} ${colors.accent} focus:border-current/90 focus:ring-2 focus:ring-current/30 hover:bg-black/30 group-hover:border-current/70`
+                                          }`}
+                                          style={{
+                                            animation: hasError
+                                              ? 'pulse-error 2s ease-in-out infinite'
+                                              : undefined,
+                                          }}
+                                        />
+                                        <div className="absolute right-1.5 top-1/2 transform -translate-y-1/2">
+                                          <span className="text-xs font-bold text-slate-400">
+                                            %
+                                          </span>
+                                        </div>
+                                      </div>
+
+                                      {/* Simple Label - No Subtitle */}
+                                      <div className="space-y-1">
+                                        <h4
+                                          className={`text-xs font-bold ${colors.text} tracking-wider`}
+                                        >
+                                          {level.urgencyLevel}
+                                        </h4>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* ChevronRight Icon Between Tiles */}
+                                {index <
+                                  localSettings.stopLossLevels.filter((level) =>
+                                    [
+                                      'tight',
+                                      'normal',
+                                      'loose',
+                                      'wide',
+                                    ].includes(level.id)
+                                  ).length -
+                                    1 && (
+                                  <div className="relative flex items-center justify-center px-1">
+                                    {/* Directional Node */}
+                                    <div className="relative z-10 group">
+                                      <div className="w-4 h-4 bg-gradient-to-r from-slate-800/90 to-slate-700/90 border border-slate-600/60 rounded-full flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:border-slate-500/80">
+                                        <ChevronRight className="w-2 h-2 text-slate-400 group-hover:text-slate-300" />
+                                      </div>
+                                      <div className="absolute inset-0 w-4 h-4 bg-gradient-to-r from-slate-700/30 to-slate-600/30 rounded-full animate-ping opacity-20"></div>
+                                    </div>
+                                  </div>
+                                )}
+                              </React.Fragment>
+                            );
+                          })}
+                      </div>
+                    </div>
+
+                    {/* Mark Minervini's Wisdom */}
+                    <div className="p-4 bg-gradient-to-r from-slate-800/40 to-slate-900/60 border border-slate-600/30 rounded-xl mt-6">
+                      <div className="flex items-start space-x-3">
+                        <Target className="w-4 h-4 text-emerald-400 mt-0.5 flex-shrink-0" />
+                        <div className="flex-1">
+                          <div className="text-xs text-slate-400 italic border-l-2 border-emerald-500/30 pl-3">
+                            "Your first loss is your best loss. The stop-loss is
+                            the single most important tool for preserving
+                            capital."
+                            <span className="text-slate-500">
+                              — Mark Minervini
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </div>
 
@@ -1841,6 +2435,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                 onClick={() => {
                   setEditedLevels({});
                   setEditedAllocationLevels({});
+                  setEditedStopLossLevels({});
                   setEditedCapital(undefined);
                   setValidationErrors({});
                   setOrderConflicts({});
