@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { X, ExternalLink, CheckCircle, Clock, AlertCircle } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { X, ExternalLink, CheckCircle, Clock, AlertCircle, TrendingUp, Zap, Shield, Wifi, Star, Globe, Lock, Users } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import Button from '../ui/Button';
 
@@ -13,6 +13,8 @@ const BrokerConnectionModal: React.FC<BrokerConnectionModalProps> = ({
   onClose 
 }) => {
   const { availableBrokers, loginWithBroker, userProfile } = useAuth();
+  const [selectedBroker, setSelectedBroker] = useState<string | null>(null);
+  const [connectionStep, setConnectionStep] = useState<'select' | 'connecting' | 'success'>('select');
 
   // Close on escape key
   useEffect(() => {
@@ -64,24 +66,42 @@ const BrokerConnectionModal: React.FC<BrokerConnectionModalProps> = ({
     const configs = {
       kite: {
         name: 'Zerodha Kite',
-        description: 'Leading discount brokerage in India',
+        description: 'India\'s largest discount brokerage platform',
         logo: '🛡️',
         color: '#FF6D28',
-        features: ['Low brokerage', 'Advanced charts', 'Portfolio analytics']
+        bgGradient: 'from-orange-500/10 via-red-500/5 to-orange-500/10',
+        borderColor: 'border-orange-400/30 hover:border-orange-400/50',
+        features: ['₹0 equity delivery', 'Advanced charting', 'API access', 'Portfolio analytics'],
+        rating: 4.8,
+        users: '1.5M+',
+        established: '2010',
+        security: 'Bank-grade encryption'
       },
       groww: {
         name: 'Groww',
-        description: 'User-friendly investment platform',
+        description: 'Simple & powerful investment platform',
         logo: '📈',
         color: '#00C896',
-        features: ['Zero AMC', 'Easy interface', 'Mutual funds']
+        bgGradient: 'from-emerald-500/10 via-green-500/5 to-teal-500/10',
+        borderColor: 'border-emerald-400/30 hover:border-emerald-400/50',
+        features: ['Zero AMC', 'Paperless KYC', 'Mutual funds', 'Easy interface'],
+        rating: 4.6,
+        users: '1M+',
+        established: '2016',
+        security: '256-bit SSL encryption'
       },
       angelone: {
         name: 'Angel One',
-        description: 'Full-service brokerage',
+        description: 'Full-service digital brokerage',
         logo: '👼',
         color: '#3B82F6',
-        features: ['Research reports', 'Advisory services', 'Mobile first']
+        bgGradient: 'from-blue-500/10 via-indigo-500/5 to-blue-500/10',
+        borderColor: 'border-blue-400/30 hover:border-blue-400/50',
+        features: ['Research reports', 'Advisory services', 'SmartAPI', 'Mobile first'],
+        rating: 4.5,
+        users: '800K+',
+        established: '1996',
+        security: 'Multi-factor authentication'
       }
     };
     
@@ -90,160 +110,249 @@ const BrokerConnectionModal: React.FC<BrokerConnectionModalProps> = ({
       description: 'Trading platform',
       logo: '📊',
       color: '#6366F1',
-      features: ['Trading platform']
+      bgGradient: 'from-purple-500/10 via-indigo-500/5 to-purple-500/10',
+      borderColor: 'border-purple-400/30 hover:border-purple-400/50',
+      features: ['Trading platform'],
+      rating: 4.0,
+      users: 'N/A',
+      established: 'N/A',
+      security: 'Secure connection'
     };
   };
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-      <div className="relative w-full max-w-3xl bg-gradient-to-br from-slate-900/98 via-purple-900/95 to-slate-800/98 backdrop-blur-3xl rounded-2xl border border-purple-400/40 shadow-2xl shadow-purple-500/20 max-h-[90vh] overflow-hidden">
+    <div className="fixed inset-0 z-[100000] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+      <div className="relative w-full max-w-4xl bg-gradient-to-br from-slate-900/98 via-purple-900/95 to-slate-800/98 backdrop-blur-3xl rounded-[2rem] border border-purple-400/40 shadow-2xl shadow-purple-500/20 max-h-[90vh] overflow-hidden">
+        
+        {/* Floating Premium Elements */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-8 left-12 w-2 h-2 bg-gradient-to-r from-purple-400 to-cyan-400 rounded-full animate-ping opacity-60"></div>
+          <div className="absolute top-6 right-16 w-1 h-1 bg-gradient-to-r from-cyan-400 to-blue-400 rounded-full animate-ping opacity-40 delay-1000"></div>
+          <div className="absolute bottom-12 left-20 w-1 h-1 bg-gradient-to-r from-violet-400 to-purple-400 rounded-full animate-ping opacity-50 delay-2000"></div>
+          <div className="absolute bottom-8 right-12 w-2 h-2 bg-gradient-to-r from-amber-400 to-orange-400 rounded-full animate-ping opacity-45 delay-3000"></div>
+        </div>
+
+        {/* Dynamic light bar */}
+        <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-purple-400/50 to-transparent" />
+        
+        {/* Glass morphism overlay */}
+        <div className="absolute inset-0 bg-gradient-to-br from-white/[0.02] via-transparent to-black/10 pointer-events-none rounded-[2rem]" />
+
         {/* Header */}
-        <div className="relative p-6 border-b border-slate-700/50">
+        <div className="relative p-8 border-b border-slate-700/50">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-gradient-to-br from-purple-500/20 to-blue-600/10 rounded-lg border border-purple-400/30">
-                <ExternalLink className="w-5 h-5 text-purple-300" />
+            <div className="flex items-center space-x-4">
+              <div className="relative group">
+                <div className="relative z-10 p-3 bg-gradient-to-br from-slate-900/80 via-purple-900/60 to-slate-800/80 backdrop-blur-xl rounded-xl border border-purple-400/30 group-hover:border-purple-400/50 transition-all duration-300">
+                  <ExternalLink className="w-6 h-6 text-slate-300 group-hover:text-purple-300 transition-all duration-300" />
+                </div>
               </div>
               <div>
-                <h2 className="text-lg font-bold text-slate-100">Connect Your Broker</h2>
-                <p className="text-sm text-slate-400">
-                  Link your trading account to import portfolios and execute trades
-                </p>
+                <h2 className="text-2xl font-black bg-gradient-to-r from-slate-100 via-purple-200 to-slate-100 bg-clip-text text-transparent tracking-tight">
+                  🚀 Connect Your Broker
+                </h2>
+                <div className="mx-auto px-3 py-1 bg-gradient-to-r from-purple-500/20 to-purple-600/20 border border-purple-400/30 rounded-full w-fit mt-2">
+                  <span className="text-xs font-bold text-purple-300 tracking-wider">
+                    SECURE TRADING GATEWAY
+                  </span>
+                </div>
               </div>
             </div>
             <button
               onClick={onClose}
-              className="p-2 text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 rounded-lg transition-all duration-200"
+              className="p-3 text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 rounded-xl transition-all duration-200 hover:scale-105"
             >
-              <X className="w-5 h-5" />
+              <X className="w-6 h-6" />
             </button>
           </div>
         </div>
 
         {/* Content */}
-        <div className="p-6 space-y-6 max-h-[60vh] overflow-y-auto">
-          {/* Info Banner */}
-          <div className="p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg">
-            <div className="flex items-start space-x-3">
-              <AlertCircle className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" />
-              <div>
-                <h3 className="text-sm font-semibold text-blue-300">Secure Connection</h3>
-                <p className="text-xs text-blue-200/80 mt-1">
-                  Your credentials are securely handled through official broker APIs. TraderView never stores your login details.
-                </p>
+        <div className="p-8 space-y-8 max-h-[70vh] overflow-y-auto">
+          
+          {/* Header with current stats */}
+          <div className="text-center space-y-4">
+            <p className="text-slate-300 text-sm">
+              Connect with India's most trusted brokers for seamless trading experience
+            </p>
+            
+            {/* Stats Row */}
+            <div className="flex items-center justify-center space-x-6">
+              <div className="flex items-center space-x-2">
+                <Shield className="w-4 h-4 text-emerald-400" />
+                <span className="text-xs text-emerald-300 font-semibold">Bank-Grade Security</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Zap className="w-4 h-4 text-yellow-400" />
+                <span className="text-xs text-yellow-300 font-semibold">Instant Connection</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Lock className="w-4 h-4 text-cyan-400" />
+                <span className="text-xs text-cyan-300 font-semibold">Zero Data Storage</span>
               </div>
             </div>
           </div>
 
-          {/* Broker List */}
-          <div className="space-y-4">
-            <h3 className="text-sm font-semibold text-slate-300">
-              Available Brokers ({availableBrokers.length})
+          {/* Quick Select Header */}
+          <div className="space-y-3">
+            <h3 className="text-sm font-semibold text-slate-300 flex items-center space-x-2">
+              <Zap className="w-4 h-4 text-purple-400" />
+              <span>Choose Your Trading Platform</span>
             </h3>
-
+            
+            {/* Premium Broker Cards */}
             <div className="grid gap-4">
               {availableBrokers.map((broker) => {
                 const config = getBrokerConfig(broker.name);
                 const status = getConnectionStatus(broker.name);
                 const connectedInfo = getConnectedBrokerInfo(broker.name);
+                const isSelected = selectedBroker === broker.name;
 
                 return (
                   <div
                     key={broker.name}
-                    className={`relative p-6 rounded-xl border transition-all duration-200 ${
+                    className={`group relative bg-gradient-to-r ${config.bgGradient} backdrop-blur-xl rounded-2xl p-6 border transition-all duration-300 hover:scale-[1.02] cursor-pointer ${
                       status === 'connected'
-                        ? 'bg-emerald-500/10 border-emerald-500/30'
-                        : 'bg-slate-800/50 border-slate-600/30 hover:border-slate-500/50'
+                        ? 'border-emerald-400/40 ring-2 ring-emerald-500/40 shadow-lg shadow-emerald-500/20'
+                        : isSelected
+                        ? `${config.borderColor} ring-2 ring-purple-500/40 shadow-lg shadow-purple-500/20`
+                        : `${config.borderColor}`
                     }`}
+                    onClick={() => setSelectedBroker(broker.name)}
                   >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-4">
-                        {/* Broker Logo */}
-                        <div 
-                          className="p-3 rounded-lg border"
-                          style={{
-                            backgroundColor: `${config.color}15`,
-                            borderColor: `${config.color}40`,
-                          }}
-                        >
-                          <span className="text-2xl">{config.logo}</span>
-                        </div>
+                    {/* Floating Elements */}
+                    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                      <div className="absolute top-4 left-8 w-1 h-1 bg-gradient-to-r from-purple-400 to-cyan-400 rounded-full animate-ping opacity-60"></div>
+                      <div className="absolute top-3 right-10 w-1 h-1 bg-gradient-to-r from-cyan-400 to-blue-400 rounded-full animate-ping opacity-40 delay-1000"></div>
+                      <div className="absolute bottom-5 left-12 w-1 h-1 bg-gradient-to-r from-violet-400 to-purple-400 rounded-full animate-ping opacity-50 delay-2000"></div>
+                    </div>
 
-                        {/* Broker Info */}
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-3 mb-2">
-                            <h4 className="text-sm font-semibold text-slate-200">
-                              {config.name}
-                            </h4>
+                    <div className="relative z-10">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center space-x-4">
+                          {/* Enhanced Logo */}
+                          <div className="relative">
+                            <div 
+                              className="p-4 rounded-xl border-2 transition-all duration-300 group-hover:scale-105"
+                              style={{
+                                backgroundColor: `${config.color}20`,
+                                borderColor: `${config.color}60`,
+                              }}
+                            >
+                              <span className="text-3xl">{config.logo}</span>
+                            </div>
                             {status === 'connected' && (
+                              <div className="absolute -top-1 -right-1 w-4 h-4 bg-emerald-400 rounded-full animate-pulse border-2 border-slate-900"></div>
+                            )}
+                          </div>
+
+                          {/* Broker Details */}
+                          <div className="flex-1">
+                            <div className="flex items-center space-x-3 mb-2">
+                              <h4 className="text-lg font-bold text-slate-200">
+                                {config.name}
+                              </h4>
+                              {status === 'connected' && (
+                                <div className="flex items-center space-x-1 px-2 py-1 bg-emerald-500/20 border border-emerald-500/30 rounded-full">
+                                  <CheckCircle className="w-3 h-3 text-emerald-400" />
+                                  <span className="text-xs text-emerald-300 font-medium">
+                                    Connected
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                            
+                            <p className="text-sm text-slate-400 mb-3">
+                              {config.description}
+                            </p>
+
+                            {/* Rating & Stats */}
+                            <div className="flex items-center space-x-4 mb-3">
                               <div className="flex items-center space-x-1">
-                                <CheckCircle className="w-4 h-4 text-emerald-400" />
-                                <span className="text-xs text-emerald-300 font-medium">
-                                  Connected
-                                </span>
+                                <Star className="w-3 h-3 text-yellow-400 fill-current" />
+                                <span className="text-xs text-yellow-300 font-semibold">{config.rating}</span>
+                              </div>
+                              <div className="flex items-center space-x-1">
+                                <Users className="w-3 h-3 text-cyan-400" />
+                                <span className="text-xs text-cyan-300 font-semibold">{config.users}</span>
+                              </div>
+                              <div className="flex items-center space-x-1">
+                                <Globe className="w-3 h-3 text-purple-400" />
+                                <span className="text-xs text-purple-300 font-semibold">Est. {config.established}</span>
+                              </div>
+                            </div>
+
+                            {/* Connection Info for Connected Brokers */}
+                            {status === 'connected' && connectedInfo && (
+                              <div className="text-xs text-slate-400 space-y-1 mb-3">
+                                <div className="flex items-center space-x-2">
+                                  <Clock className="w-3 h-3" />
+                                  <span>Connected on {new Date(connectedInfo.connectedAt).toLocaleDateString()}</span>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  <Shield className="w-3 h-3" />
+                                  <span>Account: {connectedInfo.brokerUserName}</span>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Features Pills */}
+                            {status !== 'connected' && (
+                              <div className="flex flex-wrap gap-2">
+                                {config.features.map((feature, index) => (
+                                  <span
+                                    key={index}
+                                    className="px-2 py-1 bg-slate-800/60 border border-slate-600/40 rounded-lg text-xs text-slate-300 font-medium"
+                                  >
+                                    {feature}
+                                  </span>
+                                ))}
                               </div>
                             )}
                           </div>
-                          
-                          <p className="text-xs text-slate-400 mb-3">
-                            {config.description}
-                          </p>
+                        </div>
 
-                          {/* Connection Info */}
-                          {status === 'connected' && connectedInfo && (
-                            <div className="text-xs text-slate-400 space-y-1">
-                              <div className="flex items-center space-x-2">
-                                <Clock className="w-3 h-3" />
-                                <span>
-                                  Connected on {new Date(connectedInfo.connectedAt).toLocaleDateString()}
-                                </span>
-                              </div>
-                              <div>
-                                Account: {connectedInfo.brokerUserName}
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Features */}
-                          {status !== 'connected' && (
-                            <div className="flex flex-wrap gap-2">
-                              {config.features.map((feature, index) => (
-                                <span
-                                  key={index}
-                                  className="px-2 py-1 bg-slate-700/50 border border-slate-600/30 rounded text-xs text-slate-300"
-                                >
-                                  {feature}
-                                </span>
-                              ))}
-                            </div>
+                        {/* Action Button */}
+                        <div className="ml-4">
+                          {status === 'connected' ? (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              disabled
+                              className="border-emerald-500/30 text-emerald-300 bg-emerald-500/10"
+                            >
+                              <CheckCircle className="w-4 h-4 mr-2" />
+                              Connected
+                            </Button>
+                          ) : (
+                            <Button
+                              variant="primary"
+                              size="sm"
+                              onClick={() => handleBrokerConnect(broker.name)}
+                              className={`bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 transition-all duration-200 hover:scale-105 ${
+                                isSelected ? 'ring-2 ring-purple-400/50' : ''
+                              }`}
+                            >
+                              <ExternalLink className="w-4 h-4 mr-2" />
+                              Connect Now
+                            </Button>
                           )}
                         </div>
                       </div>
 
-                      {/* Action Button */}
-                      <div className="ml-4">
-                        {status === 'connected' ? (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            disabled
-                            className="border-emerald-500/30 text-emerald-300"
-                          >
-                            <CheckCircle className="w-4 h-4 mr-2" />
-                            Connected
-                          </Button>
-                        ) : (
-                          <Button
-                            variant="primary"
-                            size="sm"
-                            onClick={() => handleBrokerConnect(broker.name)}
-                            className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500"
-                          >
-                            <ExternalLink className="w-4 h-4 mr-2" />
-                            Connect
-                          </Button>
+                      {/* Security Badge */}
+                      <div className="flex items-center justify-between pt-3 border-t border-slate-600/30">
+                        <div className="flex items-center space-x-2">
+                          <Lock className="w-3 h-3 text-slate-400" />
+                          <span className="text-xs text-slate-400">{config.security}</span>
+                        </div>
+                        {isSelected && (
+                          <div className="flex items-center space-x-1">
+                            <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse"></div>
+                            <span className="text-xs text-purple-300 font-semibold">Selected</span>
+                          </div>
                         )}
                       </div>
                     </div>
@@ -252,24 +361,49 @@ const BrokerConnectionModal: React.FC<BrokerConnectionModalProps> = ({
               })}
 
               {availableBrokers.length === 0 && (
-                <div className="text-center py-8">
-                  <ExternalLink className="w-12 h-12 text-slate-500 mx-auto mb-3" />
-                  <p className="text-slate-400">No brokers available</p>
+                <div className="text-center py-12">
+                  <ExternalLink className="w-16 h-16 text-slate-500 mx-auto mb-4" />
+                  <p className="text-slate-400 text-lg font-semibold">No Brokers Available</p>
+                  <p className="text-slate-500 text-sm mt-2">More trading platforms coming soon!</p>
                 </div>
               )}
             </div>
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="p-6 border-t border-slate-700/50 bg-slate-900/50">
+        {/* Enhanced Footer */}
+        <div className="p-8 border-t border-slate-700/50 bg-slate-900/50">
           <div className="flex items-center justify-between">
+            {/* Security Info */}
+            <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4 flex-1 mr-4">
+              <div className="flex items-start space-x-3">
+                <Shield className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" />
+                <div>
+                  <h3 className="text-sm font-semibold text-blue-300">🔒 Privacy Guaranteed</h3>
+                  <p className="text-xs text-blue-200/80 mt-1">
+                    TradeView uses official broker APIs. Your credentials are never stored and handled securely through OAuth2.
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            {/* Action Buttons */}
+            <div className="flex space-x-3">
+              <Button 
+                variant="outline" 
+                onClick={onClose}
+                className="px-6 py-3 border-slate-600/30 hover:border-slate-500/50"
+              >
+                Maybe Later
+              </Button>
+            </div>
+          </div>
+          
+          {/* Coming Soon Banner */}
+          <div className="mt-4 text-center">
             <p className="text-xs text-slate-400">
-              More brokers coming soon. Currently supported: Zerodha Kite
+              🚀 <span className="text-purple-300 font-semibold">Coming Soon:</span> Upstox, 5Paisa, IIFL Securities & more!
             </p>
-            <Button variant="secondary" onClick={onClose}>
-              Close
-            </Button>
           </div>
         </div>
       </div>

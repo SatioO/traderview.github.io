@@ -165,18 +165,17 @@ const Header: React.FC<HeaderProps> = ({
           <div className="mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-16">
               
-              {/* Left - Brand/Logo */}
+              {/* Left - Brand/Logo & Broker Connection */}
               <div className="flex items-center space-x-4">
                 <div className="text-xl font-bold bg-gradient-to-r from-purple-400 to-cyan-400 bg-clip-text text-transparent">
                   TradeView
                 </div>
+                {/* Broker Status Indicator */}
+                <BrokerStatusIndicator />
               </div>
 
-              {/* Center - Trading Capital Display & Broker Status */}
+              {/* Center - Trading Capital Display */}
               <div className="hidden sm:flex items-center space-x-4">
-                {/* Broker Status */}
-                <BrokerStatusIndicator />
-                
                 {/* Trading Capital */}
                 <div className="group relative">
                   <button
