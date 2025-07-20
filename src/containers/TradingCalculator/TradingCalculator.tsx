@@ -370,6 +370,11 @@ const TradingCalculator: React.FC = () => {
     fetchMarketSmithData();
   }, [fetchMarketSmithData]);
 
+  // Initialize stop loss percentage with user settings (only once)
+  useEffect(() => {
+    setStopLossPercentage(settings.defaultStopLossPercentage);
+  }, [settings.defaultStopLossPercentage]);
+
   // Validate inputs
   const validateInputs = useCallback((): string[] => {
     const { accountBalance, riskPercentage, entryPrice, stopLoss } = formData;
@@ -653,11 +658,14 @@ const TradingCalculator: React.FC = () => {
 
         // Auto-calculate stop loss when entry price is entered (using user's default percentage)
         if (field === 'entryPrice' && processedValue && processedValue > 0) {
-          const stopLossPercentage = settings.defaultStopLossPercentage || 3; // Use user setting or default to 3%
-          const multiplier = (100 - stopLossPercentage) / 100; // Convert percentage to multiplier
+          const defaultStopLossPercentage = settings.defaultStopLossPercentage || 3; // Use user setting or default to 3%
+          const multiplier = (100 - defaultStopLossPercentage) / 100; // Convert percentage to multiplier
           newData.stopLoss = parseFloat(
             (processedValue * multiplier).toFixed(2)
           ); // Calculate stop loss based on user preference
+          
+          // Reset stop loss percentage to default when entry price changes
+          setStopLossPercentage(defaultStopLossPercentage);
         }
 
         // Auto-calculate risk on investment when stop loss or entry price changes (for risk-based sizing)
