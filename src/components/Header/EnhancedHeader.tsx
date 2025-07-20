@@ -221,7 +221,7 @@ const EnhancedHeader: React.FC<EnhancedHeaderProps> = ({
       <header className="sticky top-0 z-50 w-full">
         <div className="bg-black/30 backdrop-blur-xl border-b border-white/5">
           <div className="mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between h-20">
+            <div className="flex items-center justify-between h-16">
               {/* Left - Brand/Logo & Broker Connection */}
               <div className="flex items-center space-x-6">
                 <div className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-cyan-400 bg-clip-text text-transparent">

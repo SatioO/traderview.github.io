@@ -748,7 +748,6 @@ const TradingCalculator: React.FC = () => {
       <EnhancedHeader
         isSettingsOpen={isSettingsOpen}
         onSettingsToggle={setIsSettingsOpen}
-        marketHealth={formData.marketHealth}
       />
       {/* Gaming Background Effects */}
       <div className="absolute inset-0 opacity-20">
@@ -769,7 +768,7 @@ const TradingCalculator: React.FC = () => {
       ></div>
 
       {/* Main Content */}
-      <main className="relative z-10 mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-8">
+      <main className="relative z-10 mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-4">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Gaming Control Panel */}
           <div className="lg:col-span-1">
