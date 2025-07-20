@@ -75,6 +75,10 @@ const TradingCalculator: React.FC = () => {
   const [calculations, setCalculations] = useState<Calculations | null>(null);
   const [warnings, setWarnings] = useState<string[]>([]);
   const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
+  const [stopLossMode, setStopLossMode] = useState<'price' | 'percentage'>(
+    'price'
+  );
+  const [stopLossPercentage, setStopLossPercentage] = useState<number>(3);
   const [marketSmithData, setMarketSmithData] = useState<{
     condition: string;
     date: string;
@@ -1173,45 +1177,58 @@ const TradingCalculator: React.FC = () => {
                     </div>
 
                     {/* Trading Capital - Premium Compact Design */}
-                    <div 
+                    <div
                       onClick={handleCapitalEdit}
                       className="relative overflow-hidden rounded-2xl cursor-pointer group"
                     >
                       {/* Sophisticated Background Gradient */}
                       <div className="absolute inset-0 bg-gradient-to-br from-black/30 via-purple-900/10 to-black/30"></div>
                       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-purple-500/5 to-transparent group-hover:via-purple-400/10 transition-all duration-300"></div>
-                      
+
                       {/* Premium Border Treatment */}
-                      <div 
+                      <div
                         className={`absolute inset-0 rounded-2xl border-2 transition-all duration-300 ${
-                          formData.accountBalance >= 50000000 ? 'border-purple-400/40 group-hover:border-purple-400/60 group-hover:shadow-lg group-hover:shadow-purple-500/20' :
-                          formData.accountBalance >= 20000000 ? 'border-indigo-400/40 group-hover:border-indigo-400/60 group-hover:shadow-lg group-hover:shadow-indigo-500/20' :
-                          formData.accountBalance >= 10000000 ? 'border-blue-400/40 group-hover:border-blue-400/60 group-hover:shadow-lg group-hover:shadow-blue-500/20' :
-                          formData.accountBalance >= 5000000 ? 'border-cyan-400/40 group-hover:border-cyan-400/60 group-hover:shadow-lg group-hover:shadow-cyan-500/20' :
-                          formData.accountBalance >= 2500000 ? 'border-green-400/40 group-hover:border-green-400/60 group-hover:shadow-lg group-hover:shadow-green-500/20' :
-                          formData.accountBalance >= 1000000 ? 'border-yellow-400/40 group-hover:border-yellow-400/60 group-hover:shadow-lg group-hover:shadow-yellow-500/20' :
-                          formData.accountBalance >= 500000 ? 'border-orange-400/40 group-hover:border-orange-400/60 group-hover:shadow-lg group-hover:shadow-orange-500/20' : 
-                          'border-red-400/40 group-hover:border-red-400/60 group-hover:shadow-lg group-hover:shadow-red-500/20'
+                          formData.accountBalance >= 50000000
+                            ? 'border-purple-400/40 group-hover:border-purple-400/60 group-hover:shadow-lg group-hover:shadow-purple-500/20'
+                            : formData.accountBalance >= 20000000
+                            ? 'border-indigo-400/40 group-hover:border-indigo-400/60 group-hover:shadow-lg group-hover:shadow-indigo-500/20'
+                            : formData.accountBalance >= 10000000
+                            ? 'border-blue-400/40 group-hover:border-blue-400/60 group-hover:shadow-lg group-hover:shadow-blue-500/20'
+                            : formData.accountBalance >= 5000000
+                            ? 'border-cyan-400/40 group-hover:border-cyan-400/60 group-hover:shadow-lg group-hover:shadow-cyan-500/20'
+                            : formData.accountBalance >= 2500000
+                            ? 'border-green-400/40 group-hover:border-green-400/60 group-hover:shadow-lg group-hover:shadow-green-500/20'
+                            : formData.accountBalance >= 1000000
+                            ? 'border-yellow-400/40 group-hover:border-yellow-400/60 group-hover:shadow-lg group-hover:shadow-yellow-500/20'
+                            : formData.accountBalance >= 500000
+                            ? 'border-orange-400/40 group-hover:border-orange-400/60 group-hover:shadow-lg group-hover:shadow-orange-500/20'
+                            : 'border-red-400/40 group-hover:border-red-400/60 group-hover:shadow-lg group-hover:shadow-red-500/20'
                         }`}
                       />
-                      
+
                       {/* Content Layer */}
                       <div className="relative z-10">
                         {/* Section Header */}
                         <div className="flex items-center justify-between px-4 pt-3 pb-2">
                           <div className="flex items-center space-x-2">
                             <Banknote className="w-4 h-4 text-purple-400" />
-                            <h3 className="text-sm font-semibold text-gray-300">Trading Capital</h3>
+                            <h3 className="text-sm font-semibold text-gray-300">
+                              Trading Capital
+                            </h3>
                           </div>
-                          <div className="text-xs text-gray-500">Initial Capital</div>
+                          <div className="text-xs text-gray-500">
+                            Initial Capital
+                          </div>
                         </div>
-                        
+
                         <div className="flex items-center justify-between px-4 pb-4">
                           {/* Left: Amount + Progress */}
                           <div className="space-y-1">
                             <div className="flex items-baseline space-x-2">
                               <span className="text-2xl font-bold text-white tracking-tight">
-                                {formatCurrencyWithSuffix(formData.accountBalance)}
+                                {formatCurrencyWithSuffix(
+                                  formData.accountBalance
+                                )}
                               </span>
                               {/* Future: Available balance will go here */}
                             </div>
@@ -1220,23 +1237,39 @@ const TradingCalculator: React.FC = () => {
                             <div className="w-20 bg-black/40 rounded-full h-1.5 overflow-hidden">
                               <div
                                 className={`h-full rounded-full transition-all duration-1000 ease-out ${
-                                  formData.accountBalance >= 50000000 ? 'bg-purple-400' :
-                                  formData.accountBalance >= 20000000 ? 'bg-indigo-400' :
-                                  formData.accountBalance >= 10000000 ? 'bg-blue-400' :
-                                  formData.accountBalance >= 5000000 ? 'bg-cyan-400' :
-                                  formData.accountBalance >= 2500000 ? 'bg-green-400' :
-                                  formData.accountBalance >= 1000000 ? 'bg-yellow-400' :
-                                  formData.accountBalance >= 500000 ? 'bg-orange-400' : 'bg-red-400'
+                                  formData.accountBalance >= 50000000
+                                    ? 'bg-purple-400'
+                                    : formData.accountBalance >= 20000000
+                                    ? 'bg-indigo-400'
+                                    : formData.accountBalance >= 10000000
+                                    ? 'bg-blue-400'
+                                    : formData.accountBalance >= 5000000
+                                    ? 'bg-cyan-400'
+                                    : formData.accountBalance >= 2500000
+                                    ? 'bg-green-400'
+                                    : formData.accountBalance >= 1000000
+                                    ? 'bg-yellow-400'
+                                    : formData.accountBalance >= 500000
+                                    ? 'bg-orange-400'
+                                    : 'bg-red-400'
                                 }`}
                                 style={{
                                   width: `${Math.min(
-                                    formData.accountBalance >= 50000000 ? 100 :
-                                    formData.accountBalance >= 20000000 ? 85 :
-                                    formData.accountBalance >= 10000000 ? 70 :
-                                    formData.accountBalance >= 5000000 ? 55 :
-                                    formData.accountBalance >= 2500000 ? 40 :
-                                    formData.accountBalance >= 1000000 ? 25 :
-                                    formData.accountBalance >= 500000 ? 15 : 5,
+                                    formData.accountBalance >= 50000000
+                                      ? 100
+                                      : formData.accountBalance >= 20000000
+                                      ? 85
+                                      : formData.accountBalance >= 10000000
+                                      ? 70
+                                      : formData.accountBalance >= 5000000
+                                      ? 55
+                                      : formData.accountBalance >= 2500000
+                                      ? 40
+                                      : formData.accountBalance >= 1000000
+                                      ? 25
+                                      : formData.accountBalance >= 500000
+                                      ? 15
+                                      : 5,
                                     100
                                   )}%`,
                                 }}
@@ -1721,49 +1754,188 @@ const TradingCalculator: React.FC = () => {
                       Stop Loss
                       <Info className="inline w-4 h-4 ml-1 text-red-400 cursor-help" />
                     </label>
-                    <div className="relative">
-                      <input
-                        type="number"
-                        value={formData.stopLoss || ''}
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          handleInputChange('stopLoss', value);
-                        }}
-                        onBlur={(e) => {
-                          // Format to 2 decimal places on blur
-                          const value = parseFloat(e.target.value);
-                          if (!isNaN(value) && value > 0) {
-                            handleInputChange('stopLoss', value.toFixed(2));
-                          }
-                        }}
-                        className="w-full px-4 py-3 pl-10 bg-black/40 border-2 border-red-500/50 rounded-xl focus:border-red-400 focus:ring-2 focus:ring-red-400/20 text-white placeholder-red-300/50 font-mono transition-all duration-300 focus:shadow-lg focus:shadow-red-500/20"
-                        min="0"
-                        step="0.01"
-                        placeholder={`Auto: ${
-                          settings.defaultStopLossPercentage || 3
-                        }% below entry`}
-                      />
-                      <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-red-400">
-                        ₹
-                      </span>
-                    </div>
-                    {/* Risk Percentage Display */}
+
+                    {stopLossMode === 'price' ? (
+                      // Price Mode
+                      <div className="space-y-2">
+                        <div className="relative">
+                          <input
+                            type="number"
+                            value={formData.stopLoss || ''}
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              handleInputChange('stopLoss', value);
+                              // Auto-calculate percentage
+                              if (
+                                formData.entryPrice > 0 &&
+                                parseFloat(value) > 0
+                              ) {
+                                const percentage =
+                                  ((formData.entryPrice - parseFloat(value)) /
+                                    formData.entryPrice) *
+                                  100;
+                                setStopLossPercentage(
+                                  Math.round(percentage * 100) / 100
+                                );
+                              }
+                            }}
+                            onBlur={(e) => {
+                              const value = parseFloat(e.target.value);
+                              if (!isNaN(value) && value > 0) {
+                                handleInputChange('stopLoss', value.toFixed(2));
+                              }
+                            }}
+                            className="w-full px-4 py-3 pl-10 pr-20 bg-black/40 border-2 border-red-500/50 rounded-xl focus:border-red-400 focus:ring-2 focus:ring-red-400/20 text-white placeholder-red-300/50 font-mono transition-all duration-300 focus:shadow-lg focus:shadow-red-500/20"
+                            min="0"
+                            step="0.01"
+                            placeholder="Enter stop loss price"
+                          />
+                          <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-red-400">
+                            ₹
+                          </span>
+
+                          {/* Mode Toggle on same row */}
+                          <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex bg-black/60 rounded-lg p-1 border border-red-500/30">
+                            <button
+                              type="button"
+                              onClick={() => setStopLossMode('price')}
+                              className={`px-2 py-1 text-xs font-medium rounded-md transition-all duration-200 ${
+                                stopLossMode === 'price'
+                                  ? 'bg-red-500/30 text-red-300 border border-red-400/50'
+                                  : 'text-red-400/70 hover:text-red-300'
+                              }`}
+                            >
+                              ₹
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setStopLossMode('percentage')}
+                              className={`px-2 py-1 text-xs font-medium rounded-md transition-all duration-200 ${
+                                // @ts-expect-error - TypeScript incorrectly flags this as impossible comparison
+                                stopLossMode === 'percentage'
+                                  ? 'bg-red-500/30 text-red-300 border border-red-400/50'
+                                  : 'text-red-400/70 hover:text-red-300'
+                              }`}
+                            >
+                              %
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      // Percentage Mode
+                      <div className="space-y-3">
+                        <div className="relative">
+                          <input
+                            type="number"
+                            value={stopLossPercentage || ''}
+                            onChange={(e) => {
+                              const percentage = parseFloat(e.target.value);
+                              setStopLossPercentage(percentage);
+                              // Auto-calculate price
+                              if (formData.entryPrice > 0 && percentage > 0) {
+                                const stopPrice =
+                                  formData.entryPrice * (1 - percentage / 100);
+                                handleInputChange(
+                                  'stopLoss',
+                                  stopPrice.toFixed(2)
+                                );
+                              }
+                            }}
+                            className="w-full px-4 py-3 pl-10 pr-20 bg-black/40 border-2 border-red-500/50 rounded-xl focus:border-red-400 focus:ring-2 focus:ring-red-400/20 text-white placeholder-red-300/50 font-mono transition-all duration-300 focus:shadow-lg focus:shadow-red-500/20"
+                            min="0"
+                            max="50"
+                            step="0.1"
+                            placeholder="Enter risk %"
+                          />
+                          <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-red-400">
+                            %
+                          </span>
+
+                          {/* Mode Toggle on same row */}
+                          <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex bg-black/60 rounded-lg p-1 border border-red-500/30">
+                            <button
+                              type="button"
+                              onClick={() => setStopLossMode('price')}
+                              className={`px-2 py-1 text-xs font-medium rounded-md transition-all duration-200 ${
+                                // @ts-expect-error - TypeScript incorrectly flags this as impossible comparison
+                                stopLossMode === 'price'
+                                  ? 'bg-red-500/30 text-red-300 border border-red-400/50'
+                                  : 'text-red-400/70 hover:text-red-300'
+                              }`}
+                            >
+                              ₹
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setStopLossMode('percentage')}
+                              className={`px-2 py-1 text-xs font-medium rounded-md transition-all duration-200 ${
+                                stopLossMode === 'percentage'
+                                  ? 'bg-red-500/30 text-red-300 border border-red-400/50'
+                                  : 'text-red-400/70 hover:text-red-300'
+                              }`}
+                            >
+                              %
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Quick Preset Buttons - Previous Better Style */}
+                        <div className="flex flex-wrap gap-2">
+                          {[1, 2, 3, 5].map((preset) => (
+                            <button
+                              key={preset}
+                              type="button"
+                              onClick={() => {
+                                setStopLossPercentage(preset);
+                                if (formData.entryPrice > 0) {
+                                  const stopPrice =
+                                    formData.entryPrice * (1 - preset / 100);
+                                  handleInputChange(
+                                    'stopLoss',
+                                    stopPrice.toFixed(2)
+                                  );
+                                }
+                              }}
+                              className="px-3 py-1.5 text-xs bg-red-500/20 hover:bg-red-500/30 border border-red-500/40 rounded-lg text-red-300 transition-all duration-200 hover:scale-105"
+                            >
+                              {preset}%
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Dynamic Label Based on Mode */}
                     {formData.entryPrice > 0 &&
                       formData.stopLoss > 0 &&
                       formData.stopLoss < formData.entryPrice && (
-                        <div className="mt-2 text-center">
+                        <div className="mt-3 text-center">
                           <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-400/40 rounded-lg px-3 py-1">
-                            <span className="text-xs text-yellow-300">
-                              ⚠️ Trade Risk:
-                            </span>
-                            <span className="text-sm font-bold text-orange-300">
-                              {(
-                                ((formData.entryPrice - formData.stopLoss) /
-                                  formData.entryPrice) *
-                                100
-                              ).toFixed(2)}
-                              %
-                            </span>
+                            {stopLossMode === 'price' ? (
+                              <>
+                                <span className="text-xs text-yellow-300">
+                                  ⚠️ Trade Risk:
+                                </span>
+                                <span className="text-sm font-bold text-orange-300">
+                                  {(
+                                    ((formData.entryPrice - formData.stopLoss) /
+                                      formData.entryPrice) *
+                                    100
+                                  ).toFixed(2)}
+                                  %
+                                </span>
+                              </>
+                            ) : (
+                              <>
+                                <span className="text-xs text-yellow-300">
+                                  💰 Stop Loss:
+                                </span>
+                                <span className="text-sm font-bold text-orange-300">
+                                  ₹{formData.stopLoss}
+                                </span>
+                              </>
+                            )}
                           </div>
                         </div>
                       )}
