@@ -1328,7 +1328,7 @@ const TradingCalculator: React.FC = () => {
                         </div>
 
                         {/* Quick Preset Buttons - From Settings */}
-                        <div className="flex flex-wrap gap-2">
+                        <div className="flex justify-center flex-wrap gap-2">
                           {settings.stopLossLevels
                             .filter((level) =>
                               ['tight', 'normal', 'loose', 'wide'].includes(
