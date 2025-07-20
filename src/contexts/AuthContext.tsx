@@ -3,6 +3,7 @@ import React, {
   useContext,
   useState,
   useCallback,
+  useEffect,
   type ReactNode,
 } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -10,6 +11,7 @@ import authService, {
   type LoginRequest,
   type SignupRequest,
   type AuthResponse,
+  type UserProfile,
 } from '../services/authService';
 import { getAvailableBrokers, getBrokerService } from '../services/brokers';
 import {
@@ -19,16 +21,32 @@ import {
 
 interface AuthContextType {
   user: AuthResponse['user'] | null;
+  userProfile: UserProfile | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (credentials: LoginRequest) => Promise<AuthResponse>;
   signup: (userData: SignupRequest) => Promise<AuthResponse>;
   logout: () => Promise<void>;
+  logoutAll: () => Promise<void>;
   loginError: string | null;
   signupError: string | null;
   isLoginLoading: boolean;
   isSignupLoading: boolean;
   clearErrors: () => void;
+  refreshProfile: () => Promise<void>;
+  // Session management
+  activeSessions: Array<{
+    id: string;
+    deviceInfo: {
+      userAgent: string;
+      ipAddress: string;
+      deviceId?: string;
+    };
+    createdAt: string;
+    lastUsedAt: string;
+    isCurrent: boolean;
+  }>;
+  revokeSession: (sessionId: string) => Promise<void>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   availableBrokers: any[];
   loginWithBroker: (brokerName: string) => void;
@@ -45,43 +63,82 @@ interface AuthProviderProps {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<AuthResponse['user'] | null>(null);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
   const [signupError, setSignupError] = useState<string | null>(null);
+  const [activeSessions, setActiveSessions] = useState<Array<{
+    id: string;
+    deviceInfo: {
+      userAgent: string;
+      ipAddress: string;
+      deviceId?: string;
+    };
+    createdAt: string;
+    lastUsedAt: string;
+    isCurrent: boolean;
+  }>>([]);
   const queryClient = useQueryClient();
 
   // Get available brokers
   const availableBrokers = getAvailableBrokers();
 
+  // Initialize authentication state on mount
+  useEffect(() => {
+    const initAuth = () => {
+      if (authService.isAuthenticated()) {
+        const storedUser = authService.getStoredUser();
+        if (storedUser) {
+          setUser(storedUser);
+          setIsAuthenticated(true);
+        }
+      }
+    };
+
+    initAuth();
+  }, []);
+
+  // Verify token and get user profile
   const { isLoading: isVerifyLoading } = useQuery({
     queryKey: ['verifyToken'],
     queryFn: async () => {
-      const token = authService.getStoredToken();
-      const storedUser = authService.getStoredUser();
-
-      // Check if we have a valid application token and user
-      if (token && storedUser) {
-        setUser(storedUser);
-        setIsAuthenticated(true);
-        return storedUser;
+      if (!authService.isAuthenticated()) {
+        throw new Error('Not authenticated');
       }
 
-      // Check if any broker has a valid token
-      const validBroker = availableBrokers.find((broker) =>
-        broker.isTokenValid()
-      );
-      if (validBroker && storedUser) {
-        setUser(storedUser);
-        setIsAuthenticated(true);
-        return storedUser;
-      }
+      try {
+        // Verify token is still valid
+        const verifyResult = await authService.verifyToken();
+        if (!verifyResult.valid) {
+          authService.clearAuthData();
+          setUser(null);
+          setIsAuthenticated(false);
+          throw new Error('Token invalid');
+        }
 
-      setUser(null);
-      setIsAuthenticated(false);
-      throw new Error('No stored credentials');
+        // Get user profile if authenticated
+        const profile = await authService.getUserProfile();
+        setUserProfile(profile);
+        
+        const storedUser = authService.getStoredUser();
+        if (storedUser) {
+          setUser(storedUser);
+          setIsAuthenticated(true);
+        }
+
+        return profile;
+      } catch (error) {
+        // Handle authentication errors
+        authService.clearAuthData();
+        setUser(null);
+        setUserProfile(null);
+        setIsAuthenticated(false);
+        throw error;
+      }
     },
     retry: false,
     staleTime: 5 * 60 * 1000,
+    enabled: authService.isAuthenticated(),
   });
 
   const loginMutation = useMutation({
@@ -91,7 +148,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       return response;
     },
     onSuccess: (response) => {
-      authService.storeAuthData(response.token, response.user);
       setUser(response.user);
       setIsAuthenticated(true);
       queryClient.invalidateQueries({ queryKey: ['verifyToken'] });
@@ -108,7 +164,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       return response;
     },
     onSuccess: (response) => {
-      authService.storeAuthData(response.token, response.user);
       setUser(response.user);
       setIsAuthenticated(true);
       queryClient.invalidateQueries({ queryKey: ['verifyToken'] });
@@ -119,22 +174,84 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   });
 
   const logout = async () => {
-    await authService.logout();
+    try {
+      await authService.logout();
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      // Clear broker tokens
+      availableBrokers.forEach((broker) => {
+        broker.removeToken();
+      });
 
-    // Clear broker tokens
-    availableBrokers.forEach((broker) => {
-      broker.removeToken();
-    });
+      setUser(null);
+      setUserProfile(null);
+      setIsAuthenticated(false);
+      setActiveSessions([]);
+      queryClient.clear();
+    }
+  };
 
-    setUser(null);
-    setIsAuthenticated(false);
-    queryClient.clear();
+  const logoutAll = async () => {
+    try {
+      await authService.logoutAll();
+    } catch (error) {
+      console.error('Logout all error:', error);
+    } finally {
+      // Clear broker tokens
+      availableBrokers.forEach((broker) => {
+        broker.removeToken();
+      });
+
+      setUser(null);
+      setUserProfile(null);
+      setIsAuthenticated(false);
+      setActiveSessions([]);
+      queryClient.clear();
+    }
+  };
+
+  const refreshProfile = async () => {
+    try {
+      const profile = await authService.getUserProfile();
+      setUserProfile(profile);
+    } catch (error) {
+      console.error('Failed to refresh profile:', error);
+    }
+  };
+
+  const revokeSession = async (sessionId: string) => {
+    try {
+      await authService.revokeSession(sessionId);
+      // Refresh active sessions
+      const sessions = await authService.getActiveSessions();
+      setActiveSessions(sessions.activeSessions);
+    } catch (error) {
+      console.error('Failed to revoke session:', error);
+      throw error;
+    }
   };
 
   const clearErrors = () => {
     setLoginError(null);
     setSignupError(null);
   };
+
+  // Load active sessions when authenticated
+  useEffect(() => {
+    const loadActiveSessions = async () => {
+      if (isAuthenticated) {
+        try {
+          const sessions = await authService.getActiveSessions();
+          setActiveSessions(sessions.activeSessions);
+        } catch (error) {
+          console.error('Failed to load active sessions:', error);
+        }
+      }
+    };
+
+    loadActiveSessions();
+  }, [isAuthenticated]);
 
   const loginWithBroker = useCallback((brokerName: string) => {
     try {
@@ -156,12 +273,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         console.log(response);
 
         // Store tokens - use broker service as primary storage for broker tokens
-        // and authService for user data and general app authentication
         broker.storeToken(response.accessToken);
-        authService.storeAuthData(response.accessToken, response.user);
 
-        setUser(response.user);
-        setIsAuthenticated(true);
+        // If this also provides user auth data, store it
+        if (response.user) {
+          setUser(response.user);
+          setIsAuthenticated(true);
+        }
+
         queryClient.invalidateQueries({ queryKey: ['verifyToken'] });
 
         return response;
@@ -177,16 +296,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const value: AuthContextType = {
     user,
+    userProfile,
     isAuthenticated,
     isLoading: isVerifyLoading,
     login: loginMutation.mutateAsync,
     signup: signupMutation.mutateAsync,
     logout,
+    logoutAll,
     loginError,
     signupError,
     isLoginLoading: loginMutation.isPending,
     isSignupLoading: signupMutation.isPending,
     clearErrors,
+    refreshProfile,
+    activeSessions,
+    revokeSession,
     availableBrokers,
     loginWithBroker,
     handleBrokerCallback,

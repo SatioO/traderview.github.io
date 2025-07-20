@@ -12,7 +12,9 @@ import {
   ChevronUp,
   Shield,
   LogOut,
+  Users,
 } from 'lucide-react';
+import SessionManager from '../auth/SessionManager';
 import {
   useSettings,
   type RiskLevel,
@@ -68,6 +70,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
   const [stopLossOrderConflicts, setStopLossOrderConflicts] = useState<
     Record<string, { type: 'decrease' | 'increase'; conflictWith: string }>
   >({});
+  const [isSessionManagerOpen, setIsSessionManagerOpen] = useState(false);
 
   // Update local settings when settings prop changes
   useEffect(() => {
@@ -1517,6 +1520,46 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                     </div>
                   </div>
                 </div>
+
+                {/* Session Management Section */}
+                <div className="relative">
+                  {/* Section Header */}
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center space-x-3">
+                      <div className="p-1.5 bg-gradient-to-r from-purple-500/20 to-blue-500/20 border border-purple-500/30 rounded-lg">
+                        <Users className="w-4 h-4 text-purple-400" />
+                      </div>
+                      <span className="text-sm font-bold bg-gradient-to-r from-purple-300 to-blue-300 bg-clip-text text-transparent tracking-wider">
+                        Security & Sessions
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Session Management Card */}
+                  <div className="relative p-6 bg-gradient-to-br from-slate-800/60 to-slate-900/80 border border-slate-600/40 rounded-xl">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-4">
+                        <div className="p-3 bg-gradient-to-br from-purple-500/20 to-blue-500/10 border border-purple-400/30 rounded-lg">
+                          <Shield className="w-6 h-6 text-purple-300" />
+                        </div>
+                        <div>
+                          <h3 className="text-sm font-semibold text-slate-200">
+                            Active Sessions
+                          </h3>
+                          <p className="text-xs text-slate-400 mt-1">
+                            Manage devices signed in to your account
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => setIsSessionManagerOpen(true)}
+                        className="px-4 py-2 bg-gradient-to-r from-purple-500/20 to-blue-500/20 border border-purple-400/30 rounded-lg text-sm font-medium text-purple-300 hover:from-purple-500/30 hover:to-blue-500/30 hover:border-purple-400/50 transition-all duration-200"
+                      >
+                        Manage Sessions
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </>
             )}
 
@@ -2662,7 +2705,15 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
   );
 
   // Use portal to render modal at document.body level
-  return createPortal(modalContent, document.body);
+  return (
+    <>
+      {createPortal(modalContent, document.body)}
+      <SessionManager 
+        isOpen={isSessionManagerOpen} 
+        onClose={() => setIsSessionManagerOpen(false)} 
+      />
+    </>
+  );
 };
 
 export default SettingsModal;
