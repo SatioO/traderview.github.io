@@ -28,6 +28,7 @@ import Modal from '../../components/ui/Modal';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import SettingsModal from '../../components/Settings/SettingsModal';
+import EnhancedHeader from '../../components/Header/EnhancedHeader';
 import type {
   FormData,
   Calculations,
@@ -382,9 +383,9 @@ const TradingCalculator: React.FC = () => {
       const newStopLoss = parseFloat(
         (formData.entryPrice * multiplier).toFixed(2)
       );
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        stopLoss: newStopLoss
+        stopLoss: newStopLoss,
       }));
     }
   }, [stopLossPercentage, formData.entryPrice]);
@@ -672,12 +673,13 @@ const TradingCalculator: React.FC = () => {
 
         // Auto-calculate stop loss when entry price is entered (using user's default percentage)
         if (field === 'entryPrice' && processedValue && processedValue > 0) {
-          const defaultStopLossPercentage = settings.defaultStopLossPercentage || 3; // Use user setting or default to 3%
+          const defaultStopLossPercentage =
+            settings.defaultStopLossPercentage || 3; // Use user setting or default to 3%
           const multiplier = (100 - defaultStopLossPercentage) / 100; // Convert percentage to multiplier
           newData.stopLoss = parseFloat(
             (processedValue * multiplier).toFixed(2)
           ); // Calculate stop loss based on user preference
-          
+
           // Reset stop loss percentage to default when entry price changes
           setStopLossPercentage(defaultStopLossPercentage);
         }
@@ -742,6 +744,12 @@ const TradingCalculator: React.FC = () => {
       className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden"
       data-theme={isDarkMode ? 'dark' : 'light'}
     >
+      {/* Enhanced Header with Market Outlook */}
+      <EnhancedHeader
+        isSettingsOpen={isSettingsOpen}
+        onSettingsToggle={setIsSettingsOpen}
+        marketHealth={formData.marketHealth}
+      />
       {/* Gaming Background Effects */}
       <div className="absolute inset-0 opacity-20">
         <div className="absolute top-0 left-0 w-72 h-72 bg-blue-500 rounded-full mix-blend-multiply filter blur-xl animate-pulse"></div>
@@ -760,594 +768,12 @@ const TradingCalculator: React.FC = () => {
         }}
       ></div>
 
-      {/* Enhanced Market Outlook Command Center */}
-      <div className="absolute top-3 right-6 z-20">
-        <div className="group relative">
-          {/* Advanced Market Outlook Display */}
-          <div
-            className={`relative flex items-center space-x-3 backdrop-blur-xl border-2 rounded-2xl px-6 py-2 cursor-pointer transition-all duration-500 hover:scale-105 overflow-hidden ${
-              getMarketSizingInfo(formData.marketHealth).color === 'emerald'
-                ? 'bg-gradient-to-r from-emerald-500/15 via-cyan-500/10 to-blue-500/15 border-emerald-400/40 hover:border-emerald-400/70 hover:shadow-xl hover:shadow-emerald-500/25'
-                : getMarketSizingInfo(formData.marketHealth).color === 'yellow'
-                ? 'bg-gradient-to-r from-yellow-500/15 via-orange-500/10 to-amber-500/15 border-yellow-400/40 hover:border-yellow-400/70 hover:shadow-xl hover:shadow-yellow-500/25'
-                : getMarketSizingInfo(formData.marketHealth).color === 'orange'
-                ? 'bg-gradient-to-r from-orange-500/15 via-red-500/10 to-pink-500/15 border-orange-400/40 hover:border-orange-400/70 hover:shadow-xl hover:shadow-orange-500/25'
-                : 'bg-gradient-to-r from-red-500/15 via-rose-500/10 to-pink-500/15 border-red-400/40 hover:border-red-400/70 hover:shadow-xl hover:shadow-red-500/25'
-            }`}
-          >
-            {/* Animated background glow */}
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-pulse opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
-
-            {/* Market Status Icon with Animation */}
-            <div className="relative flex items-center space-x-3">
-              <div className="relative">
-                <div
-                  className={`w-3 h-3 rounded-full animate-pulse ${
-                    getMarketSizingInfo(formData.marketHealth).color ===
-                    'emerald'
-                      ? 'bg-emerald-400 shadow-lg shadow-emerald-400/50'
-                      : getMarketSizingInfo(formData.marketHealth).color ===
-                        'yellow'
-                      ? 'bg-yellow-400 shadow-lg shadow-yellow-400/50'
-                      : getMarketSizingInfo(formData.marketHealth).color ===
-                        'orange'
-                      ? 'bg-orange-400 shadow-lg shadow-orange-400/50'
-                      : 'bg-red-400 shadow-lg shadow-red-400/50'
-                  }`}
-                ></div>
-                <div
-                  className={`absolute inset-0 w-3 h-3 rounded-full animate-ping ${
-                    getMarketSizingInfo(formData.marketHealth).color ===
-                    'emerald'
-                      ? 'bg-emerald-400'
-                      : getMarketSizingInfo(formData.marketHealth).color ===
-                        'yellow'
-                      ? 'bg-yellow-400'
-                      : getMarketSizingInfo(formData.marketHealth).color ===
-                        'orange'
-                      ? 'bg-orange-400'
-                      : 'bg-red-400'
-                  }`}
-                ></div>
-              </div>
-
-              {/* Market Status Text */}
-              <div className="flex items-center space-x-2">
-                <div className="text-lg">
-                  {getMarketSizingInfo(formData.marketHealth).icon}
-                </div>
-                <div className="text-xs font-bold text-white tracking-wide">
-                  MARKET OUTLOOK
-                </div>
-              </div>
-            </div>
-
-            {/* Separator with pulse effect */}
-            <div className="w-px h-6 bg-gradient-to-b from-transparent via-gray-400/60 to-transparent animate-pulse"></div>
-
-            {/* Market Condition */}
-            <div className="flex flex-col items-center">
-              <div className="text-xs text-gray-400 font-medium tracking-wider">
-                CONDITION
-              </div>
-              <div
-                className={`text-xs font-bold tracking-wide ${
-                  getMarketSizingInfo(formData.marketHealth).color === 'emerald'
-                    ? 'text-emerald-300'
-                    : getMarketSizingInfo(formData.marketHealth).color ===
-                      'yellow'
-                    ? 'text-yellow-300'
-                    : getMarketSizingInfo(formData.marketHealth).color ===
-                      'orange'
-                    ? 'text-orange-300'
-                    : 'text-red-300'
-                }`}
-              >
-                {getMarketSizingInfo(formData.marketHealth).label}
-              </div>
-            </div>
-
-            {/* Separator */}
-            <div className="w-px h-6 bg-gradient-to-b from-transparent via-gray-400/60 to-transparent animate-pulse"></div>
-
-            {/* Position Sizing Impact */}
-            <div className="flex flex-col items-center">
-              <div className="text-xs text-gray-400 font-medium tracking-wider">
-                SIZING
-              </div>
-              <div
-                className={`text-xs font-bold tracking-wide ${
-                  getMarketSizingInfo(formData.marketHealth).adjustment ===
-                  'Full'
-                    ? 'text-green-300'
-                    : getMarketSizingInfo(formData.marketHealth).adjustment ===
-                      '-25%'
-                    ? 'text-yellow-300'
-                    : getMarketSizingInfo(formData.marketHealth).adjustment ===
-                      '-50%'
-                    ? 'text-orange-300'
-                    : 'text-red-300'
-                }`}
-              >
-                {getMarketSizingInfo(formData.marketHealth).adjustment}
-              </div>
-            </div>
-
-            {/* Chevron indicator */}
-            <div className="text-gray-400 group-hover:text-white transition-colors duration-300">
-              <svg
-                className="w-4 h-4 transform group-hover:rotate-180 transition-transform duration-300"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M19 9l-7 7-7-7"
-                />
-              </svg>
-            </div>
-          </div>
-
-          {/* Enhanced Command Center Tooltip */}
-          <div className="absolute top-full right-0 mt-2 opacity-0 group-hover:opacity-100 transition-all duration-500 pointer-events-none group-hover:pointer-events-auto z-40 transform translate-y-2 group-hover:translate-y-0">
-            <div className="bg-gradient-to-br from-slate-900/98 to-slate-800/98 backdrop-blur-xl border-2 border-purple-400/30 rounded-3xl p-6 shadow-2xl min-w-96 max-w-md">
-              {/* Enhanced Header */}
-              <div className="flex items-center space-x-4 mb-6">
-                <div className="relative">
-                  <div className="w-10 h-10 bg-gradient-to-r from-purple-400 via-blue-400 to-cyan-400 rounded-xl flex items-center justify-center shadow-lg">
-                    <span className="text-lg">📊</span>
-                  </div>
-                  <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-r from-green-400 to-emerald-400 rounded-full animate-pulse"></div>
-                </div>
-                <div className="flex-1">
-                  <div className="text-lg font-bold text-transparent bg-gradient-to-r from-purple-300 via-blue-300 to-cyan-300 bg-clip-text">
-                    Market Command Center
-                  </div>
-                  <div className="text-xs text-gray-400 flex items-center space-x-2">
-                    <span>Position Sizing Intelligence</span>
-                    <div className="w-1 h-1 bg-gray-500 rounded-full"></div>
-                    <span className="text-green-400">ACTIVE</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Current Setting with Enhanced Design */}
-              <div className="mb-5 p-4 bg-gradient-to-r from-purple-500/15 to-blue-500/15 border border-purple-400/30 rounded-xl backdrop-blur-sm">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="text-xs text-purple-300 font-bold tracking-wider">
-                    🎯 CURRENT CONFIGURATION
-                  </div>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <div className="text-2xl">
-                    {getMarketSizingInfo(formData.marketHealth).icon}
-                  </div>
-                  <div>
-                    <div className="text-sm font-bold text-white">
-                      {getMarketSizingInfo(formData.marketHealth).label}
-                    </div>
-                    <div className="text-xs text-gray-400">
-                      {getMarketSizingInfo(formData.marketHealth).description}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* MarketSmith Comparison */}
-              {marketSmithData.condition && (
-                <div className="mb-4 p-3 bg-gradient-to-r from-emerald-500/10 to-cyan-500/10 border border-emerald-400/20 rounded-lg">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="text-xs text-emerald-300 font-medium">
-                      MARKETSMITH SUGGESTS
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
-                      <div className="text-xs text-gray-400">
-                        {marketSmithData.date}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="text-sm font-medium text-white">
-                      {marketSmithData.condition}
-                    </div>
-                    {mapMarketSmithToHealth(marketSmithData.condition) !==
-                      formData.marketHealth && (
-                      <button
-                        onClick={() => {
-                          const suggestedHealth = mapMarketSmithToHealth(
-                            marketSmithData.condition
-                          );
-                          handleMarketSizingChange(suggestedHealth);
-                        }}
-                        className="px-3 py-1 bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/30 hover:border-emerald-400/50 rounded text-xs font-medium text-emerald-300 transition-all duration-300"
-                      >
-                        ✨ Apply
-                      </button>
-                    )}
-                  </div>
-                  {mapMarketSmithToHealth(marketSmithData.condition) ===
-                    formData.marketHealth && (
-                    <div className="mt-2 text-xs text-emerald-400">
-                      ✅ Already applied
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* 🎮 LEGENDARY BATTLE STATIONS 🎮 */}
-              <div className="relative mb-5">
-                <div className="text-xs text-gray-400 mb-4 font-bold tracking-wider flex items-center justify-center">
-                  <span className="mr-2 animate-spin">⚙️</span>
-                  <span className="text-purple-300">
-                    TACTICAL OVERRIDE MATRIX
-                  </span>
-                  <span className="ml-2 animate-spin delay-500">⚙️</span>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  {(
-                    [
-                      'confirmed-uptrend',
-                      'uptrend-under-pressure',
-                      'rally-attempt',
-                      'downtrend',
-                    ] as const
-                  ).map((health) => {
-                    const sizingInfo = getMarketSizingInfo(health);
-                    const isSelected = formData.marketHealth === health;
-
-                    return (
-                      <button
-                        key={health}
-                        onClick={() => handleMarketSizingChange(health)}
-                        className={`group relative p-3 rounded-xl border-2 transition-all duration-500 text-left overflow-hidden hover:scale-105 transform  ${
-                          isSelected
-                            ? `border-${sizingInfo.color}-400 bg-${sizingInfo.color}-500/20 text-${sizingInfo.color}-200 shadow-lg shadow-${sizingInfo.color}-500/30 animate-pulse`
-                            : 'border-gray-600/40 bg-gray-500/10 text-gray-400 hover:border-gray-500/60 hover:text-gray-200 hover:bg-gray-500/20'
-                        }`}
-                      >
-                        {/* Epic Selection Indicator */}
-                        {isSelected && (
-                          <>
-                            <div className="absolute top-1 right-1 w-4 h-4 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full animate-bounce flex items-center justify-center">
-                              <span className="text-xs">👑</span>
-                            </div>
-                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-yellow-400 via-orange-400 to-red-400 animate-pulse"></div>
-                            <div className="absolute bottom-0 right-0 w-full h-1 bg-gradient-to-l from-yellow-400 via-orange-400 to-red-400 animate-pulse delay-500"></div>
-                          </>
-                        )}
-
-                        {/* Epic Background Animation */}
-                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 animate-pulse"></div>
-                        <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-cyan-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-
-                        <div className="relative flex items-center space-x-3">
-                          <div className="relative">
-                            <div
-                              className={`text-2xl transition-transform duration-300 ${
-                                isSelected
-                                  ? 'animate-bounce'
-                                  : 'group-hover:scale-125 group-hover:rotate-12'
-                              }`}
-                            >
-                              {sizingInfo.icon}
-                            </div>
-                            {isSelected && (
-                              <div className="absolute -top-1 -right-1 w-3 h-3 bg-gradient-to-r from-emerald-400 to-cyan-400 rounded-full animate-ping"></div>
-                            )}
-                          </div>
-                          <div className="flex-1">
-                            <div className="text-sm font-bold mb-1 flex items-center">
-                              <span className="mr-1">
-                                {isSelected ? (
-                                  <Zap className="w-4 h-4 inline" />
-                                ) : (
-                                  '🎯'
-                                )}
-                              </span>
-                              {sizingInfo.label}
-                            </div>
-                            <div className="text-xs opacity-90 font-medium mb-1">
-                              <span className="mr-1">💎</span>
-                              {sizingInfo.adjustment} Size
-                            </div>
-                          </div>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* MarketSmith Status */}
-              {marketSmithData.error && (
-                <div className="p-3 bg-red-500/10 border border-red-400/20 rounded-lg">
-                  <div className="flex items-center justify-between">
-                    <div className="text-xs text-red-300">
-                      📈 MarketSmith connection failed
-                    </div>
-                    <button
-                      onClick={fetchMarketSmithData}
-                      className="text-xs text-red-400 hover:text-red-300 underline"
-                    >
-                      Retry
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {marketSmithData.isLoading && (
-                <div className="p-3 bg-blue-500/10 border border-blue-400/20 rounded-lg">
-                  <div className="flex items-center space-x-2">
-                    <div className="w-2 h-2 bg-blue-400 rounded-full animate-spin"></div>
-                    <div className="text-xs text-blue-300">
-                      Loading MarketSmith data...
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {!marketSmithData.condition &&
-                !marketSmithData.error &&
-                !marketSmithData.isLoading && (
-                  <div className="p-3 bg-gray-500/10 border border-gray-400/20 rounded-lg">
-                    <div className="flex items-center justify-between">
-                      <div className="text-xs text-gray-400">
-                        📈 MarketSmith data not loaded
-                      </div>
-                      <button
-                        onClick={fetchMarketSmithData}
-                        className="text-xs text-gray-300 hover:text-white underline"
-                      >
-                        Load
-                      </button>
-                    </div>
-                  </div>
-                )}
-            </div>
-
-            {/* Enhanced Arrow with Glow */}
-            <div className="absolute -top-2 right-12 w-4 h-4 bg-gradient-to-br from-slate-900/98 to-slate-800/98 border-l-2 border-t-2 border-purple-400/30 transform rotate-45 shadow-lg"></div>
-          </div>
-        </div>
-      </div>
-
       {/* Main Content */}
-      <main className="relative z-10 mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="relative z-10 mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Gaming Control Panel */}
           <div className="lg:col-span-1">
             <div className="bg-black/40 backdrop-blur-xl rounded-3xl p-6 shadow-2xl border border-cyan-500/30 sticky top-8 hover:border-cyan-400/50 transition-all duration-500 hover:shadow-cyan-500/20 hover:shadow-2xl">
-              {/* User Greeting Section */}
-              <div className="mb-6">
-                <div className="group relative bg-gradient-to-br from-emerald-500/20 via-green-500/20 to-teal-500/20 rounded-2xl p-4 border border-emerald-500/30 backdrop-blur-sm hover:border-emerald-400/50 transition-all duration-500 overflow-hidden">
-                  {/* Animated background particles */}
-                  <div className="absolute inset-0 overflow-hidden">
-                    <div className="absolute top-2 left-4 w-1 h-1 bg-emerald-400 rounded-full animate-ping opacity-60"></div>
-                    <div className="absolute top-8 right-6 w-1 h-1 bg-green-400 rounded-full animate-ping opacity-40 delay-1000"></div>
-                    <div className="absolute bottom-6 left-8 w-1 h-1 bg-teal-400 rounded-full animate-ping opacity-50 delay-2000"></div>
-                  </div>
-
-                  <div className="relative">
-                    {/* User Avatar and Greeting */}
-                    <div className="flex items-center space-x-3 mb-3">
-                      <div className="relative">
-                        <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-full flex items-center justify-center text-white font-bold text-sm border-2 border-emerald-400/30 shadow-lg">
-                          {(() => {
-                            try {
-                              const userData = localStorage.getItem('user');
-                              if (userData) {
-                                const user = JSON.parse(userData);
-                                const firstName = user.firstName || '';
-                                const lastName = user.lastName || '';
-                                return (
-                                  (
-                                    firstName.charAt(0) + lastName.charAt(0)
-                                  ).toUpperCase() || 'T'
-                                );
-                              }
-                              return 'T';
-                            } catch {
-                              return 'T';
-                            }
-                          })()}
-                        </div>
-                        {/* Online Status */}
-                        <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-400 rounded-full border-2 border-black animate-pulse"></div>
-                      </div>
-
-                      <div className="flex-1">
-                        <h3 className="text-sm font-bold text-emerald-300 mb-1 flex items-center">
-                          <span className="mr-2">👋</span>
-                          Welcome,{' '}
-                          {(() => {
-                            try {
-                              const userData = localStorage.getItem('user');
-                              if (userData) {
-                                const user = JSON.parse(userData);
-                                return user.firstName || 'Trader';
-                              }
-                              return 'Trader';
-                            } catch {
-                              return 'Trader';
-                            }
-                          })()}
-                          !
-                          <Info className="inline w-4 h-4 ml-2 text-emerald-400 cursor-help" />
-                        </h3>
-                      </div>
-
-                      <div className="flex items-center space-x-2">
-                        <button
-                          onClick={() => setIsSettingsOpen(true)}
-                          className="p-1.5 bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/30 rounded-lg transition-all duration-200 hover:scale-105"
-                          title="Settings"
-                        >
-                          <Settings className="w-3 h-3 text-emerald-400" />
-                        </button>
-                        <button
-                          onClick={logout}
-                          className="p-1.5 bg-red-600/20 hover:bg-red-600/30 border border-red-500/30 rounded-lg transition-all duration-200 hover:scale-105"
-                          title="Logout"
-                        >
-                          <LogOut className="w-3 h-3 text-red-400" />
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Trading Capital - Premium Compact Design */}
-                    <div
-                      onClick={handleCapitalEdit}
-                      className="relative overflow-hidden rounded-2xl cursor-pointer group"
-                    >
-                      {/* Sophisticated Background Gradient */}
-                      <div className="absolute inset-0 bg-gradient-to-br from-black/30 via-purple-900/10 to-black/30"></div>
-                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-purple-500/5 to-transparent group-hover:via-purple-400/10 transition-all duration-300"></div>
-
-                      {/* Premium Border Treatment */}
-                      <div
-                        className={`absolute inset-0 rounded-2xl border-2 transition-all duration-300 ${
-                          formData.accountBalance >= 50000000
-                            ? 'border-purple-400/40 group-hover:border-purple-400/60 group-hover:shadow-lg group-hover:shadow-purple-500/20'
-                            : formData.accountBalance >= 20000000
-                            ? 'border-indigo-400/40 group-hover:border-indigo-400/60 group-hover:shadow-lg group-hover:shadow-indigo-500/20'
-                            : formData.accountBalance >= 10000000
-                            ? 'border-blue-400/40 group-hover:border-blue-400/60 group-hover:shadow-lg group-hover:shadow-blue-500/20'
-                            : formData.accountBalance >= 5000000
-                            ? 'border-cyan-400/40 group-hover:border-cyan-400/60 group-hover:shadow-lg group-hover:shadow-cyan-500/20'
-                            : formData.accountBalance >= 2500000
-                            ? 'border-green-400/40 group-hover:border-green-400/60 group-hover:shadow-lg group-hover:shadow-green-500/20'
-                            : formData.accountBalance >= 1000000
-                            ? 'border-yellow-400/40 group-hover:border-yellow-400/60 group-hover:shadow-lg group-hover:shadow-yellow-500/20'
-                            : formData.accountBalance >= 500000
-                            ? 'border-orange-400/40 group-hover:border-orange-400/60 group-hover:shadow-lg group-hover:shadow-orange-500/20'
-                            : 'border-red-400/40 group-hover:border-red-400/60 group-hover:shadow-lg group-hover:shadow-red-500/20'
-                        }`}
-                      />
-
-                      {/* Content Layer */}
-                      <div className="relative z-10">
-                        {/* Section Header */}
-                        <div className="flex items-center justify-between px-4 pt-3 pb-2">
-                          <div className="flex items-center space-x-2">
-                            <Banknote className="w-4 h-4 text-purple-400" />
-                            <h3 className="text-sm font-semibold text-gray-300">
-                              Trading Capital
-                            </h3>
-                          </div>
-                          <div className="text-xs text-gray-500">
-                            Initial Capital
-                          </div>
-                        </div>
-
-                        <div className="flex items-center justify-between px-4 pb-4">
-                          {/* Left: Amount + Progress */}
-                          <div className="space-y-1">
-                            <div className="flex items-baseline space-x-2">
-                              <span className="text-2xl font-bold text-white tracking-tight">
-                                {formatCurrencyWithSuffix(
-                                  formData.accountBalance
-                                )}
-                              </span>
-                              {/* Future: Available balance will go here */}
-                            </div>
-
-                            {/* Elegant Progress Bar */}
-                            <div className="w-20 bg-black/40 rounded-full h-1.5 overflow-hidden">
-                              <div
-                                className={`h-full rounded-full transition-all duration-1000 ease-out ${
-                                  formData.accountBalance >= 50000000
-                                    ? 'bg-purple-400'
-                                    : formData.accountBalance >= 20000000
-                                    ? 'bg-indigo-400'
-                                    : formData.accountBalance >= 10000000
-                                    ? 'bg-blue-400'
-                                    : formData.accountBalance >= 5000000
-                                    ? 'bg-cyan-400'
-                                    : formData.accountBalance >= 2500000
-                                    ? 'bg-green-400'
-                                    : formData.accountBalance >= 1000000
-                                    ? 'bg-yellow-400'
-                                    : formData.accountBalance >= 500000
-                                    ? 'bg-orange-400'
-                                    : 'bg-red-400'
-                                }`}
-                                style={{
-                                  width: `${Math.min(
-                                    formData.accountBalance >= 50000000
-                                      ? 100
-                                      : formData.accountBalance >= 20000000
-                                      ? 85
-                                      : formData.accountBalance >= 10000000
-                                      ? 70
-                                      : formData.accountBalance >= 5000000
-                                      ? 55
-                                      : formData.accountBalance >= 2500000
-                                      ? 40
-                                      : formData.accountBalance >= 1000000
-                                      ? 25
-                                      : formData.accountBalance >= 500000
-                                      ? 15
-                                      : 5,
-                                    100
-                                  )}%`,
-                                }}
-                              />
-                            </div>
-                          </div>
-
-                          {/* Right: Level Badge + Edit */}
-                          <div className="flex items-center space-x-3">
-                            {/* Level Badge */}
-                            <div className="relative">
-                              <div
-                                className={`px-3 py-1.5 rounded-xl text-xs font-bold border-2 transition-all duration-200 ${
-                                  formData.accountBalance >= 50000000
-                                    ? 'bg-purple-500/15 border-purple-500/40 text-purple-300'
-                                    : formData.accountBalance >= 20000000
-                                    ? 'bg-indigo-500/15 border-indigo-500/40 text-indigo-300'
-                                    : formData.accountBalance >= 10000000
-                                    ? 'bg-blue-500/15 border-blue-500/40 text-blue-300'
-                                    : formData.accountBalance >= 5000000
-                                    ? 'bg-cyan-500/15 border-cyan-500/40 text-cyan-300'
-                                    : formData.accountBalance >= 2500000
-                                    ? 'bg-green-500/15 border-green-500/40 text-green-300'
-                                    : formData.accountBalance >= 1000000
-                                    ? 'bg-yellow-500/15 border-yellow-500/40 text-yellow-300'
-                                    : formData.accountBalance >= 500000
-                                    ? 'bg-orange-500/15 border-orange-500/40 text-orange-300'
-                                    : 'bg-red-500/15 border-red-500/40 text-red-300'
-                                }`}
-                              >
-                                {(() => {
-                                  const amount = formData.accountBalance;
-                                  if (amount >= 50000000) return 'ELITE';
-                                  if (amount >= 20000000) return 'PRO';
-                                  if (amount >= 10000000) return 'ADV';
-                                  if (amount >= 5000000) return 'INT+';
-                                  if (amount >= 2500000) return 'INT';
-                                  if (amount >= 1000000) return 'DEV';
-                                  if (amount >= 500000) return 'BEG+';
-                                  return 'BEG';
-                                })()}
-                              </div>
-                            </div>
-
-                            {/* Edit Icon */}
-                            <div className="w-6 h-6 flex items-center justify-center opacity-40 group-hover:opacity-100 transition-opacity">
-                              <Edit className="w-3.5 h-3.5 text-purple-400" />
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
               {/* Creative Tile-Style Mode Selector */}
               <div className="mb-6">
                 <div className="grid grid-cols-2 gap-4 p-3 bg-black/20 rounded-2xl backdrop-blur-sm border border-purple-500/20">
@@ -1906,28 +1332,31 @@ const TradingCalculator: React.FC = () => {
                         <div className="flex flex-wrap gap-2">
                           {settings.stopLossLevels
                             .filter((level) =>
-                              ['tight', 'normal', 'loose', 'wide'].includes(level.id)
+                              ['tight', 'normal', 'loose', 'wide'].includes(
+                                level.id
+                              )
                             )
                             .map((level) => (
-                            <button
-                              key={level.id}
-                              type="button"
-                              onClick={() => {
-                                setStopLossPercentage(level.percentage);
-                                if (formData.entryPrice > 0) {
-                                  const stopPrice =
-                                    formData.entryPrice * (1 - level.percentage / 100);
-                                  handleInputChange(
-                                    'stopLoss',
-                                    stopPrice.toFixed(2)
-                                  );
-                                }
-                              }}
-                              className="px-3 py-1.5 text-xs bg-red-500/20 hover:bg-red-500/30 border border-red-500/40 rounded-lg text-red-300 transition-all duration-200 hover:scale-105"
-                            >
-                              {level.percentage}%
-                            </button>
-                          ))}
+                              <button
+                                key={level.id}
+                                type="button"
+                                onClick={() => {
+                                  setStopLossPercentage(level.percentage);
+                                  if (formData.entryPrice > 0) {
+                                    const stopPrice =
+                                      formData.entryPrice *
+                                      (1 - level.percentage / 100);
+                                    handleInputChange(
+                                      'stopLoss',
+                                      stopPrice.toFixed(2)
+                                    );
+                                  }
+                                }}
+                                className="px-3 py-1.5 text-xs bg-red-500/20 hover:bg-red-500/30 border border-red-500/40 rounded-lg text-red-300 transition-all duration-200 hover:scale-105"
+                              >
+                                {level.percentage}%
+                              </button>
+                            ))}
                         </div>
                       </div>
                     )}
@@ -2394,29 +1823,6 @@ const TradingCalculator: React.FC = () => {
                         </div>
                       );
                     })}
-                  </div>
-
-                  {/* Animated Energy Flow Visualization */}
-                  <div className="relative h-16 bg-gradient-to-r from-gray-800/50 to-gray-900/50 rounded-xl border border-gray-600/30 overflow-hidden">
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="text-xs text-gray-400 mb-4">
-                        PROFIT ENERGY FLOW
-                      </div>
-                    </div>
-                    {/* Moving Energy Bars */}
-                    {targets.map((target, index) => (
-                      <div
-                        key={index}
-                        className="absolute bottom-0 bg-gradient-to-t from-cyan-400/80 to-green-400/80 rounded-t-lg animate-pulse"
-                        style={{
-                          left: `${12 + index * 14}%`,
-                          width: '8%',
-                          height: `${30 + target.portfolioGainPercentage * 2}%`,
-                          animationDelay: `${index * 0.2}s`,
-                          animationDuration: '2s',
-                        }}
-                      ></div>
-                    ))}
                   </div>
                 </div>
               </div>
