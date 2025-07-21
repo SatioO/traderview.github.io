@@ -252,7 +252,7 @@ const EnhancedHeader: React.FC<EnhancedHeaderProps> = ({
                   <div className="group relative z-30">
                     <button
                       onClick={handleCapitalEdit}
-                      className="relative flex items-center space-x-4 px-4 py-3"
+                      className="relative flex items-center space-x-4 py-3"
                     >
                       {/* Enhanced Capital Icon with Premium Effects */}
                       <div className="relative">
@@ -300,10 +300,21 @@ const EnhancedHeader: React.FC<EnhancedHeaderProps> = ({
                         </div>
                       </div>
 
-                      {/* Floating Edit Icon */}
-                      <div className="relative">
-                        <div className="absolute inset-0 bg-emerald-400/20 rounded-full blur-sm opacity-0 group-hover:opacity-100 transition-all duration-300"></div>
-                        <Edit className="relative w-4 h-4 text-emerald-400/70 group-hover:text-emerald-300 transition-all duration-300 opacity-70 group-hover:opacity-100" />
+                      {/* Subtle Edit Icon */}
+                      <div className="relative group/edit">
+                        {/* Gentle Glow Effect */}
+                        <div className="absolute inset-0 bg-emerald-400/20 rounded-lg blur-sm opacity-0 group-hover:opacity-100 transition-all duration-300"></div>
+
+                        {/* Simple Icon Container */}
+                        <div className="relative p-2 rounded-lg bg-emerald-500/10 border border-emerald-400/20 opacity-0 group-hover:opacity-100 transition-all duration-300 backdrop-blur-sm">
+                          <Edit className="w-4 h-4 text-emerald-300 group-hover:text-emerald-200 transition-all duration-300 transform group-hover:scale-110" />
+                        </div>
+
+                        {/* Simple Tooltip */}
+                        <div className="absolute -top-10 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-black/90 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-300 whitespace-nowrap border border-emerald-400/30 shadow-lg backdrop-blur-sm">
+                          Edit Capital
+                          <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-2 border-r-2 border-t-2 border-transparent border-t-emerald-400/30"></div>
+                        </div>
                       </div>
                     </button>
                   </div>
@@ -341,41 +352,79 @@ const EnhancedHeader: React.FC<EnhancedHeaderProps> = ({
                     onClick={() => setShowUserMenu(!showUserMenu)}
                     className="relative flex items-center space-x-3 px-3 py-2 rounded-2xl"
                   >
-                    {/* Floating Avatar */}
-                    <div className="relative">
-                      <div className="absolute inset-0 bg-gradient-to-br from-purple-500/30 to-cyan-500/30 rounded-full blur-md animate-pulse opacity-60"></div>
-                      <div className="relative w-11 h-11 bg-gradient-to-br from-purple-500 via-pink-500 to-cyan-500 rounded-full flex items-center justify-center text-white font-bold text-sm border-2 border-white/30 group-hover:border-white/50 transition-all duration-300 shadow-lg">
-                        {getUserInitials(user)}
+                    {/* Enhanced Floating Avatar */}
+                    <div className="relative group/avatar">
+                      {/* Multi-layered Background Effects */}
+                      <div className="absolute inset-0 bg-gradient-to-br from-purple-500/40 to-cyan-500/40 rounded-full blur-lg animate-pulse opacity-60 group-hover:opacity-90 transition-all duration-700"></div>
+                      <div className="absolute inset-0 bg-gradient-to-br from-pink-400/20 to-blue-400/20 rounded-full blur-xl opacity-0 group-hover:opacity-70 transition-all duration-1000 animate-ping"></div>
+                      
+                      {/* Enhanced Avatar with Improved Gradient */}
+                      <div className="relative w-11 h-11 bg-gradient-to-br from-purple-600 via-rose-500 to-cyan-600 rounded-full flex items-center justify-center text-white font-bold text-sm border-2 border-white/40 group-hover:border-white/70 transition-all duration-500 shadow-2xl transform group-hover:scale-110 group-hover:rotate-3">
+                        {/* Inner Glow Effect */}
+                        <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-transparent rounded-full opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
+                        
+                        {/* Avatar Content */}
+                        <span className="relative z-10 transform group-hover:scale-105 transition-all duration-300">
+                          {getUserInitials(user)}
+                        </span>
+                        
+                        {/* Shimmer Effect */}
+                        <div className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-700">
+                          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent rounded-full transform -skew-x-12 animate-pulse"></div>
+                        </div>
                       </div>
-                      {/* Floating Online Indicator */}
-                      <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-green-400 rounded-full border-2 border-white/50 animate-pulse shadow-lg"></div>
+                      
+                      {/* Enhanced Floating Online Indicator */}
+                      <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full border-2 border-white/60 animate-pulse shadow-xl group-hover:scale-125 transition-all duration-300">
+                        <div className="absolute inset-0 bg-green-300/50 rounded-full animate-ping"></div>
+                        <div className="absolute inset-0.5 bg-white/20 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300"></div>
+                      </div>
+                      
+                      {/* Floating Particles Around Avatar */}
+                      <div className="absolute -top-1 -left-1 w-2 h-2 bg-purple-400/80 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-800 animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                      <div className="absolute -top-1 -right-1 w-1.5 h-1.5 bg-cyan-400/80 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-600 animate-ping" style={{ animationDelay: '0.5s' }}></div>
+                      <div className="absolute -bottom-1 -left-1 w-1 h-1 bg-pink-400/80 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-700 animate-pulse" style={{ animationDelay: '0.8s' }}></div>
                     </div>
 
-                    {/* Floating User Info */}
-                    <div className="hidden md:block text-left relative">
-                      <div className="text-sm font-medium text-white/90 group-hover:text-white drop-shadow-sm transition-all duration-300">
-                        {getUserDisplayName(user)}
-                      </div>
-                      <div className="text-xs text-white/60 group-hover:text-white/80 transition-colors">
-                        Professional Trader
+                    {/* Enhanced Floating User Info */}
+                    <div className="hidden md:block text-left relative group/userinfo">
+                      {/* Subtle Background Glow */}
+                      <div className="absolute inset-0 bg-white/5 rounded-lg blur-sm opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
+                      
+                      <div className="relative p-1">
+                        <div className="text-sm font-medium text-white/90 group-hover:text-white drop-shadow-sm transition-all duration-500 transform group-hover:scale-105">
+                          {getUserDisplayName(user)}
+                        </div>
+                        <div className="text-xs text-white/60 group-hover:text-white/80 transition-all duration-300 transform group-hover:translate-x-1">
+                          Professional Trader
+                        </div>
                       </div>
                     </div>
 
-                    {/* Floating Dropdown Arrow */}
-                    <div className="relative">
-                      <div className="absolute inset-0 bg-white/10 rounded-full blur-sm opacity-0 group-hover:opacity-100 transition-all duration-300"></div>
+                    {/* Enhanced Floating Dropdown Arrow */}
+                    <div className="relative group/arrow">
+                      {/* Enhanced Background Effects */}
+                      <div className="absolute inset-0 bg-white/15 rounded-full blur-sm opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
+                      <div className="absolute inset-0 bg-gradient-to-r from-purple-400/10 to-cyan-400/10 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300"></div>
+                      
+                      {/* Enhanced Arrow with Smooth Transitions */}
                       <ChevronDown
-                        className={`relative w-4 h-4 text-white/70 group-hover:text-white transition-all duration-500 drop-shadow-sm ${
-                          showUserMenu ? 'rotate-180 scale-110' : ''
+                        className={`relative w-4 h-4 text-white/70 group-hover:text-white transition-all duration-700 ease-out drop-shadow-lg transform ${
+                          showUserMenu ? 'rotate-180 scale-125 text-cyan-300' : 'group-hover:scale-110'
                         }`}
                       />
+                      
+                      {/* Subtle Pulse Effect When Menu is Open */}
+                      {showUserMenu && (
+                        <div className="absolute inset-0 bg-cyan-400/20 rounded-full animate-ping"></div>
+                      )}
                     </div>
                   </button>
 
                   {/* Enhanced Dropdown Menu */}
                   {showUserMenu && (
                     <div
-                      className="absolute right-0 top-full mt-4 w-72 opacity-0 animate-in slide-in-from-top-2 fade-in duration-500"
+                      className="absolute right-0 top-full mt-4 w-80 min-w-80 max-w-96 opacity-0 animate-in slide-in-from-top-2 fade-in duration-500"
                       style={{ opacity: 1 }}
                     >
                       <div className="relative">
@@ -390,18 +439,47 @@ const EnhancedHeader: React.FC<EnhancedHeaderProps> = ({
                           <div className="relative p-6 border-b border-white/10">
                             <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-cyan-500/10 backdrop-blur-sm"></div>
                             <div className="relative flex items-center space-x-4">
-                              <div className="relative">
-                                <div className="absolute inset-0 bg-gradient-to-br from-purple-500/30 to-cyan-500/30 rounded-full blur-md animate-pulse opacity-60"></div>
-                                <div className="relative w-14 h-14 bg-gradient-to-br from-purple-500 via-pink-500 to-cyan-500 rounded-full flex items-center justify-center text-white font-bold text-lg border-2 border-white/30 shadow-lg">
-                                  {getUserInitials(user)}
+                              <div className="relative group/dropdown-avatar">
+                                {/* Enhanced Background Effects */}
+                                <div className="absolute inset-0 bg-gradient-to-br from-purple-500/40 to-cyan-500/40 rounded-full blur-lg animate-pulse opacity-60 group-hover:opacity-90 transition-all duration-700"></div>
+                                <div className="absolute inset-0 bg-gradient-to-br from-pink-400/25 to-blue-400/25 rounded-full blur-xl opacity-0 group-hover:opacity-80 transition-all duration-1000"></div>
+                                
+                                {/* Enhanced Avatar with Premium Gradient */}
+                                <div className="relative w-14 h-14 bg-gradient-to-br from-purple-600 via-rose-500 to-cyan-600 rounded-full flex items-center justify-center text-white font-bold text-lg border-2 border-white/40 shadow-2xl transform group-hover:scale-105 transition-all duration-500">
+                                  {/* Multi-layer Inner Effects */}
+                                  <div className="absolute inset-0 bg-gradient-to-br from-white/25 via-transparent to-transparent rounded-full opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
+                                  <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent rounded-full opacity-0 group-hover:opacity-100 transition-all duration-700"></div>
+                                  
+                                  {/* Avatar Content */}
+                                  <span className="relative z-10 transform group-hover:scale-110 transition-all duration-300 drop-shadow-lg">
+                                    {getUserInitials(user)}
+                                  </span>
+                                  
+                                  {/* Premium Shimmer */}
+                                  <div className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-800">
+                                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent rounded-full transform -rotate-45 animate-pulse"></div>
+                                  </div>
                                 </div>
-                                <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-white/50 animate-pulse shadow-lg"></div>
+                                
+                                {/* Enhanced Online Indicator */}
+                                <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full border-2 border-white/60 animate-pulse shadow-xl group-hover:scale-125 transition-all duration-300">
+                                  <div className="absolute inset-0 bg-green-300/60 rounded-full animate-ping"></div>
+                                  <div className="absolute inset-0.5 bg-white/30 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300"></div>
+                                </div>
+                                
+                                {/* Floating Micro Particles */}
+                                <div className="absolute -top-2 -left-2 w-2 h-2 bg-purple-400/80 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-800 animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                                <div className="absolute -top-1 -right-2 w-1.5 h-1.5 bg-cyan-400/80 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-600 animate-ping" style={{ animationDelay: '0.4s' }}></div>
+                                <div className="absolute -bottom-2 -left-1 w-1 h-1 bg-pink-400/80 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-700 animate-pulse" style={{ animationDelay: '0.7s' }}></div>
                               </div>
-                              <div className="flex-1">
-                                <div className="font-semibold text-white drop-shadow-sm">
+                              <div className="flex-1 min-w-0">
+                                <div className="font-semibold text-white drop-shadow-sm truncate">
                                   {getUserDisplayName(user)}
                                 </div>
-                                <div className="text-sm text-white/70">
+                                <div
+                                  className="text-sm text-white/70 truncate"
+                                  title={user?.email}
+                                >
                                   {user?.email}
                                 </div>
                                 <div className="text-xs text-purple-300 font-medium mt-1">
