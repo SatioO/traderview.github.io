@@ -62,6 +62,7 @@ const TradingCalculator: React.FC = () => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [showCapitalEdit, setShowCapitalEdit] = useState(false);
   const [tempCapital, setTempCapital] = useState('');
+  const [showMarketOutlookModal, setShowMarketOutlookModal] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     accountBalance: 1000000,
     riskPercentage: 0.25,
@@ -773,13 +774,39 @@ const TradingCalculator: React.FC = () => {
           {/* Gaming Control Panel */}
           <div className="lg:col-span-1">
             <div className="bg-black/40 backdrop-blur-xl rounded-3xl p-6 shadow-2xl border border-cyan-500/30 sticky top-8 hover:border-cyan-400/50 transition-all duration-500 hover:shadow-cyan-500/20 hover:shadow-2xl">
-              {/* Market Outlook Header - Integrated */}
+              {/* Market Outlook - Fixed Compact Design */}
               <div className="mb-6">
-                <div className="flex items-center justify-between px-3 py-4 rounded-2xl bg-black/30 border border-green-500/20">
+                <div 
+                  className="flex items-center justify-between px-3 py-3 rounded-2xl bg-black/30 border border-green-500/20 cursor-pointer hover:border-green-400/40 transition-all duration-300 hover:bg-black/40"
+                  onClick={() => setShowMarketOutlookModal(true)}
+                >
                   {/* Left - Status & Title */}
                   <div className="flex items-center space-x-3">
-                    <div className="w-3 h-3 bg-green-400 rounded-full"></div>
-                    <span className="text-white font-semibold text-sm">📈 MARKET OUTLOOK</span>
+                    {/* Creative Market Icon */}
+                    <div className="relative">
+                      <svg className={`w-5 h-5 transition-colors duration-300 ${
+                        formData.marketHealth === 'confirmed-uptrend' 
+                          ? 'text-green-400' 
+                          : formData.marketHealth === 'uptrend-under-pressure'
+                          ? 'text-yellow-400'
+                          : formData.marketHealth === 'rally-attempt'
+                          ? 'text-orange-400'
+                          : 'text-red-400'
+                      }`} fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
+                      </svg>
+                      {/* Subtle glow effect */}
+                      <div className={`absolute inset-0 blur-sm opacity-30 ${
+                        formData.marketHealth === 'confirmed-uptrend' 
+                          ? 'bg-green-400' 
+                          : formData.marketHealth === 'uptrend-under-pressure'
+                          ? 'bg-yellow-400'
+                          : formData.marketHealth === 'rally-attempt'
+                          ? 'bg-orange-400'
+                          : 'bg-red-400'
+                      }`}></div>
+                    </div>
+                    <span className="text-white font-medium text-sm">MARKET OUTLOOK</span>
                   </div>
 
                   {/* Divider */}
@@ -788,7 +815,15 @@ const TradingCalculator: React.FC = () => {
                   {/* Center - Condition */}
                   <div className="text-center">
                     <div className="text-xs text-gray-400 uppercase tracking-wider mb-1 font-medium">CONDITION</div>
-                    <div className="text-green-300 font-semibold text-sm">
+                    <div className={`font-semibold text-sm ${
+                      formData.marketHealth === 'confirmed-uptrend' 
+                        ? 'text-green-300' 
+                        : formData.marketHealth === 'uptrend-under-pressure'
+                        ? 'text-yellow-300'
+                        : formData.marketHealth === 'rally-attempt'
+                        ? 'text-orange-300'
+                        : 'text-red-300'
+                    }`}>
                       {getMarketSizingInfo(formData.marketHealth).label}
                     </div>
                   </div>
@@ -2030,6 +2065,211 @@ const TradingCalculator: React.FC = () => {
           </div>
         </div>
       </Modal>
+
+      {/* Market Outlook Modal */}
+      {showMarketOutlookModal && (
+        <Modal 
+          isOpen={showMarketOutlookModal} 
+          onClose={() => setShowMarketOutlookModal(false)}
+          title="Market Outlook"
+          maxWidth="xl"
+        >
+            {/* Current Configuration */}
+              <div className="bg-black/40 rounded-xl p-4 border border-gray-600">
+                <h3 className="text-white font-semibold mb-3 flex items-center">
+                  <span className="w-2 h-2 bg-green-400 rounded-full mr-2"></span>
+                  Current Configuration
+                </h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <div className="text-xs text-gray-400 uppercase tracking-wider mb-1">CONDITION</div>
+                    <div className={`font-semibold ${
+                      formData.marketHealth === 'confirmed-uptrend' ? 'text-green-400' 
+                        : formData.marketHealth === 'uptrend-under-pressure' ? 'text-yellow-400'
+                        : formData.marketHealth === 'rally-attempt' ? 'text-orange-400'
+                        : 'text-red-400'
+                    }`}>
+                      {getMarketSizingInfo(formData.marketHealth).label}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-gray-400 uppercase tracking-wider mb-1">SIZING</div>
+                    <div className="text-orange-400 font-semibold">
+                      {getMarketSizingInfo(formData.marketHealth).adjustment}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* MarketSmith Integration */}
+              <div className="bg-gradient-to-r from-purple-900/20 to-blue-900/20 rounded-xl p-4 border border-purple-500/30">
+                <h3 className="text-white font-semibold mb-3 flex items-center">
+                  <span className="w-2 h-2 bg-purple-400 rounded-full mr-2"></span>
+                  MarketSmith Intelligence
+                </h3>
+                
+                {marketSmithData.isLoading ? (
+                  <div className="flex items-center space-x-2 text-gray-400">
+                    <div className="animate-spin w-4 h-4 border-2 border-purple-400 border-t-transparent rounded-full"></div>
+                    <span className="text-sm">Fetching market data...</span>
+                  </div>
+                ) : marketSmithData.error ? (
+                  <div className="text-red-400 text-sm">
+                    Unable to fetch MarketSmith data
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="bg-black/40 rounded-lg p-3">
+                      <div className="text-xs text-gray-400 mb-1">MARKETSMITH SUGGESTS</div>
+                      <div className="text-purple-300 font-medium">{marketSmithData.condition}</div>
+                      <div className="text-xs text-gray-500 mt-1">Updated: {marketSmithData.date}</div>
+                    </div>
+                    {(() => {
+                      const mappedHealth = mapMarketSmithToHealth(marketSmithData.condition);
+                      const isAlreadyApplied = mappedHealth === formData.marketHealth;
+                      return isAlreadyApplied ? (
+                        <div className="w-full bg-gradient-to-r from-green-600/20 to-emerald-600/20 border border-green-500/30 text-green-300 py-2 px-4 rounded-lg text-sm font-medium text-center flex items-center justify-center space-x-2">
+                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                          <span>Already Applied</span>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => {
+                            handleMarketSizingChange(mappedHealth);
+                          }}
+                          className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white py-2 px-4 rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-300 text-sm font-medium"
+                        >
+                          Apply MarketSmith Recommendation
+                        </button>
+                      );
+                    })()}
+                  </div>
+                )}
+              </div>
+
+              {/* Manual Market Condition Selection */}
+              <div className="bg-black/40 rounded-xl p-4 border border-gray-600">
+                <h3 className="text-white font-semibold mb-4 flex items-center">
+                  <span className="w-2 h-2 bg-cyan-400 rounded-full mr-2"></span>
+                  Manual Selection
+                </h3>
+                <div className="grid grid-cols-2 gap-3">
+                  {[
+                    { key: 'confirmed-uptrend', label: 'Confirmed Uptrend', color: 'green' },
+                    { key: 'uptrend-under-pressure', label: 'Uptrend Under Pressure', color: 'yellow' },
+                    { key: 'rally-attempt', label: 'Rally Attempt', color: 'orange' },
+                    { key: 'downtrend', label: 'Downtrend', color: 'red' }
+                  ].map(({ key, label, color }) => (
+                    <button
+                      key={key}
+                      onClick={() => handleMarketSizingChange(key as MarketHealth)}
+                      className={`group relative p-4 text-sm font-bold rounded-xl border-2 transition-all duration-300 hover:scale-105 overflow-hidden ${
+                        formData.marketHealth === key
+                          ? color === 'green' 
+                            ? 'border-green-400 bg-green-500/10 shadow-lg shadow-green-500/30 text-green-300 transform scale-105'
+                            : color === 'yellow'
+                            ? 'border-yellow-400 bg-yellow-500/10 shadow-lg shadow-yellow-500/30 text-yellow-300 transform scale-105'  
+                            : color === 'orange'
+                            ? 'border-orange-400 bg-orange-500/10 shadow-lg shadow-orange-500/30 text-orange-300 transform scale-105'
+                            : 'border-red-400 bg-red-500/10 shadow-lg shadow-red-500/30 text-red-300 transform scale-105'
+                          : `border-purple-500/30 bg-black/30 text-gray-300 hover:border-${color}-400/50 hover:bg-${color}-500/5 hover:text-${color}-300`
+                      }`}
+                    >
+                      {/* Animated background */}
+                      <div className="absolute inset-0 opacity-20">
+                        <div className={`absolute inset-0 bg-gradient-to-br transition-all duration-500 ${
+                          formData.marketHealth === key
+                            ? color === 'green'
+                              ? 'from-green-600/40 via-emerald-600/40 to-teal-600/40 animate-pulse'
+                              : color === 'yellow'  
+                              ? 'from-yellow-600/40 via-amber-600/40 to-orange-600/40 animate-pulse'
+                              : color === 'orange'
+                              ? 'from-orange-600/40 via-red-600/40 to-pink-600/40 animate-pulse'
+                              : 'from-red-600/40 via-pink-600/40 to-rose-600/40 animate-pulse'
+                            : 'from-transparent to-transparent'
+                        }`}></div>
+                      </div>
+                      
+                      <div className="relative z-10 text-center">
+                        <div className={`w-3 h-3 rounded-full mx-auto mb-2 ${
+                          color === 'green' ? 'bg-green-400' :
+                          color === 'yellow' ? 'bg-yellow-400' :
+                          color === 'orange' ? 'bg-orange-400' : 'bg-red-400'
+                        }`}></div>
+                        <div className="font-bold text-xs mb-2">{label.toUpperCase()}</div>
+                        
+                        {/* Enhanced sizing display with comparison */}
+                        <div className="space-y-1">
+                          <div className={`text-sm font-bold ${
+                            color === 'green' ? 'text-green-400' :
+                            color === 'yellow' ? 'text-yellow-400' :
+                            color === 'orange' ? 'text-orange-400' : 'text-red-400'
+                          }`}>
+                            {getMarketSizingInfo(key as MarketHealth).adjustment}
+                          </div>
+                          
+                          {/* Show sizing difference from current */}
+                          {formData.marketHealth !== key && (
+                            <div className="text-xs text-gray-400">
+                              {(() => {
+                                const currentSizing = getMarketSizingInfo(formData.marketHealth);
+                                const buttonSizing = getMarketSizingInfo(key as MarketHealth);
+                                const currentPercent = parseInt(currentSizing.adjustment);
+                                const buttonPercent = parseInt(buttonSizing.adjustment);
+                                const diff = buttonPercent - currentPercent;
+                                
+                                if (diff > 0) {
+                                  return <span className="text-green-400">+{diff}% vs current</span>;
+                                } else if (diff < 0) {
+                                  return <span className="text-red-400">{diff}% vs current</span>;
+                                } else {
+                                  return <span className="text-gray-400">Same as current</span>;
+                                }
+                              })()}
+                            </div>
+                          )}
+                          
+                          {/* Risk assessment indicator */}
+                          <div className="text-xs text-gray-500">
+                            {key === 'confirmed-uptrend' && '🔥 Max Risk'}
+                            {key === 'uptrend-under-pressure' && '⚠️ Reduced Risk'}
+                            {key === 'rally-attempt' && '🎯 Conservative'}
+                            {key === 'downtrend' && '🛡️ Minimal Risk'}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Achievement indicator */}
+                      {formData.marketHealth === key && (
+                        <div className={`absolute top-2 right-2 w-3 h-3 rounded-full animate-pulse ${
+                          color === 'green' ? 'bg-gradient-to-r from-green-400 to-emerald-400' :
+                          color === 'yellow' ? 'bg-gradient-to-r from-yellow-400 to-amber-400' :
+                          color === 'orange' ? 'bg-gradient-to-r from-orange-400 to-red-400' :
+                          'bg-gradient-to-r from-red-400 to-pink-400'
+                        }`}>
+                          <div className={`absolute inset-0 w-3 h-3 rounded-full animate-ping opacity-30 ${
+                            color === 'green' ? 'bg-gradient-to-r from-green-400 to-emerald-400' :
+                            color === 'yellow' ? 'bg-gradient-to-r from-yellow-400 to-amber-400' :
+                            color === 'orange' ? 'bg-gradient-to-r from-orange-400 to-red-400' :
+                            'bg-gradient-to-r from-red-400 to-pink-400'
+                          }`}></div>
+                        </div>
+                      )}
+                      
+                      {/* Shimmer effect */}
+                      {formData.marketHealth === key && (
+                        <div className="absolute inset-0 opacity-30">
+                          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-pulse"></div>
+                        </div>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+        </Modal>
+      )}
 
       {/* Settings Modal */}
       <SettingsModal
