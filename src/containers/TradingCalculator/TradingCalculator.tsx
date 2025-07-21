@@ -58,7 +58,7 @@ const TradingCalculator: React.FC = () => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [showCapitalEdit, setShowCapitalEdit] = useState(false);
   const [tempCapital, setTempCapital] = useState('');
-  const [showMarketOutlookModal, setShowMarketOutlookModal] = useState(false);
+  const [showMarketOutlookPanel, setShowMarketOutlookPanel] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     accountBalance: 1000000,
     riskPercentage: 0.25,
@@ -752,7 +752,7 @@ const TradingCalculator: React.FC = () => {
               <div className="mb-6">
                 <div
                   className="flex items-center justify-between px-3 py-3 rounded-2xl bg-black/30 border border-green-500/20 cursor-pointer hover:border-green-400/40 transition-all duration-300 hover:bg-black/40"
-                  onClick={() => setShowMarketOutlookModal(true)}
+                  onClick={() => setShowMarketOutlookPanel(true)}
                 >
                   {/* Left - Status & Title */}
                   <div className="flex items-center space-x-3">
@@ -2065,13 +2065,60 @@ const TradingCalculator: React.FC = () => {
       </Modal>
 
       {/* Market Outlook Modal */}
-      {showMarketOutlookModal && (
-        <Modal
-          isOpen={showMarketOutlookModal}
-          onClose={() => setShowMarketOutlookModal(false)}
-          title="Market Command Center"
-          maxWidth="xl"
+      {showMarketOutlookPanel && (
+        <div
+          className={`fixed inset-0 z-50 transition-all duration-700 ease-in-out ${
+            showMarketOutlookPanel 
+              ? 'bg-black/60 backdrop-blur-sm opacity-100 pointer-events-auto' 
+              : 'bg-transparent opacity-0 pointer-events-none'
+          }`}
+          onClick={() => setShowMarketOutlookPanel(false)}
         >
+          {/* Sliding Panel */}
+          <div
+            className={`fixed right-0 top-0 h-full w-full max-w-2xl bg-gradient-to-br from-slate-900/98 via-purple-900/95 to-slate-800/98 backdrop-blur-3xl border-l border-purple-400/40 shadow-2xl transition-all duration-700 ease-in-out overflow-y-auto ${
+              showMarketOutlookPanel 
+                ? 'translate-x-0 opacity-100' 
+                : 'translate-x-full opacity-0'
+            }`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Dynamic light bar */}
+            <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-purple-400/50 to-transparent" />
+            
+            {/* Glass morphism overlay */}
+            <div className="absolute inset-0 bg-gradient-to-br from-white/[0.02] via-transparent to-black/10 pointer-events-none" />
+
+            {/* Header */}
+            <div className="sticky top-0 bg-gradient-to-r from-slate-900/95 to-purple-900/95 backdrop-blur-xl border-b border-purple-400/20 p-6 z-10">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-cyan-500 rounded-xl flex items-center justify-center animate-pulse">
+                    <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-bold bg-gradient-to-r from-white via-purple-200 to-cyan-200 bg-clip-text text-transparent">
+                      Market Command Center
+                    </h2>
+                    <p className="text-gray-400 text-sm">Advanced trading intelligence</p>
+                  </div>
+                </div>
+                
+                <button
+                  onClick={() => setShowMarketOutlookPanel(false)}
+                  className="group p-3 hover:bg-purple-800/40 rounded-xl transition-all duration-300 border border-transparent hover:border-purple-400/40"
+                >
+                  <svg className="w-6 h-6 text-slate-400 group-hover:text-white transition-all duration-300 group-hover:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            {/* Content with staggered animations */}
+            <div className="p-6 space-y-8">
           <div className="space-y-4">
             {/* Current Strategy - Ultra Compact */}
             <div className="bg-gradient-to-r from-slate-800/40 to-purple-900/40 rounded-lg p-4 border border-purple-400/30">
@@ -2399,7 +2446,9 @@ const TradingCalculator: React.FC = () => {
               </div>
             </div>
           </div>
-        </Modal>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Settings Modal */}
