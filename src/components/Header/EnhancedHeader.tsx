@@ -3,12 +3,12 @@ import {
   LogOut,
   Settings,
   ChevronDown,
-  DollarSign,
   Edit,
   Plus,
   Minus,
   TrendingUp,
   Zap,
+  IndianRupee,
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useSettings } from '../../contexts/SettingsContext';
@@ -30,7 +30,11 @@ const EnhancedHeader: React.FC<EnhancedHeaderProps> = ({
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showCapitalEdit, setShowCapitalEdit] = useState(false);
   const [tempCapital, setTempCapital] = useState('');
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<{
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+  } | null>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
 
   // Load user from localStorage on mount
@@ -111,14 +115,18 @@ const EnhancedHeader: React.FC<EnhancedHeaderProps> = ({
     return amount.toString();
   };
 
-  const getUserInitials = (user: any): string => {
+  const getUserInitials = (
+    user: { firstName?: string; lastName?: string; email?: string } | null
+  ): string => {
     if (!user) return 'T';
     const firstName = user.firstName || '';
     const lastName = user.lastName || '';
     return (firstName.charAt(0) + lastName.charAt(0)).toUpperCase() || 'T';
   };
 
-  const getUserDisplayName = (user: any): string => {
+  const getUserDisplayName = (
+    user: { firstName?: string; lastName?: string; email?: string } | null
+  ): string => {
     if (!user) return 'Trader';
     return (
       `${user.firstName || ''} ${user.lastName || ''}`.trim() ||
@@ -204,123 +212,256 @@ const EnhancedHeader: React.FC<EnhancedHeaderProps> = ({
   return (
     <>
       <header className="sticky top-0 z-50 w-full">
-        <div className="bg-black/30 backdrop-blur-xl border-b border-white/5">
+        <div className="backdrop-blur-md border-b border-white/5">
           <div className="mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-16">
-              {/* Left - Brand/Logo & Broker Connection */}
+              {/* Left - Brand/Logo with Floating Effect */}
               <div className="flex items-center space-x-6">
-                <div className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-cyan-400 bg-clip-text text-transparent">
-                  TraderView
+                <div className="relative group cursor-pointer">
+                  {/* Dynamic Background Orbs */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-cyan-500/20 blur-xl rounded-full scale-150 opacity-0 group-hover:opacity-100 transition-all duration-700 animate-pulse"></div>
+                  <div
+                    className="absolute -left-2 -top-1 w-4 h-4 bg-purple-400/40 rounded-full blur-sm animate-bounce opacity-0 group-hover:opacity-100 transition-all duration-1000"
+                    style={{ animationDelay: '0.5s' }}
+                  ></div>
+                  <div
+                    className="absolute -right-1 -bottom-1 w-3 h-3 bg-cyan-400/40 rounded-full blur-sm animate-bounce opacity-0 group-hover:opacity-100 transition-all duration-1000"
+                    style={{ animationDelay: '1s' }}
+                  ></div>
+
+                  {/* Enhanced Logo */}
+                  <div className="relative text-2xl font-bold bg-gradient-to-r from-purple-400 via-pink-300 to-cyan-400 bg-clip-text text-transparent hover:from-purple-300 hover:via-pink-200 hover:to-cyan-300 transition-all duration-500 transform group-hover:scale-105">
+                    TraderView
+                  </div>
+
+                  {/* Subtle Glow Effect */}
+                  <div className="absolute -inset-3 bg-gradient-to-r from-purple-500/8 to-cyan-500/8 rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-500 blur-md"></div>
+
+                  {/* Floating Particles */}
+                  <div
+                    className="absolute top-0 right-0 w-1 h-1 bg-white/60 rounded-full animate-ping opacity-0 group-hover:opacity-100 transition-all duration-700"
+                    style={{ animationDelay: '0.3s' }}
+                  ></div>
                 </div>
               </div>
 
               {/* Right - Trading Capital & User Menu */}
               <div className="flex items-center space-x-4">
-                {/* Trading Capital */}
+                {/* Floating Trading Capital Display */}
                 <div className="hidden sm:block">
-                  <button
-                    onClick={handleCapitalEdit}
-                    className="flex items-center space-x-2 bg-gradient-to-r from-emerald-500/10 via-green-500/10 to-teal-500/10 hover:from-emerald-500/20 hover:via-green-500/20 hover:to-teal-500/20 border border-emerald-500/20 hover:border-emerald-400/40 rounded-xl px-4 py-2 transition-all duration-300 hover:scale-105"
-                  >
-                    <DollarSign className="w-4 h-4 text-emerald-400" />
-                    <span className="text-emerald-300 font-semibold tracking-wide">
-                      {formatCurrencyShort(settings.accountBalance)}
-                    </span>
-                    <Edit className="w-3 h-3 text-emerald-400/60 hover:text-emerald-300 transition-colors" />
-                  </button>
-                </div>
+                  <div className="group relative z-30">
+                    <button
+                      onClick={handleCapitalEdit}
+                      className="relative flex items-center space-x-4 px-4 py-3"
+                    >
+                      {/* Enhanced Capital Icon with Premium Effects */}
+                      <div className="relative">
+                        {/* Multi-layered Glow Effects */}
+                        <div className="absolute inset-0 bg-emerald-400/30 rounded-full blur-md animate-pulse opacity-60"></div>
+                        <div
+                          className="absolute inset-0 bg-gradient-to-r from-emerald-400/20 to-green-400/20 rounded-full animate-spin"
+                          style={{ animationDuration: '8s' }}
+                        ></div>
+                        <div className="absolute inset-0 bg-emerald-300/20 rounded-full blur-lg animate-ping opacity-0 group-hover:opacity-100 transition-all duration-700"></div>
 
-                {/* User Avatar Menu */}
-                <div className="relative" ref={userMenuRef}>
-                  <button
-                    onClick={() => setShowUserMenu(!showUserMenu)}
-                    className="flex items-center space-x-3 bg-gradient-to-r from-slate-800/40 to-gray-800/40 hover:from-slate-700/60 hover:to-gray-700/60 border border-white/10 hover:border-white/20 rounded-xl px-3 py-2 transition-all duration-300 hover:scale-105 group"
-                  >
-                    {/* Avatar */}
-                    <div className="relative">
-                      <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-cyan-500 rounded-full flex items-center justify-center text-white font-bold text-sm border-2 border-white/20 group-hover:border-white/40 transition-all duration-300">
-                        {getUserInitials(user)}
+                        {/* Icon with Enhanced Effects */}
+                        <IndianRupee className="relative w-6 h-6 text-emerald-300 group-hover:text-emerald-200 transition-all duration-300 drop-shadow-lg transform group-hover:scale-110 group-hover:rotate-6" />
+
+                        {/* Floating Micro Particles */}
+                        <div
+                          className="absolute -top-1 -right-1 w-1 h-1 bg-emerald-300/80 rounded-full animate-bounce opacity-0 group-hover:opacity-100 transition-all duration-500"
+                          style={{ animationDelay: '0.2s' }}
+                        ></div>
+                        <div
+                          className="absolute -bottom-1 -left-1 w-0.5 h-0.5 bg-green-300/80 rounded-full animate-ping opacity-0 group-hover:opacity-100 transition-all duration-700"
+                          style={{ animationDelay: '0.8s' }}
+                        ></div>
                       </div>
-                      {/* Online Indicator */}
-                      <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-400 rounded-full border-2 border-black animate-pulse"></div>
-                    </div>
 
-                    {/* User Info */}
-                    <div className="hidden md:block text-left">
-                      <div className="text-sm font-medium text-white group-hover:text-cyan-300 transition-colors">
-                        {getUserDisplayName(user)}
-                      </div>
-                      <div className="text-xs text-gray-400">
-                        {formatCurrency(settings.accountBalance)}
-                      </div>
-                    </div>
-
-                    {/* Dropdown Arrow */}
-                    <ChevronDown
-                      className={`w-4 h-4 text-gray-400 group-hover:text-white transition-all duration-300 ${
-                        showUserMenu ? 'rotate-180' : ''
-                      }`}
-                    />
-                  </button>
-
-                  {/* User Dropdown Menu */}
-                  {showUserMenu && (
-                    <div className="absolute right-0 top-full mt-2 w-72 bg-black/90 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl shadow-purple-500/10 overflow-hidden">
-                      {/* User Info Header */}
-                      <div className="p-4 border-b border-white/10 bg-gradient-to-r from-purple-500/10 to-cyan-500/10">
+                      {/* Floating Capital Amount */}
+                      <div className="relative flex flex-col items-start">
                         <div className="flex items-center space-x-3">
-                          <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-cyan-500 rounded-full flex items-center justify-center text-white font-bold text-lg border-2 border-white/20">
-                            {getUserInitials(user)}
+                          <span className="text-white/90 font-bold text-xl tracking-tight drop-shadow-sm group-hover:text-white transition-colors">
+                            {formatCurrencyShort(settings.accountBalance)}
+                          </span>
+                          <div
+                            className={`relative px-3 py-1 rounded-full text-xs font-bold text-white shadow-lg border border-white/20 bg-gradient-to-r ${
+                              getCapitalLevel(settings.accountBalance).color
+                            }`}
+                          >
+                            <div className="absolute inset-0 bg-white/10 rounded-full"></div>
+                            <span className="relative">
+                              {getCapitalLevel(settings.accountBalance).level}
+                            </span>
                           </div>
-                          <div className="flex-1">
-                            <div className="font-semibold text-white">
-                              {getUserDisplayName(user)}
-                            </div>
-                            <div className="text-sm text-gray-400">
-                              {user?.email}
-                            </div>
-                            <div className="text-xs text-emerald-400 font-medium">
-                              Capital: {formatCurrency(settings.accountBalance)}
-                            </div>
-                          </div>
+                        </div>
+                        <div className="text-emerald-300/70 text-xs font-medium tracking-wide uppercase">
+                          Trading Capital
                         </div>
                       </div>
 
-                      {/* Menu Items */}
-                      <div className="py-2">
-                        {/* Settings */}
-                        <button
-                          onClick={handleSettingsClick}
-                          className="w-full flex items-center space-x-3 px-4 py-3 text-left hover:bg-white/5 transition-colors group"
-                        >
-                          <div className="p-2 bg-gray-500/20 rounded-lg group-hover:bg-gray-500/30 transition-colors">
-                            <Settings className="w-4 h-4 text-gray-400" />
-                          </div>
-                          <div>
-                            <div className="font-medium text-white">
-                              Settings
-                            </div>
-                            <div className="text-xs text-gray-400">
-                              Preferences & configuration
-                            </div>
-                          </div>
-                        </button>
+                      {/* Floating Edit Icon */}
+                      <div className="relative">
+                        <div className="absolute inset-0 bg-emerald-400/20 rounded-full blur-sm opacity-0 group-hover:opacity-100 transition-all duration-300"></div>
+                        <Edit className="relative w-4 h-4 text-emerald-400/70 group-hover:text-emerald-300 transition-all duration-300 opacity-70 group-hover:opacity-100" />
+                      </div>
+                    </button>
+                  </div>
+                </div>
 
-                        {/* Logout */}
-                        <button
-                          onClick={handleLogout}
-                          className="w-full flex items-center space-x-3 px-4 py-3 text-left hover:bg-red-500/10 transition-colors group"
-                        >
-                          <div className="p-2 bg-red-500/20 rounded-lg group-hover:bg-red-500/30 transition-colors">
-                            <LogOut className="w-4 h-4 text-red-400" />
-                          </div>
-                          <div>
-                            <div className="font-medium text-white">Logout</div>
-                            <div className="text-xs text-gray-400">
-                              Sign out of your account
+                {/* Floating Mobile Capital */}
+                <div className="sm:hidden">
+                  <button
+                    onClick={handleCapitalEdit}
+                    className="relative flex items-center justify-center w-12 h-12 rounded-full transition-all duration-500 hover:scale-125 transform-gpu group"
+                  >
+                    {/* Floating Background Effect */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-emerald-400/20 to-green-400/20 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 backdrop-blur-sm"></div>
+                    <div className="absolute inset-0 border border-emerald-400/30 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300"></div>
+
+                    {/* Floating Pulse Effects */}
+                    <div className="absolute inset-0 bg-emerald-400/20 rounded-full animate-pulse opacity-60"></div>
+                    <div className="absolute inset-0 bg-emerald-400/10 rounded-full animate-ping"></div>
+
+                    {/* Icon with Drop Shadow */}
+                    <IndianRupee className="relative w-6 h-6 text-emerald-300 group-hover:text-emerald-200 transition-all duration-300 drop-shadow-lg" />
+
+                    {/* Floating Level Indicator */}
+                    <div
+                      className={`absolute -top-1 -right-1 w-4 h-4 rounded-full bg-gradient-to-r ${
+                        getCapitalLevel(settings.accountBalance).color
+                      } border-2 border-white/30 shadow-lg animate-pulse`}
+                    ></div>
+                  </button>
+                </div>
+
+                {/* Floating User Avatar Menu */}
+                <div className="relative z-30" ref={userMenuRef}>
+                  <button
+                    onClick={() => setShowUserMenu(!showUserMenu)}
+                    className="relative flex items-center space-x-3 px-3 py-2 rounded-2xl"
+                  >
+                    {/* Floating Avatar */}
+                    <div className="relative">
+                      <div className="absolute inset-0 bg-gradient-to-br from-purple-500/30 to-cyan-500/30 rounded-full blur-md animate-pulse opacity-60"></div>
+                      <div className="relative w-11 h-11 bg-gradient-to-br from-purple-500 via-pink-500 to-cyan-500 rounded-full flex items-center justify-center text-white font-bold text-sm border-2 border-white/30 group-hover:border-white/50 transition-all duration-300 shadow-lg">
+                        {getUserInitials(user)}
+                      </div>
+                      {/* Floating Online Indicator */}
+                      <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-green-400 rounded-full border-2 border-white/50 animate-pulse shadow-lg"></div>
+                    </div>
+
+                    {/* Floating User Info */}
+                    <div className="hidden md:block text-left relative">
+                      <div className="text-sm font-medium text-white/90 group-hover:text-white drop-shadow-sm transition-all duration-300">
+                        {getUserDisplayName(user)}
+                      </div>
+                      <div className="text-xs text-white/60 group-hover:text-white/80 transition-colors">
+                        Professional Trader
+                      </div>
+                    </div>
+
+                    {/* Floating Dropdown Arrow */}
+                    <div className="relative">
+                      <div className="absolute inset-0 bg-white/10 rounded-full blur-sm opacity-0 group-hover:opacity-100 transition-all duration-300"></div>
+                      <ChevronDown
+                        className={`relative w-4 h-4 text-white/70 group-hover:text-white transition-all duration-500 drop-shadow-sm ${
+                          showUserMenu ? 'rotate-180 scale-110' : ''
+                        }`}
+                      />
+                    </div>
+                  </button>
+
+                  {/* Enhanced Dropdown Menu */}
+                  {showUserMenu && (
+                    <div
+                      className="absolute right-0 top-full mt-4 w-72 opacity-0 animate-in slide-in-from-top-2 fade-in duration-500"
+                      style={{ opacity: 1 }}
+                    >
+                      <div className="relative">
+                        {/* Enhanced Background with Better Visibility */}
+                        <div className="absolute inset-0 bg-gradient-to-br from-gray-900/95 via-black/90 to-gray-800/95 rounded-3xl backdrop-blur-3xl border border-purple-400/40 shadow-2xl"></div>
+                        <div className="absolute inset-0 bg-gradient-to-br from-purple-500/15 to-cyan-500/10 rounded-3xl"></div>
+                        {/* Subtle Inner Glow */}
+                        <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-transparent rounded-3xl"></div>
+
+                        <div className="relative overflow-hidden rounded-3xl">
+                          {/* Floating User Info Header */}
+                          <div className="relative p-6 border-b border-white/10">
+                            <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-cyan-500/10 backdrop-blur-sm"></div>
+                            <div className="relative flex items-center space-x-4">
+                              <div className="relative">
+                                <div className="absolute inset-0 bg-gradient-to-br from-purple-500/30 to-cyan-500/30 rounded-full blur-md animate-pulse opacity-60"></div>
+                                <div className="relative w-14 h-14 bg-gradient-to-br from-purple-500 via-pink-500 to-cyan-500 rounded-full flex items-center justify-center text-white font-bold text-lg border-2 border-white/30 shadow-lg">
+                                  {getUserInitials(user)}
+                                </div>
+                                <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-white/50 animate-pulse shadow-lg"></div>
+                              </div>
+                              <div className="flex-1">
+                                <div className="font-semibold text-white drop-shadow-sm">
+                                  {getUserDisplayName(user)}
+                                </div>
+                                <div className="text-sm text-white/70">
+                                  {user?.email}
+                                </div>
+                                <div className="text-xs text-purple-300 font-medium mt-1">
+                                  Professional Trader
+                                </div>
+                              </div>
                             </div>
                           </div>
-                        </button>
+
+                          {/* Floating Menu Items */}
+                          <div className="relative p-2 space-y-1">
+                            {/* Settings */}
+                            <button
+                              onClick={handleSettingsClick}
+                              className="relative w-full flex items-center space-x-4 px-4 py-3 text-left rounded-2xl transition-all duration-300 hover:scale-105 group"
+                            >
+                              <div className="absolute inset-0 bg-white/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-all duration-300 backdrop-blur-sm"></div>
+                              <div className="absolute inset-0 border border-white/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-all duration-300"></div>
+
+                              <div className="relative">
+                                <div className="absolute inset-0 bg-gray-400/20 rounded-xl blur-sm opacity-0 group-hover:opacity-100 transition-all duration-300"></div>
+                                <div className="relative p-2 rounded-xl">
+                                  <Settings className="w-5 h-5 text-gray-300 group-hover:text-white transition-colors drop-shadow-sm" />
+                                </div>
+                              </div>
+                              <div className="relative">
+                                <div className="font-medium text-white/90 group-hover:text-white drop-shadow-sm">
+                                  Settings
+                                </div>
+                                <div className="text-xs text-white/60 group-hover:text-white/80">
+                                  Preferences & configuration
+                                </div>
+                              </div>
+                            </button>
+
+                            {/* Logout */}
+                            <button
+                              onClick={handleLogout}
+                              className="relative w-full flex items-center space-x-4 px-4 py-3 text-left rounded-2xl transition-all duration-300 hover:scale-105 group"
+                            >
+                              <div className="absolute inset-0 bg-red-500/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-all duration-300 backdrop-blur-sm"></div>
+                              <div className="absolute inset-0 border border-red-400/20 rounded-2xl opacity-0 group-hover:opacity-100 transition-all duration-300"></div>
+
+                              <div className="relative">
+                                <div className="absolute inset-0 bg-red-400/20 rounded-xl blur-sm opacity-0 group-hover:opacity-100 transition-all duration-300"></div>
+                                <div className="relative p-2 rounded-xl">
+                                  <LogOut className="w-5 h-5 text-red-400 group-hover:text-red-300 transition-colors drop-shadow-sm" />
+                                </div>
+                              </div>
+                              <div className="relative">
+                                <div className="font-medium text-white/90 group-hover:text-white drop-shadow-sm">
+                                  Logout
+                                </div>
+                                <div className="text-xs text-white/60 group-hover:text-white/80">
+                                  Sign out of your account
+                                </div>
+                              </div>
+                            </button>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   )}
@@ -330,33 +471,71 @@ const EnhancedHeader: React.FC<EnhancedHeaderProps> = ({
           </div>
         </div>
 
-        {/* Animated border effect */}
-        <div className="h-[1px] w-full bg-gradient-to-r from-transparent via-purple-500/30 to-transparent animate-pulse"></div>
+        {/* Premium Animated Border Effects */}
+        <div className="relative h-[3px] w-full overflow-hidden">
+          {/* Primary Gradient Wave */}
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-purple-400/50 to-transparent animate-pulse"></div>
+
+          {/* Secondary Gradient Wave */}
+          <div
+            className="absolute inset-0 bg-gradient-to-r from-transparent via-cyan-400/40 to-transparent animate-pulse"
+            style={{ animationDelay: '1s' }}
+          ></div>
+
+          {/* Traveling Light Effect */}
+          <div
+            className="absolute top-0 h-full w-32 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-pulse opacity-60"
+            style={{
+              animation: 'slide 3s ease-in-out infinite',
+              animationDelay: '2s',
+            }}
+          ></div>
+
+          {/* Subtle Shimmer */}
+          <div
+            className="absolute inset-0 bg-gradient-to-r from-transparent via-pink-300/20 to-transparent animate-pulse"
+            style={{ animationDelay: '0.5s' }}
+          ></div>
+        </div>
+
+        {/* Custom Animation Keyframes */}
+        <style>{`
+          @keyframes slide {
+            0% { transform: translateX(-100%); opacity: 0; }
+            50% { opacity: 0.6; }
+            100% { transform: translateX(100vw); opacity: 0; }
+          }
+        `}</style>
       </header>
 
       {/* Enhanced Capital Edit Modal */}
       <Modal
         isOpen={showCapitalEdit}
         onClose={() => setShowCapitalEdit(false)}
-        title="🚀 Set Your Trading Capital"
+        title="💰 Configure Trading Capital"
       >
         <div className="space-y-6">
           {/* Header with current level */}
-          <div className="text-center space-y-2">
-            <p className="text-gray-300 text-sm">
-              Configure your trading capital for accurate position sizing and
-              risk management
+          <div className="text-center space-y-3">
+            <p className="text-gray-300 text-sm leading-relaxed">
+              Configure your trading capital for optimal position sizing and
+              advanced risk management
             </p>
             {tempCapital && (
-              <div className="flex items-center justify-center space-x-2">
+              <div className="inline-flex items-center justify-center space-x-2 bg-gradient-to-r from-slate-800/50 to-gray-800/50 border border-white/10 rounded-full px-4 py-2">
                 <TrendingUp className="w-4 h-4 text-cyan-400" />
                 <span
-                  className={`text-sm font-semibold bg-gradient-to-r ${
+                  className={`text-sm font-bold bg-gradient-to-r ${
                     getCapitalLevel(parseFloat(tempCapital) || 0).color
                   } bg-clip-text text-transparent`}
                 >
-                  {getCapitalLevel(parseFloat(tempCapital) || 0).level}
+                  {getCapitalLevel(parseFloat(tempCapital) || 0).level} TRADER
                 </span>
+                <div
+                  className={`w-2 h-2 rounded-full bg-gradient-to-r ${
+                    getCapitalLevel(parseFloat(tempCapital) || 0).color
+                  } animate-pulse`}
+                ></div>
               </div>
             )}
           </div>
