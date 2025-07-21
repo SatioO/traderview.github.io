@@ -773,6 +773,43 @@ const TradingCalculator: React.FC = () => {
           {/* Gaming Control Panel */}
           <div className="lg:col-span-1">
             <div className="bg-black/40 backdrop-blur-xl rounded-3xl p-6 shadow-2xl border border-cyan-500/30 sticky top-8 hover:border-cyan-400/50 transition-all duration-500 hover:shadow-cyan-500/20 hover:shadow-2xl">
+              {/* Market Outlook Header - Integrated */}
+              <div className="mb-6">
+                <div className="flex items-center justify-between px-3 py-4 rounded-2xl bg-black/30 border border-green-500/20">
+                  {/* Left - Status & Title */}
+                  <div className="flex items-center space-x-3">
+                    <div className="w-3 h-3 bg-green-400 rounded-full"></div>
+                    <span className="text-white font-semibold text-sm">📈 MARKET OUTLOOK</span>
+                  </div>
+
+                  {/* Divider */}
+                  <div className="w-px h-8 bg-gray-600/40"></div>
+
+                  {/* Center - Condition */}
+                  <div className="text-center">
+                    <div className="text-xs text-gray-400 uppercase tracking-wider mb-1 font-medium">CONDITION</div>
+                    <div className="text-green-300 font-semibold text-sm">
+                      {getMarketSizingInfo(formData.marketHealth).label}
+                    </div>
+                  </div>
+
+                  {/* Divider */}
+                  <div className="w-px h-8 bg-gray-600/40"></div>
+
+                  {/* Right - Sizing & Arrow */}
+                  <div className="flex items-center space-x-2">
+                    <div className="text-center">
+                      <div className="text-xs text-gray-400 uppercase tracking-wider mb-1 font-medium">SIZING</div>
+                      <div className="text-orange-400 font-bold text-sm">
+                        {getMarketSizingInfo(formData.marketHealth).adjustment}
+                      </div>
+                    </div>
+                    <svg className="w-4 h-4 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
               {/* Creative Tile-Style Mode Selector */}
               <div className="mb-6">
                 <div className="grid grid-cols-2 gap-4 p-3 bg-black/20 rounded-2xl backdrop-blur-sm border border-purple-500/20">
