@@ -13,8 +13,6 @@ import {
   Shield,
   LogOut,
   Users,
-  ExternalLink,
-  Wifi,
 } from 'lucide-react';
 import SessionManager from '../auth/SessionManager';
 import {
@@ -809,25 +807,20 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                   duplicateGroups.add(duplicateKey);
                   errors.push({
                     type: 'duplicate',
-                    message: error.replace('Duplicate value:', 'Risk levels have duplicate value:'),
+                    message: error.replace(
+                      'Duplicate value:',
+                      'Risk levels have duplicate value:'
+                    ),
                     field: 'Risk Levels',
                     severity: 'medium',
                   });
                 }
               } else {
                 errors.push({
-                  type: isOrderError
-                    ? 'order'
-                    : isRange
-                    ? 'range'
-                    : 'invalid',
+                  type: isOrderError ? 'order' : isRange ? 'range' : 'invalid',
                   message: error,
                   field: level?.name || levelId,
-                  severity: isOrderError
-                    ? 'high'
-                    : isRange
-                    ? 'high'
-                    : 'low',
+                  severity: isOrderError ? 'high' : isRange ? 'high' : 'low',
                 });
               }
             }
@@ -863,25 +856,20 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                   duplicateGroups.add(duplicateKey);
                   errors.push({
                     type: 'duplicate',
-                    message: error.replace('Duplicate value:', 'Allocation levels have duplicate value:'),
+                    message: error.replace(
+                      'Duplicate value:',
+                      'Allocation levels have duplicate value:'
+                    ),
                     field: 'Allocation Levels',
                     severity: 'medium',
                   });
                 }
               } else {
                 errors.push({
-                  type: isOrderError
-                    ? 'order'
-                    : isRange
-                    ? 'range'
-                    : 'invalid',
+                  type: isOrderError ? 'order' : isRange ? 'range' : 'invalid',
                   message: error,
                   field: level?.name || levelId,
-                  severity: isOrderError
-                    ? 'high'
-                    : isRange
-                    ? 'high'
-                    : 'low',
+                  severity: isOrderError ? 'high' : isRange ? 'high' : 'low',
                 });
               }
             }
@@ -917,25 +905,20 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                   duplicateGroups.add(duplicateKey);
                   errors.push({
                     type: 'duplicate',
-                    message: error.replace('Duplicate value:', 'Stop loss levels have duplicate value:'),
+                    message: error.replace(
+                      'Duplicate value:',
+                      'Stop loss levels have duplicate value:'
+                    ),
                     field: 'Stop Loss Levels',
                     severity: 'medium',
                   });
                 }
               } else {
                 errors.push({
-                  type: isOrderError
-                    ? 'order'
-                    : isRange
-                    ? 'range'
-                    : 'invalid',
+                  type: isOrderError ? 'order' : isRange ? 'range' : 'invalid',
                   message: error,
                   field: level?.name || levelId,
-                  severity: isOrderError
-                    ? 'high'
-                    : isRange
-                    ? 'high'
-                    : 'low',
+                  severity: isOrderError ? 'high' : isRange ? 'high' : 'low',
                 });
               }
             }
@@ -948,11 +931,12 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
         const level = localSettings.stopLossLevels.find(
           (l) => l.id === levelId
         );
-        
+
         // Check if this order conflict is caused by duplicate values
-        const isDuplicateCaused = validationErrors.stopLossDuplicates?.includes(levelId) || 
-                                  validationErrors.stopLossDuplicates?.includes(conflict.conflictWith);
-        
+        const isDuplicateCaused =
+          validationErrors.stopLossDuplicates?.includes(levelId) ||
+          validationErrors.stopLossDuplicates?.includes(conflict.conflictWith);
+
         // Only add order conflict error if it's not caused by duplicates
         if (!isDuplicateCaused) {
           errors.push({
@@ -1344,7 +1328,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                   <div className="text-xs opacity-80">Stop Loss Management</div>
                 </div>
               </button>
-              
+
               {/* Session Management Tab */}
               <button
                 onClick={() => setActiveTab('sessions')}
@@ -2446,7 +2430,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
               </>
             )}
 
-
             {/* Sessions Tab Content */}
             {activeTab === 'sessions' && (
               <>
@@ -2477,9 +2460,12 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                             <Shield className="w-5 h-5 text-purple-400" />
                           </div>
                           <div>
-                            <h3 className="text-sm font-semibold text-slate-200">Session Management</h3>
+                            <h3 className="text-sm font-semibold text-slate-200">
+                              Session Management
+                            </h3>
                             <p className="text-xs text-slate-400 mt-1">
-                              Monitor and manage active sessions across all your devices
+                              Monitor and manage active sessions across all your
+                              devices
                             </p>
                           </div>
                         </div>
@@ -2495,16 +2481,22 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
 
                     {/* Security Information */}
                     <div className="space-y-4">
-                      <h3 className="text-sm font-semibold text-slate-300">Security & Access</h3>
-                      
+                      <h3 className="text-sm font-semibold text-slate-300">
+                        Security & Access
+                      </h3>
+
                       <div className="grid gap-4">
                         {/* Current Session */}
                         <div className="p-4 bg-gradient-to-r from-purple-500/10 to-cyan-500/10 border border-purple-500/30 rounded-lg">
                           <div className="flex items-center space-x-3">
                             <div className="w-3 h-3 bg-purple-400 rounded-full animate-pulse"></div>
                             <div>
-                              <div className="text-sm font-medium text-purple-300">Current Session</div>
-                              <div className="text-xs text-cyan-400/80">This device - Active now</div>
+                              <div className="text-sm font-medium text-purple-300">
+                                Current Session
+                              </div>
+                              <div className="text-xs text-cyan-400/80">
+                                This device - Active now
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -2515,16 +2507,24 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                             onClick={() => setIsSessionManagerOpen(true)}
                             className="p-3 bg-gradient-to-r from-purple-500/5 to-cyan-500/5 border border-purple-500/20 rounded-lg hover:from-purple-500/10 hover:to-cyan-500/10 hover:border-purple-500/30 transition-all duration-200 text-left"
                           >
-                            <div className="text-sm font-medium text-slate-300">View All Sessions</div>
-                            <div className="text-xs text-slate-500 mt-1">See active devices</div>
+                            <div className="text-sm font-medium text-slate-300">
+                              View All Sessions
+                            </div>
+                            <div className="text-xs text-slate-500 mt-1">
+                              See active devices
+                            </div>
                           </button>
-                          
+
                           <button
                             onClick={() => setIsSessionManagerOpen(true)}
                             className="p-3 bg-gradient-to-r from-purple-500/5 to-cyan-500/5 border border-purple-500/20 rounded-lg hover:from-purple-500/10 hover:to-cyan-500/10 hover:border-purple-500/30 transition-all duration-200 text-left"
                           >
-                            <div className="text-sm font-medium text-slate-300">Security Settings</div>
-                            <div className="text-xs text-slate-500 mt-1">Logout remote devices</div>
+                            <div className="text-sm font-medium text-slate-300">
+                              Security Settings
+                            </div>
+                            <div className="text-xs text-slate-500 mt-1">
+                              Logout remote devices
+                            </div>
                           </button>
                         </div>
                       </div>
@@ -2816,9 +2816,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
   return (
     <>
       {createPortal(modalContent, document.body)}
-      <SessionManager 
-        isOpen={isSessionManagerOpen} 
-        onClose={() => setIsSessionManagerOpen(false)} 
+      <SessionManager
+        isOpen={isSessionManagerOpen}
+        onClose={() => setIsSessionManagerOpen(false)}
       />
     </>
   );

@@ -28,7 +28,11 @@ const BrokerConnectionPanel: React.FC<BrokerConnectionPanelProps> = ({
   });
 
   // Fetch active session
-  const { data: activeSession } = useQuery({
+  const {
+    data: activeSession,
+    isLoading: isLoadingActiveSession,
+    isError: isActiveSessionError,
+  } = useQuery({
     queryKey: ['broker', 'active-session'],
     queryFn: () => brokerApiService.getActiveSession(),
     refetchInterval: 30 * 1000, // Refetch every 30 seconds
@@ -158,6 +162,29 @@ const BrokerConnectionPanel: React.FC<BrokerConnectionPanelProps> = ({
     return null;
   }
 
+  // Show loading indicator while checking active session (to prevent UI flickering)
+  if (isLoadingActiveSession) {
+    return (
+      <div className="mb-6">
+        <div className="relative overflow-hidden bg-gradient-to-br from-indigo-950 via-purple-900 to-blue-950 rounded-2xl p-4 mb-3 border border-violet-400/30 backdrop-blur-md animate-pulse">
+          <div className="flex items-center justify-center py-6">
+            <div className="flex items-center space-x-3">
+              <div className="w-5 h-5 border-2 border-violet-400/40 border-t-violet-300 rounded-full animate-spin"></div>
+              <span className="text-violet-200 text-sm font-medium">
+                Checking broker session...
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // If session check failed, continue to show the panel
+  if (isActiveSessionError) {
+    // Continue to render the panel normally
+  }
+
   return (
     <div className={`mb-6 ${className}`}>
       {/* Enhanced Header */}
@@ -178,12 +205,15 @@ const BrokerConnectionPanel: React.FC<BrokerConnectionPanelProps> = ({
             className="absolute bottom-3 right-6 w-1.5 h-1.5 bg-gradient-to-r from-emerald-400 to-teal-400 rounded-full animate-pulse shadow-lg shadow-emerald-400/50"
             style={{ animationDelay: '1.8s' }}
           ></div>
-          
+
           {/* Animated gradient overlay */}
           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-violet-500/5 to-transparent animate-pulse opacity-60"></div>
-          
+
           {/* Subtle moving background pattern */}
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_40%,rgba(120,119,198,0.1),transparent_50%)] animate-pulse" style={{ animationDelay: '2s' }}></div>
+          <div
+            className="absolute inset-0 bg-[radial-gradient(circle_at_30%_40%,rgba(120,119,198,0.1),transparent_50%)] animate-pulse"
+            style={{ animationDelay: '2s' }}
+          ></div>
         </div>
 
         {/* Content */}
@@ -211,14 +241,16 @@ const BrokerConnectionPanel: React.FC<BrokerConnectionPanelProps> = ({
               From Calculation to Execution — Instantly
             </h4>
             <p className="text-slate-300/90 text-xs font-medium leading-relaxed group-hover:text-slate-200/95 transition-colors duration-300">
-              {Object.values(connectionStage).find(stage => stage) ? (
+              {Object.values(connectionStage).find((stage) => stage) ? (
                 <span className="text-violet-300 animate-pulse font-semibold">
-                  {Object.values(connectionStage).find(stage => stage)}
+                  {Object.values(connectionStage).find((stage) => stage)}
                 </span>
               ) : (
                 <>
                   No switching apps, no manual errors,{' '}
-                  <span className="text-cyan-300 font-semibold">Every second counts.</span>
+                  <span className="text-cyan-300 font-semibold">
+                    Every second counts.
+                  </span>
                 </>
               )}
             </p>
@@ -287,7 +319,7 @@ const BrokerConnectionPanel: React.FC<BrokerConnectionPanelProps> = ({
                               : 'opacity-0 group-hover/broker:opacity-30'
                           }`}
                         ></div>
-                        
+
                         {/* Hover glow effect */}
                         <div className="absolute inset-0 bg-gradient-to-r from-violet-500/0 via-violet-500/5 to-violet-500/0 opacity-0 group-hover/broker:opacity-100 transition-opacity duration-500 rounded-xl"></div>
                       </div>
@@ -521,8 +553,18 @@ const BrokerConnectionPanel: React.FC<BrokerConnectionPanelProps> = ({
           <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-2xl p-6 border border-amber-400/40 max-w-md mx-4 shadow-2xl shadow-amber-500/20 animate-in zoom-in-95 duration-300">
             <div className="flex items-center space-x-3 mb-3">
               <div className="w-8 h-8 bg-gradient-to-br from-amber-500 to-orange-600 rounded-lg flex items-center justify-center shadow-lg shadow-amber-500/30">
-                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01" />
+                <svg
+                  className="w-4 h-4 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 8v4m0 4h.01"
+                  />
                 </svg>
               </div>
               <h4 className="text-white text-lg font-semibold">
@@ -549,14 +591,14 @@ const BrokerConnectionPanel: React.FC<BrokerConnectionPanelProps> = ({
                 disabled={forceConnectMutation.isPending}
                 className="flex-1 px-4 py-3 bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-xl hover:from-amber-400 hover:to-orange-500 hover:shadow-lg hover:shadow-amber-500/30 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed font-medium border border-amber-400/30"
               >
-                {forceConnectMutation.isPending
-                  ? (
-                    <div className="flex items-center justify-center space-x-2">
-                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                      <span>Connecting...</span>
-                    </div>
-                  )
-                  : 'Yes, Switch'}
+                {forceConnectMutation.isPending ? (
+                  <div className="flex items-center justify-center space-x-2">
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                    <span>Connecting...</span>
+                  </div>
+                ) : (
+                  'Yes, Switch'
+                )}
               </button>
             </div>
           </div>

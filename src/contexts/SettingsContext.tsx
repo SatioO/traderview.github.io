@@ -5,10 +5,12 @@ import React, {
   useState,
   type ReactNode,
 } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import type {
   MarketHealth,
   TabType,
 } from '../containers/TradingCalculator/types';
+import { brokerApiService } from '../services/brokerApiService';
 
 // Risk Level Configuration
 export interface RiskLevel {
@@ -262,7 +264,16 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({
 }) => {
   const [settings, setSettings] = useState<UserSettings>(DEFAULT_SETTINGS);
   const [isLoaded, setIsLoaded] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  
+  // Use React Query for session checking with matching key
+  const { isLoading: isLoadingActiveSession } = useQuery({
+    queryKey: ['broker', 'active-session'],
+    queryFn: () => brokerApiService.getActiveSession(),
+    staleTime: 0, // Always refetch on mount for fresh session data
+  });
+  
+  // Combined loading state
+  const isLoading = !isLoaded || isLoadingActiveSession;
 
   // Load settings from localStorage on mount with enhanced UX delay
   useEffect(() => {
@@ -358,12 +369,12 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({
       
       setTimeout(() => {
         setIsLoaded(true);
-        setIsLoading(false);
       }, remainingTime);
     };
 
     loadSettings();
   }, []);
+
 
   // Save settings to localStorage whenever they change (but only after initial load)
   useEffect(() => {
