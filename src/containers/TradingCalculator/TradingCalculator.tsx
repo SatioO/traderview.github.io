@@ -991,7 +991,7 @@ const TradingCalculator: React.FC = () => {
                           {/* Current Market Risk */}
                           <div className="bg-black/30 rounded-lg p-3 border border-slate-600/40">
                             <div className="text-xs text-gray-400 mb-2 uppercase tracking-wide">
-                              Market Risk
+                              Market Environment
                             </div>
                             <div className="flex items-center space-x-2">
                               <div
@@ -1019,13 +1019,13 @@ const TradingCalculator: React.FC = () => {
                                 }`}
                               >
                                 {formData.marketHealth === 'confirmed-uptrend'
-                                  ? 'LOW'
+                                  ? 'LOW RISK'
                                   : formData.marketHealth ===
                                     'uptrend-under-pressure'
-                                  ? 'MEDIUM'
+                                  ? 'MEDIUM RISK'
                                   : formData.marketHealth === 'rally-attempt'
-                                  ? 'HIGH'
-                                  : 'VERY HIGH'}
+                                  ? 'HIGH RISK'
+                                  : 'VERY HIGH RISK'}
                               </span>
                             </div>
                           </div>
@@ -1033,7 +1033,7 @@ const TradingCalculator: React.FC = () => {
                           {/* Position Adjustment */}
                           <div className="bg-black/30 rounded-lg p-3 border border-slate-600/40">
                             <div className="text-xs text-gray-400 mb-2 uppercase tracking-wide">
-                              Your Protection
+                              ADJUSTED SIZE
                             </div>
                             <div className="flex items-center space-x-2">
                               <svg
@@ -1051,8 +1051,7 @@ const TradingCalculator: React.FC = () => {
                                 {
                                   getMarketSizingInfo(formData.marketHealth)
                                     .adjustment
-                                }{' '}
-                                SIZE
+                                }
                               </span>
                             </div>
                           </div>
