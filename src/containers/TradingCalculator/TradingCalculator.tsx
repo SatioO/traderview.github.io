@@ -94,7 +94,6 @@ const TradingCalculator: React.FC = () => {
     settings,
     getRiskLevels,
     getAllocationLevels,
-    handleMarketHealthChange: updateMarketHealth,
     handleActiveTabChange: updateActiveTab,
     handleRiskLevelChange: updateRiskLevel,
     handleAllocationLevelChange: updateAllocationLevel,
@@ -319,33 +318,6 @@ const TradingCalculator: React.FC = () => {
     }
   }, []);
 
-  // Map MarketSmith condition to our market sizing
-  const mapMarketSmithToHealth = useCallback(
-    (condition: string): MarketHealth => {
-      const lowerCondition = condition.toLowerCase();
-
-      if (
-        lowerCondition.includes('confirmed uptrend') ||
-        lowerCondition.includes('confirmed up-trend')
-      ) {
-        return 'confirmed-uptrend';
-      } else if (lowerCondition.includes('uptrend under pressure')) {
-        return 'uptrend-under-pressure';
-      } else if (lowerCondition.includes('rally attempt')) {
-        return 'rally-attempt';
-      } else if (
-        lowerCondition.includes('downtrend') ||
-        lowerCondition.includes('down trend')
-      ) {
-        return 'downtrend';
-      }
-
-      // Default to confirmed uptrend if unknown
-      return 'confirmed-uptrend';
-    },
-    []
-  );
-
   // Auto-fetch MarketSmith data on mount
   useEffect(() => {
     fetchMarketSmithData();
@@ -529,11 +501,6 @@ const TradingCalculator: React.FC = () => {
     const result = calculatePositionSize();
     setCalculations(result);
   }, [calculatePositionSize, activeTab]);
-
-  const handleMarketSizingChange = (health: MarketHealth) => {
-    setFormData({ ...formData, marketHealth: health });
-    updateMarketHealth(health);
-  };
 
   const formatCurrencyShort = (amount: number): string => {
     if (amount >= 10000000) {
@@ -828,7 +795,11 @@ const TradingCalculator: React.FC = () => {
                       </div>
                     </div>
                     <svg
-                      className="w-4 h-4 text-white/60"
+                      className={`w-4 h-4 text-white/60 transition-all duration-300 ${
+                        showMarketOutlookPanel
+                          ? 'rotate-90 text-purple-400'
+                          : ''
+                      }`}
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -843,6 +814,97 @@ const TradingCalculator: React.FC = () => {
                   </div>
                 </div>
               </div>
+
+              {/* Expanding Market Command Center - Grows from Market Outlook position */}
+              {showMarketOutlookPanel && (
+                <div
+                  className={`mb-6 transition-all duration-1000 ease-out overflow-hidden ${
+                    showMarketOutlookPanel 
+                      ? 'max-h-screen opacity-100' 
+                      : 'max-h-0 opacity-0'
+                  }`}
+                >
+                  <div className="bg-gradient-to-br from-slate-900/98 via-purple-900/95 to-slate-800/98 backdrop-blur-3xl rounded-2xl border-2 border-purple-400/60 shadow-2xl p-6 animate-pulse">
+                    {/* Header */}
+                    <div className="flex items-center justify-between mb-6 border-b border-purple-400/20 pb-4">
+                      <div className="flex items-center space-x-4">
+                        <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-cyan-500 rounded-xl flex items-center justify-center animate-pulse">
+                          <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
+                          </svg>
+                        </div>
+                        <div>
+                          <h2 className="text-xl font-bold bg-gradient-to-r from-white via-purple-200 to-cyan-200 bg-clip-text text-transparent">
+                            Market Command Center
+                          </h2>
+                          <p className="text-gray-400 text-sm">Advanced trading intelligence</p>
+                        </div>
+                      </div>
+                      
+                      <button
+                        onClick={() => setShowMarketOutlookPanel(false)}
+                        className="group p-2 hover:bg-purple-800/40 rounded-xl transition-all duration-300 border border-transparent hover:border-purple-400/40"
+                      >
+                        <svg className="w-5 h-5 text-slate-400 group-hover:text-white transition-all duration-300 group-hover:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+
+                    {/* Content */}
+                    <div className="space-y-4">
+                      {/* Current Strategy */}
+                      <div className="bg-gradient-to-r from-slate-800/40 to-purple-900/40 rounded-xl p-4 border border-purple-400/30">
+                        <h3 className="text-lg font-bold text-white mb-3">Current Strategy</h3>
+                        <div className="grid grid-cols-3 gap-4">
+                          <div className="text-center">
+                            <div className="text-xs text-gray-400 mb-1">CONDITION</div>
+                            <div className={`font-bold ${
+                              formData.marketHealth === 'confirmed-uptrend' ? 'text-green-400' :
+                              formData.marketHealth === 'uptrend-under-pressure' ? 'text-yellow-400' :
+                              formData.marketHealth === 'rally-attempt' ? 'text-orange-400' : 'text-red-400'
+                            }`}>
+                              {getMarketSizingInfo(formData.marketHealth).label}
+                            </div>
+                          </div>
+                          <div className="text-center border-x border-gray-700/50">
+                            <div className="text-xs text-gray-400 mb-1">POSITION SIZE</div>
+                            <div className="text-orange-400 font-bold">
+                              {getMarketSizingInfo(formData.marketHealth).adjustment}
+                            </div>
+                          </div>
+                          <div className="text-center">
+                            <div className="text-xs text-gray-400 mb-1">RISK LEVEL</div>
+                            <div className="text-purple-400 font-bold">
+                              {(() => {
+                                const percentage = parseInt(getMarketSizingInfo(formData.marketHealth).adjustment);
+                                return percentage >= 100 ? 'HIGH' : percentage >= 50 ? 'MED' : percentage >= 25 ? 'LOW' : 'MIN';
+                              })()}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* AI Recommendation */}
+                      <div className="bg-gradient-to-r from-indigo-900/30 to-purple-900/30 rounded-xl p-4 border border-indigo-400/40">
+                        <h3 className="text-lg font-bold text-white mb-3">AI Recommendation</h3>
+                        {marketSmithData.isLoading ? (
+                          <div className="flex items-center space-x-3 py-2">
+                            <div className="animate-spin w-5 h-5 border-2 border-indigo-400 border-t-transparent rounded-full"></div>
+                            <span className="text-indigo-300">AI analyzing market conditions...</span>
+                          </div>
+                        ) : (
+                          <div className="bg-black/30 rounded-lg p-3">
+                            <div className="text-indigo-400 text-sm font-medium mb-1">AI SUGGESTS</div>
+                            <div className="text-white font-semibold">{marketSmithData.condition}</div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Creative Tile-Style Mode Selector */}
               <div className="mb-6">
                 <div className="grid grid-cols-2 gap-4 p-3 bg-black/20 rounded-2xl backdrop-blur-sm border border-purple-500/20">
@@ -2064,392 +2126,6 @@ const TradingCalculator: React.FC = () => {
         </div>
       </Modal>
 
-      {/* Market Outlook Modal */}
-      {showMarketOutlookPanel && (
-        <div
-          className={`fixed inset-0 z-50 transition-all duration-700 ease-in-out ${
-            showMarketOutlookPanel 
-              ? 'bg-black/60 backdrop-blur-sm opacity-100 pointer-events-auto' 
-              : 'bg-transparent opacity-0 pointer-events-none'
-          }`}
-          onClick={() => setShowMarketOutlookPanel(false)}
-        >
-          {/* Sliding Panel */}
-          <div
-            className={`fixed right-0 top-0 h-full w-full max-w-2xl bg-gradient-to-br from-slate-900/98 via-purple-900/95 to-slate-800/98 backdrop-blur-3xl border-l border-purple-400/40 shadow-2xl transition-all duration-700 ease-in-out overflow-y-auto ${
-              showMarketOutlookPanel 
-                ? 'translate-x-0 opacity-100' 
-                : 'translate-x-full opacity-0'
-            }`}
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Dynamic light bar */}
-            <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-purple-400/50 to-transparent" />
-            
-            {/* Glass morphism overlay */}
-            <div className="absolute inset-0 bg-gradient-to-br from-white/[0.02] via-transparent to-black/10 pointer-events-none" />
-
-            {/* Header */}
-            <div className="sticky top-0 bg-gradient-to-r from-slate-900/95 to-purple-900/95 backdrop-blur-xl border-b border-purple-400/20 p-6 z-10">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-cyan-500 rounded-xl flex items-center justify-center animate-pulse">
-                    <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h2 className="text-2xl font-bold bg-gradient-to-r from-white via-purple-200 to-cyan-200 bg-clip-text text-transparent">
-                      Market Command Center
-                    </h2>
-                    <p className="text-gray-400 text-sm">Advanced trading intelligence</p>
-                  </div>
-                </div>
-                
-                <button
-                  onClick={() => setShowMarketOutlookPanel(false)}
-                  className="group p-3 hover:bg-purple-800/40 rounded-xl transition-all duration-300 border border-transparent hover:border-purple-400/40"
-                >
-                  <svg className="w-6 h-6 text-slate-400 group-hover:text-white transition-all duration-300 group-hover:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-
-            {/* Content with staggered animations */}
-            <div className="p-6 space-y-8">
-          <div className="space-y-4">
-            {/* Current Strategy - Ultra Compact */}
-            <div className="bg-gradient-to-r from-slate-800/40 to-purple-900/40 rounded-lg p-4 border border-purple-400/30">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center space-x-2">
-                  <div className="w-6 h-6 bg-gradient-to-br from-purple-500 to-cyan-500 rounded-lg flex items-center justify-center">
-                    <svg
-                      className="w-3 h-3 text-white"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 className="text-base font-bold text-white">
-                      Current Strategy
-                    </h3>
-                    <p className="text-gray-400 text-xs">Active positioning</p>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-1">
-                  <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></div>
-                  <span className="text-xs text-green-400">LIVE</span>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-3 gap-4 text-center">
-                <div>
-                  <div className="text-xs text-gray-400 mb-1">CONDITION</div>
-                  <div
-                    className={`font-bold text-sm ${
-                      formData.marketHealth === 'confirmed-uptrend'
-                        ? 'text-green-400'
-                        : formData.marketHealth === 'uptrend-under-pressure'
-                        ? 'text-yellow-400'
-                        : formData.marketHealth === 'rally-attempt'
-                        ? 'text-orange-400'
-                        : 'text-red-400'
-                    }`}
-                  >
-                    {getMarketSizingInfo(formData.marketHealth).label}
-                  </div>
-                </div>
-
-                <div className="border-x border-gray-700/50">
-                  <div className="text-xs text-gray-400 mb-1">
-                    POSITION SIZE
-                  </div>
-                  <div className="text-orange-400 font-bold text-sm">
-                    {getMarketSizingInfo(formData.marketHealth).adjustment}
-                  </div>
-                </div>
-
-                <div>
-                  <div className="text-xs text-gray-400 mb-1">RISK LEVEL</div>
-                  <div className="text-purple-400 font-bold text-sm">
-                    {(() => {
-                      const percentage = parseInt(
-                        getMarketSizingInfo(formData.marketHealth).adjustment
-                      );
-                      return percentage >= 100
-                        ? 'HIGH'
-                        : percentage >= 50
-                        ? 'MED'
-                        : percentage >= 25
-                        ? 'LOW'
-                        : 'MIN';
-                    })()}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* AI Recommendation - Compact */}
-            <div className="bg-gradient-to-r from-indigo-900/30 to-purple-900/30 rounded-lg p-4 border border-indigo-400/40">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center space-x-2">
-                  <div className="w-6 h-6 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-lg flex items-center justify-center">
-                    <svg
-                      className="w-3 h-3 text-white"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 className="text-base font-bold text-white">
-                      AI Recommendation
-                    </h3>
-                    <p className="text-indigo-300 text-xs">
-                      Machine learning analysis
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {marketSmithData.isLoading ? (
-                <div className="flex items-center space-x-2 py-2">
-                  <div className="animate-spin w-4 h-4 border-2 border-indigo-400 border-t-transparent rounded-full"></div>
-                  <span className="text-indigo-300 text-sm">
-                    AI analyzing...
-                  </span>
-                </div>
-              ) : marketSmithData.error ? (
-                <div className="text-yellow-400 text-sm py-2">
-                  ⚠️ AI temporarily unavailable
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  <div className="bg-black/30 rounded p-3">
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <div className="text-xs text-indigo-400 font-medium">
-                          AI SUGGESTS
-                        </div>
-                        <div className="text-white font-semibold text-sm">
-                          {marketSmithData.condition}
-                        </div>
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        Updated {marketSmithData.date}
-                      </div>
-                    </div>
-                  </div>
-
-                  {(() => {
-                    const mappedHealth = mapMarketSmithToHealth(
-                      marketSmithData.condition
-                    );
-                    const isAlreadyApplied =
-                      mappedHealth === formData.marketHealth;
-                    return (
-                      <div className="flex gap-3">
-                        {isAlreadyApplied ? (
-                          <div className="flex-1 bg-green-600/20 border border-green-400/40 text-green-300 py-2 px-3 rounded text-sm font-medium flex items-center justify-center space-x-2">
-                            <svg
-                              className="w-4 h-4"
-                              fill="currentColor"
-                              viewBox="0 0 20 20"
-                            >
-                              <path
-                                fillRule="evenodd"
-                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                clipRule="evenodd"
-                              />
-                            </svg>
-                            <span>AI Recommendation Active</span>
-                          </div>
-                        ) : (
-                          <>
-                            <button
-                              onClick={() =>
-                                handleMarketSizingChange(mappedHealth)
-                              }
-                              className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white py-2 px-3 rounded font-medium transition-all text-sm"
-                            >
-                              Apply AI Recommendation
-                            </button>
-                            <div className="bg-black/30 rounded px-3 py-2 text-center border border-gray-600/50">
-                              <div className="text-xs text-gray-400">SIZE</div>
-                              <div className="text-white font-bold text-sm">
-                                {getMarketSizingInfo(mappedHealth).adjustment}
-                              </div>
-                            </div>
-                          </>
-                        )}
-                      </div>
-                    );
-                  })()}
-                </div>
-              )}
-            </div>
-
-            {/* Market Conditions - Streamlined */}
-            <div className="bg-black/30 rounded-lg p-4 border border-gray-600/50">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-base font-bold text-white">
-                  Market Conditions
-                </h3>
-                <span className="text-xs text-gray-400">Select strategy</span>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                {[
-                  {
-                    key: 'confirmed-uptrend',
-                    label: 'Confirmed Uptrend',
-                    color: 'green',
-                    icon: '📈',
-                    desc: 'Strong momentum',
-                  },
-                  {
-                    key: 'uptrend-under-pressure',
-                    label: 'Uptrend Under Pressure',
-                    color: 'yellow',
-                    icon: '⚡',
-                    desc: 'Facing resistance',
-                  },
-                  {
-                    key: 'rally-attempt',
-                    label: 'Rally Attempt',
-                    color: 'orange',
-                    icon: '🎯',
-                    desc: 'Testing recovery',
-                  },
-                  {
-                    key: 'downtrend',
-                    label: 'Downtrend',
-                    color: 'red',
-                    icon: '🛡️',
-                    desc: 'Capital protection',
-                  },
-                ].map(({ key, label, color, icon, desc }) => (
-                  <button
-                    key={key}
-                    onClick={() =>
-                      handleMarketSizingChange(key as MarketHealth)
-                    }
-                    className={`relative p-3 rounded-lg border-2 transition-all duration-300 hover:scale-105 ${
-                      formData.marketHealth === key
-                        ? `border-${color}-400 bg-${color}-500/10 shadow-lg`
-                        : 'border-gray-600/50 bg-gray-800/20 hover:border-gray-500/70'
-                    }`}
-                  >
-                    {formData.marketHealth === key && (
-                      <div className="absolute top-2 right-2">
-                        <div
-                          className={`w-2 h-2 rounded-full ${
-                            color === 'green'
-                              ? 'bg-green-400'
-                              : color === 'yellow'
-                              ? 'bg-yellow-400'
-                              : color === 'orange'
-                              ? 'bg-orange-400'
-                              : 'bg-red-400'
-                          } animate-pulse`}
-                        ></div>
-                      </div>
-                    )}
-
-                    <div className="space-y-2">
-                      <div className="flex items-center space-x-2">
-                        <span className="text-lg">{icon}</span>
-                        <div className="text-left">
-                          <div
-                            className={`font-bold text-xs ${
-                              formData.marketHealth === key
-                                ? color === 'green'
-                                  ? 'text-green-300'
-                                  : color === 'yellow'
-                                  ? 'text-yellow-300'
-                                  : color === 'orange'
-                                  ? 'text-orange-300'
-                                  : 'text-red-300'
-                                : 'text-white'
-                            }`}
-                          >
-                            {label.toUpperCase()}
-                          </div>
-                          <div className="text-xs text-gray-400">{desc}</div>
-                        </div>
-                      </div>
-
-                      <div className="flex justify-between text-xs">
-                        <div>
-                          <span className="text-gray-500">Size: </span>
-                          <span
-                            className={`font-bold ${
-                              color === 'green'
-                                ? 'text-green-400'
-                                : color === 'yellow'
-                                ? 'text-yellow-400'
-                                : color === 'orange'
-                                ? 'text-orange-400'
-                                : 'text-red-400'
-                            }`}
-                          >
-                            {
-                              getMarketSizingInfo(key as MarketHealth)
-                                .adjustment
-                            }
-                          </span>
-                        </div>
-
-                        {formData.marketHealth !== key && (
-                          <div>
-                            {(() => {
-                              const currentSizing = getMarketSizingInfo(
-                                formData.marketHealth
-                              );
-                              const buttonSizing = getMarketSizingInfo(
-                                key as MarketHealth
-                              );
-                              const currentPercent = parseInt(
-                                currentSizing.adjustment
-                              );
-                              const buttonPercent = parseInt(
-                                buttonSizing.adjustment
-                              );
-                              const diff = buttonPercent - currentPercent;
-
-                              if (diff > 0) {
-                                return (
-                                  <span className="text-green-400 text-xs">
-                                    +{diff}%
-                                  </span>
-                                );
-                              } else if (diff < 0) {
-                                return (
-                                  <span className="text-red-400 text-xs">
-                                    {diff}%
-                                  </span>
-                                );
-                              }
-                              return null;
-                            })()}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Settings Modal */}
       <SettingsModal
