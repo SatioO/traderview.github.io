@@ -160,31 +160,38 @@ const BrokerConnectionPanel: React.FC<BrokerConnectionPanelProps> = ({
 
   return (
     <div className={`mb-6 ${className}`}>
-      {/* Gaming-Style Header */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900  to-cyan-500/15 rounded-2xl p-3 mb-3 border border-teal-500/30 backdrop-blur-sm hover:border-teal-400/50 transition-all duration-500 hover:shadow-teal-500/20 hover:shadow-lg group">
-        {/* Particle Background Effects */}
+      {/* Enhanced Header */}
+      <div className="relative overflow-hidden bg-gradient-to-br from-indigo-950 via-purple-900 to-blue-950 rounded-2xl p-4 mb-3 border border-violet-400/30 backdrop-blur-md hover:border-violet-300/60 transition-all duration-700 hover:shadow-2xl hover:shadow-violet-500/20 group transform hover:scale-[1.01]">
+        {/* Enhanced Particle Background */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-2 left-6 w-1 h-1 bg-teal-400/60 rounded-full animate-pulse"></div>
+          {/* Floating particles */}
+          <div className="absolute top-3 left-8 w-1.5 h-1.5 bg-gradient-to-r from-cyan-400 to-blue-400 rounded-full animate-pulse shadow-lg shadow-cyan-400/50"></div>
           <div
-            className="absolute top-4 right-8 w-1 h-1 bg-emerald-400/40 rounded-full animate-pulse"
-            style={{ animationDelay: '0.5s' }}
+            className="absolute top-6 right-12 w-1 h-1 bg-gradient-to-r from-violet-400 to-purple-400 rounded-full animate-pulse shadow-lg shadow-violet-400/50"
+            style={{ animationDelay: '0.7s' }}
           ></div>
           <div
-            className="absolute bottom-3 left-12 w-0.5 h-0.5 bg-cyan-400/50 rounded-full animate-pulse"
-            style={{ animationDelay: '1s' }}
+            className="absolute bottom-4 left-16 w-0.5 h-0.5 bg-gradient-to-r from-pink-400 to-rose-400 rounded-full animate-pulse shadow-lg shadow-pink-400/50"
+            style={{ animationDelay: '1.2s' }}
           ></div>
           <div
-            className="absolute bottom-2 right-4 w-1 h-1 bg-teal-300/30 rounded-full animate-pulse"
-            style={{ animationDelay: '1.5s' }}
+            className="absolute bottom-3 right-6 w-1.5 h-1.5 bg-gradient-to-r from-emerald-400 to-teal-400 rounded-full animate-pulse shadow-lg shadow-emerald-400/50"
+            style={{ animationDelay: '1.8s' }}
           ></div>
+          
+          {/* Animated gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-violet-500/5 to-transparent animate-pulse opacity-60"></div>
+          
+          {/* Subtle moving background pattern */}
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_40%,rgba(120,119,198,0.1),transparent_50%)] animate-pulse" style={{ animationDelay: '2s' }}></div>
         </div>
 
         {/* Content */}
         <div className="relative z-10 flex items-start space-x-3">
           <div className="flex-shrink-0">
-            <div className="w-6 h-6  to-cyan-600 rounded-xl flex items-center justify-center shadow-lg shadow-teal-500/30 group-hover:scale-105 transition-transform duration-300">
+            <div className="w-7 h-7 bg-gradient-to-br from-violet-500 via-purple-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-violet-500/40 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 ring-2 ring-violet-400/20 group-hover:ring-violet-300/40">
               <svg
-                className="w-3 h-3 text-white"
+                className="w-4 h-4 text-white drop-shadow-sm"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -192,7 +199,7 @@ const BrokerConnectionPanel: React.FC<BrokerConnectionPanelProps> = ({
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  strokeWidth={2}
+                  strokeWidth={2.5}
                   d="M13 10V3L4 14h7v7l9-11h-7z"
                 />
               </svg>
@@ -200,14 +207,18 @@ const BrokerConnectionPanel: React.FC<BrokerConnectionPanelProps> = ({
           </div>
 
           <div className="flex-1 min-w-0">
-            <h4 className="font-bold text-xs bg-gradient-to-r from-purple-300 to-green-300 bg-clip-text text-transparent mb-1">
+            <h4 className="font-bold text-sm bg-gradient-to-r from-violet-200 via-cyan-200 to-blue-200 bg-clip-text text-transparent mb-1.5 group-hover:from-violet-100 group-hover:via-cyan-100 group-hover:to-blue-100 transition-all duration-500">
               From Calculation to Execution — Instantly
             </h4>
-            <p className="text-teal-200/90 text-xs font-medium leading-relaxed">
-              {Object.values(connectionStage).find(stage => stage) || (
+            <p className="text-slate-300/90 text-xs font-medium leading-relaxed group-hover:text-slate-200/95 transition-colors duration-300">
+              {Object.values(connectionStage).find(stage => stage) ? (
+                <span className="text-violet-300 animate-pulse font-semibold">
+                  {Object.values(connectionStage).find(stage => stage)}
+                </span>
+              ) : (
                 <>
                   No switching apps, no manual errors,{' '}
-                  <span className="text-emerald-300">Every second counts.</span>
+                  <span className="text-cyan-300 font-semibold">Every second counts.</span>
                 </>
               )}
             </p>
@@ -216,7 +227,7 @@ const BrokerConnectionPanel: React.FC<BrokerConnectionPanelProps> = ({
           {/* Status Indicator */}
           {/* Enhanced Broker Selection with Names */}
           {!isLoading && brokers.length > 0 && (
-            <div className="pt-2.5 p border-t border-teal-500/20">
+            <div className="pt-3 border-t border-violet-400/20 bg-gradient-to-r from-transparent via-violet-900/10 to-transparent">
               <div
                 className={`${
                   brokers.length > 2
@@ -246,36 +257,39 @@ const BrokerConnectionPanel: React.FC<BrokerConnectionPanelProps> = ({
                       disabled={isLoadingBroker || broker.isConnected}
                       className={`${
                         brokers.length > 2 ? 'w-full' : 'flex-1'
-                      } text-left relative overflow-hidden backdrop-blur-sm rounded-lg border transition-all duration-300 hover:scale-[1.01] p-2 ${
+                      } text-left relative overflow-hidden backdrop-blur-md rounded-xl border transition-all duration-500 hover:scale-[1.02] hover:-translate-y-0.5 p-3 group/broker ${
                         hasError
-                          ? 'bg-gradient-to-r from-red-900/30 to-red-800/20 border-red-500/40 hover:border-red-400/60'
+                          ? 'bg-gradient-to-br from-rose-950/80 via-red-900/60 to-pink-950/80 border-red-400/50 hover:border-red-300/70 hover:shadow-xl hover:shadow-red-500/20'
                           : hasSuccess
-                          ? 'bg-gradient-to-r from-emerald-900/30 to-green-800/20 border-emerald-500/40 hover:border-emerald-400/60'
+                          ? 'bg-gradient-to-br from-emerald-950/80 via-green-900/60 to-teal-950/80 border-emerald-400/50 hover:border-emerald-300/70 hover:shadow-xl hover:shadow-emerald-500/20'
                           : isLoadingBroker
-                          ? 'bg-gradient-to-r from-yellow-900/30 to-amber-800/20 border-yellow-500/40'
-                          : 'bg-gradient-to-r from-black/30 via-slate-900/40 to-black/30 border-cyan-500/30 hover:border-cyan-400/50 hover:shadow-cyan-500/20'
+                          ? 'bg-gradient-to-br from-amber-950/80 via-yellow-900/60 to-orange-950/80 border-yellow-400/50 animate-pulse'
+                          : 'bg-gradient-to-br from-slate-950/80 via-slate-800/60 to-slate-950/80 border-violet-400/40 hover:border-violet-300/60 hover:shadow-xl hover:shadow-violet-500/15'
                       }`}
                     >
-                      {/* Gaming particle effects */}
+                      {/* Enhanced particle effects */}
                       <div className="absolute inset-0 overflow-hidden pointer-events-none">
                         {!hasError && !isLoadingBroker && (
                           <>
-                            <div className="absolute top-1 right-2 w-0.5 h-0.5 bg-cyan-400/30 rounded-full animate-pulse"></div>
+                            <div className="absolute top-2 right-3 w-1 h-1 bg-gradient-to-r from-violet-400 to-cyan-400 rounded-full animate-pulse shadow-lg shadow-violet-400/50"></div>
                             <div
-                              className="absolute bottom-1 left-3 w-0.5 h-0.5 bg-purple-400/20 rounded-full animate-pulse"
-                              style={{ animationDelay: '1s' }}
+                              className="absolute bottom-2 left-4 w-0.5 h-0.5 bg-gradient-to-r from-pink-400 to-purple-400 rounded-full animate-pulse shadow-lg shadow-pink-400/50"
+                              style={{ animationDelay: '1.5s' }}
                             ></div>
                           </>
                         )}
 
-                        {/* Enhanced shimmer effect for loading/success */}
+                        {/* Enhanced shimmer effect */}
                         <div
-                          className={`absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent transition-opacity duration-300 ${
+                          className={`absolute inset-0 bg-gradient-to-r from-transparent via-white/8 to-transparent transition-all duration-700 ${
                             isLoadingBroker || hasSuccess
-                              ? 'opacity-100'
-                              : 'opacity-0'
+                              ? 'opacity-100 animate-pulse'
+                              : 'opacity-0 group-hover/broker:opacity-30'
                           }`}
                         ></div>
+                        
+                        {/* Hover glow effect */}
+                        <div className="absolute inset-0 bg-gradient-to-r from-violet-500/0 via-violet-500/5 to-violet-500/0 opacity-0 group-hover/broker:opacity-100 transition-opacity duration-500 rounded-xl"></div>
                       </div>
 
                       <div className="relative flex items-center space-x-3">
@@ -284,14 +298,20 @@ const BrokerConnectionPanel: React.FC<BrokerConnectionPanelProps> = ({
                           <div>
                             {/* Enhanced Loading Overlays */}
                             {isLoadingBroker && (
-                              <div className="absolute inset-0 flex items-center justify-center rounded-lg">
+                              <div className="absolute inset-0 flex items-center justify-center rounded-xl">
                                 <div className="relative">
-                                  <div className="w-3 h-3 border border-yellow-400/40 border-t-yellow-400 rounded-full animate-spin"></div>
+                                  <div className="w-4 h-4 border-2 border-amber-400/40 border-t-amber-300 rounded-full animate-spin shadow-lg shadow-amber-400/30"></div>
                                   <div
-                                    className="absolute inset-0 w-3 h-3 border border-transparent border-r-amber-400 rounded-full animate-spin"
+                                    className="absolute inset-0 w-4 h-4 border-2 border-transparent border-r-orange-400 rounded-full animate-spin"
                                     style={{
                                       animationDirection: 'reverse',
-                                      animationDuration: '1.5s',
+                                      animationDuration: '1.2s',
+                                    }}
+                                  ></div>
+                                  <div
+                                    className="absolute inset-0 w-4 h-4 border border-transparent border-l-yellow-300 rounded-full animate-spin"
+                                    style={{
+                                      animationDuration: '2s',
                                     }}
                                   ></div>
                                 </div>
@@ -299,38 +319,44 @@ const BrokerConnectionPanel: React.FC<BrokerConnectionPanelProps> = ({
                             )}
 
                             {hasSuccess && (
-                              <div className="absolute inset-0 flex items-center justify-center rounded-lg">
-                                <svg
-                                  className="w-4 h-4 text-emerald-400"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  viewBox="0 0 24 24"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={3}
-                                    d="M5 13l4 4L19 7"
-                                  />
-                                </svg>
+                              <div className="absolute inset-0 flex items-center justify-center rounded-xl">
+                                <div className="relative">
+                                  <svg
+                                    className="w-5 h-5 text-emerald-300 drop-shadow-lg animate-bounce"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={3}
+                                      d="M5 13l4 4L19 7"
+                                    />
+                                  </svg>
+                                  <div className="absolute inset-0 bg-emerald-400/20 rounded-full animate-ping"></div>
+                                </div>
                               </div>
                             )}
 
                             {hasError && (
-                              <div className="absolute inset-0 flex items-center justify-center rounded-lg">
-                                <svg
-                                  className="w-3 h-3 text-red-400"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  viewBox="0 0 24 24"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M12 8v4m0 4h.01"
-                                  />
-                                </svg>
+                              <div className="absolute inset-0 flex items-center justify-center rounded-xl">
+                                <div className="relative">
+                                  <svg
+                                    className="w-4 h-4 text-red-300 drop-shadow-lg animate-pulse"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2.5}
+                                      d="M12 8v4m0 4h.01"
+                                    />
+                                  </svg>
+                                  <div className="absolute inset-0 bg-red-400/20 rounded-full animate-pulse"></div>
+                                </div>
                               </div>
                             )}
 
@@ -346,7 +372,7 @@ const BrokerConnectionPanel: React.FC<BrokerConnectionPanelProps> = ({
                                 <img
                                   src={broker.icon}
                                   alt={`${broker.name} logo`}
-                                  className="w-4 h-4 object-contain filter drop-shadow-sm"
+                                  className="w-5 h-5 object-contain filter drop-shadow-md group-hover/broker:drop-shadow-lg transition-all duration-300 group-hover/broker:scale-105"
                                   onError={(e) => {
                                     const target = e.target as HTMLImageElement;
                                     target.style.display = 'none';
@@ -381,22 +407,25 @@ const BrokerConnectionPanel: React.FC<BrokerConnectionPanelProps> = ({
                           </div>
                         </div>
 
-                        {/* Arrow indicator */}
+                        {/* Enhanced Arrow indicator */}
                         {!isLoadingBroker && !hasError && !hasSuccess && (
                           <div className="flex-shrink-0">
-                            <svg
-                              className="w-3 h-3 text-cyan-400/60 transition-all duration-200 group-hover:text-cyan-400 group-hover:translate-x-0.5"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M9 5l7 7-7 7"
-                              />
-                            </svg>
+                            <div className="relative">
+                              <svg
+                                className="w-4 h-4 text-violet-400/70 transition-all duration-300 group-hover/broker:text-violet-300 group-hover/broker:translate-x-1 drop-shadow-sm"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2.5}
+                                  d="M9 5l7 7-7 7"
+                                />
+                              </svg>
+                              <div className="absolute inset-0 bg-violet-400/10 rounded-full group-hover/broker:bg-violet-400/20 transition-colors duration-300"></div>
+                            </div>
                           </div>
                         )}
                       </div>
@@ -408,17 +437,21 @@ const BrokerConnectionPanel: React.FC<BrokerConnectionPanelProps> = ({
           )}
         </div>
 
-        {/* Loading State within Header */}
+        {/* Enhanced Loading State */}
         {isLoading && (
-          <div className="flex items-center justify-between pt-3 border-t border-cyan-500/20">
-            <span className="text-cyan-200 text-xs font-medium">
-              Loading brokers...
-            </span>
+          <div className="flex items-center justify-between pt-4 border-t border-violet-400/20 bg-gradient-to-r from-transparent via-violet-900/10 to-transparent">
+            <div className="flex items-center space-x-2">
+              <div className="w-4 h-4 border-2 border-violet-400/40 border-t-violet-300 rounded-full animate-spin"></div>
+              <span className="text-violet-200 text-xs font-medium animate-pulse">
+                Loading brokers...
+              </span>
+            </div>
             <div className="flex items-center space-x-2">
               {[1, 2].map((index) => (
                 <div
                   key={index}
-                  className="w-9 h-9 bg-slate-800/50 rounded-lg border border-slate-600/40 animate-pulse"
+                  className="w-10 h-10 bg-gradient-to-br from-slate-800/60 to-slate-700/40 rounded-xl border border-violet-400/20 animate-pulse shadow-lg"
+                  style={{ animationDelay: `${index * 0.2}s` }}
                 ></div>
               ))}
             </div>
@@ -438,7 +471,7 @@ const BrokerConnectionPanel: React.FC<BrokerConnectionPanelProps> = ({
               return (
                 <div
                   key={`error-${broker.id}`}
-                  className="p-2 bg-gradient-to-r from-red-900/30 to-red-800/20 border border-red-500/40 rounded-lg backdrop-blur-sm"
+                  className="p-3 bg-gradient-to-br from-rose-950/80 via-red-900/60 to-pink-950/80 border border-red-400/50 rounded-xl backdrop-blur-md shadow-lg shadow-red-500/10"
                 >
                   <p className="text-red-300 text-xs font-medium flex items-center space-x-2">
                     <svg
@@ -464,33 +497,46 @@ const BrokerConnectionPanel: React.FC<BrokerConnectionPanelProps> = ({
           </div>
         )}
 
-      {/* Empty state for no brokers */}
+      {/* Enhanced Empty state */}
       {!isLoading && brokers.length === 0 && (
-        <div className="mt-2 text-center py-4 bg-gradient-to-r from-black/40 via-slate-900/30 to-black/40 backdrop-blur-sm rounded-lg border border-purple-500/20">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-slate-800/50 to-slate-700/30 border border-slate-600/40 flex items-center justify-center mx-auto mb-2 shadow-lg">
-            <span className="text-slate-400 text-sm">📊</span>
+        <div className="mt-3 text-center py-6 bg-gradient-to-br from-slate-950/80 via-slate-900/60 to-slate-950/80 backdrop-blur-md rounded-xl border border-violet-400/30 shadow-xl">
+          <div className="relative mx-auto mb-3">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-slate-800/70 to-slate-700/50 border border-violet-400/20 flex items-center justify-center shadow-lg">
+              <span className="text-violet-300 text-lg animate-pulse">📊</span>
+            </div>
+            <div className="absolute inset-0 bg-violet-400/10 rounded-xl animate-pulse"></div>
           </div>
-          <span className="text-slate-300 text-xs font-medium">
+          <span className="text-slate-200 text-sm font-medium">
             No brokers available
           </span>
+          <p className="text-slate-400 text-xs mt-1">
+            Check your connection and try again
+          </p>
         </div>
       )}
 
-      {/* Force Connect Modal */}
+      {/* Enhanced Force Connect Modal */}
       {showForceConnect && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-gray-900 rounded-xl p-6 border border-orange-500/30 max-w-md mx-4">
-            <h4 className="text-white text-lg font-semibold mb-2">
-              Broker Already Connected
-            </h4>
-            <p className="text-gray-300 text-sm mb-4">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center z-50 animate-in fade-in duration-300">
+          <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-2xl p-6 border border-amber-400/40 max-w-md mx-4 shadow-2xl shadow-amber-500/20 animate-in zoom-in-95 duration-300">
+            <div className="flex items-center space-x-3 mb-3">
+              <div className="w-8 h-8 bg-gradient-to-br from-amber-500 to-orange-600 rounded-lg flex items-center justify-center shadow-lg shadow-amber-500/30">
+                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01" />
+                </svg>
+              </div>
+              <h4 className="text-white text-lg font-semibold">
+                Broker Already Connected
+              </h4>
+            </div>
+            <p className="text-slate-300 text-sm mb-6 leading-relaxed">
               You already have an active broker connection. Would you like to
               disconnect and connect to this broker instead?
             </p>
             <div className="flex space-x-3">
               <button
                 onClick={() => setShowForceConnect(false)}
-                className="flex-1 px-4 py-2 bg-gray-700 text-gray-200 rounded-lg hover:bg-gray-600 transition-colors"
+                className="flex-1 px-4 py-3 bg-gradient-to-r from-slate-700 to-slate-600 text-slate-200 rounded-xl hover:from-slate-600 hover:to-slate-500 transition-all duration-300 font-medium border border-slate-500/30 hover:border-slate-400/50"
               >
                 Cancel
               </button>
@@ -501,10 +547,15 @@ const BrokerConnectionPanel: React.FC<BrokerConnectionPanelProps> = ({
                   }
                 }}
                 disabled={forceConnectMutation.isPending}
-                className="flex-1 px-4 py-2 bg-gradient-to-r from-orange-500 to-red-600 text-white rounded-lg hover:shadow-lg transition-all disabled:opacity-50"
+                className="flex-1 px-4 py-3 bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-xl hover:from-amber-400 hover:to-orange-500 hover:shadow-lg hover:shadow-amber-500/30 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed font-medium border border-amber-400/30"
               >
                 {forceConnectMutation.isPending
-                  ? 'Connecting...'
+                  ? (
+                    <div className="flex items-center justify-center space-x-2">
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                      <span>Connecting...</span>
+                    </div>
+                  )
                   : 'Yes, Switch'}
               </button>
             </div>
