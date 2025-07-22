@@ -745,7 +745,7 @@ const TradingCalculator: React.FC = () => {
                         : 'opacity-0 transform translate-y-2'
                     }`}
                   >
-                    <div className="bg-gradient-to-br from-indigo-950/95 via-purple-950/98 to-cyan-950/95 backdrop-blur-3xl rounded-2xl border-2 border-cyan-400/50 shadow-2xl p-6 relative overflow-hidden transform transition-all duration-300 hover:shadow-cyan-500/30 hover:scale-[1.01] hover:border-cyan-400/70">
+                    <div className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-2xl p-4 border border-purple-500/30 backdrop-blur-sm">
                       {/* Enhanced Gaming Particle Background */}
                       <div className="absolute inset-0 overflow-hidden">
                         <div
