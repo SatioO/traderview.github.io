@@ -13,7 +13,8 @@ import authService, {
   type AuthResponse,
   type UserProfile,
 } from '../services/authService';
-import { getAvailableBrokers, getBrokerService } from '../services/brokers';
+import { getAvailableBrokers } from '../services/brokers';
+import brokerApiService from '../services/brokerApiService';
 import {
   type BrokerAuthResponse,
   type BrokerCallbackData,
@@ -253,13 +254,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     loadActiveSessions();
   }, [isAuthenticated]);
 
-  const loginWithBroker = useCallback((brokerName: string) => {
+  const loginWithBroker = useCallback(async (brokerName: string) => {
     try {
-      const broker = getBrokerService(brokerName);
-      broker.initiateLogin();
+      setLoginError(null);
+      // Use the new broker API service to get login URL
+      const response = await brokerApiService.connectBroker(brokerName);
+      
+      // Redirect to broker login URL
+      window.location.href = response.loginUrl;
     } catch (error) {
       setLoginError(
-        error instanceof Error ? error.message : `${brokerName} login failed`
+        error instanceof Error ? error.message : `${brokerName} connection failed`
       );
     }
   }, []);
@@ -268,22 +273,34 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     async (data: BrokerCallbackData): Promise<BrokerAuthResponse> => {
       try {
         setLoginError(null);
-        const broker = getBrokerService(data.broker);
-        const response = await broker.handleCallback(data);
-        console.log(response);
 
-        // Store tokens - use broker service as primary storage for broker tokens
-        broker.storeToken(response.accessToken);
+        // Use the new broker API service to complete authentication
+        const response = await brokerApiService.completeBrokerAuth(
+          data.broker,
+          data.requestToken || data.authCode || ''
+        );
 
-        // If this also provides user auth data, store it
-        if (response.user) {
-          setUser(response.user);
-          setIsAuthenticated(true);
-        }
-
+        // Invalidate broker-related queries to refresh UI
+        queryClient.invalidateQueries({ queryKey: ['broker', 'active-session'] });
+        queryClient.invalidateQueries({ queryKey: ['brokers', 'available'] });
         queryClient.invalidateQueries({ queryKey: ['verifyToken'] });
+        queryClient.invalidateQueries({ queryKey: ['userProfile'] });
 
-        return response;
+        // Create a compatible response object
+        const brokerResponse: BrokerAuthResponse = {
+          accessToken: '', // Not returned by new API
+          user: {
+            id: response.user.brokerUserId,
+            email: response.user.brokerUserName,
+            firstName: response.user.brokerUserName,
+            lastName: '',
+            brokerUserId: response.user.brokerUserId,
+            brokerUserName: response.user.brokerUserName,
+            broker: response.broker,
+          }
+        };
+
+        return brokerResponse;
       } catch (error) {
         const errorMessage =
           error instanceof Error ? error.message : 'Broker authentication failed';

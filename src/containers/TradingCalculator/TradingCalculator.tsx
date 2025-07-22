@@ -25,6 +25,7 @@ import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import SettingsModal from '../../components/Settings/SettingsModal';
 import EnhancedHeader from '../../components/Header/EnhancedHeader';
+import BrokerConnectionPanel from '../../components/broker/BrokerConnectionPanel';
 import type {
   FormData,
   Calculations,
@@ -1161,6 +1162,9 @@ const TradingCalculator: React.FC = () => {
                 )}
               </div>
 
+              {/* Compact Broker Connection Panel */}
+              <BrokerConnectionPanel />
+
               {/* Creative Tile-Style Mode Selector */}
               <div className="mb-6">
                 <div className="grid grid-cols-2 gap-4 p-3 bg-black/20 rounded-2xl backdrop-blur-sm border border-purple-500/20">
@@ -1170,7 +1174,7 @@ const TradingCalculator: React.FC = () => {
                       setActiveTab('risk');
                       updateActiveTab('risk');
                     }}
-                    className={`group relative p-4 text-sm font-bold rounded-xl border-2 transition-all duration-300 hover:scale-105 overflow-hidden ${
+                    className={`group relative p-3 text-sm font-bold rounded-xl border-2 transition-all duration-300 hover:scale-105 overflow-hidden ${
                       activeTab === 'risk'
                         ? 'border-red-400 bg-red-500/10 shadow-lg shadow-red-500/30 text-red-300 transform scale-105'
                         : 'border-purple-500/30 bg-black/30 text-purple-300 hover:border-red-400/50 hover:bg-red-500/5 hover:text-red-300'
@@ -1229,7 +1233,7 @@ const TradingCalculator: React.FC = () => {
                       setActiveTab('allocation');
                       updateActiveTab('allocation');
                     }}
-                    className={`group relative p-4 text-sm font-bold rounded-xl border-2 transition-all duration-300 hover:scale-105 overflow-hidden ${
+                    className={`group relative p-3 text-sm font-bold rounded-xl border-2 transition-all duration-300 hover:scale-105 overflow-hidden ${
                       activeTab === 'allocation'
                         ? 'border-blue-400 bg-blue-500/10 shadow-lg shadow-blue-500/30 text-blue-300 transform scale-105'
                         : 'border-purple-500/30 bg-black/30 text-purple-300 hover:border-blue-400/50 hover:bg-blue-500/5 hover:text-blue-300'
