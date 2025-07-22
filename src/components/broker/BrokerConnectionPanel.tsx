@@ -10,8 +10,7 @@ const BrokerConnectionPanel: React.FC<BrokerConnectionPanelProps> = ({
   className,
 }) => {
   const [showForceConnect, setShowForceConnect] = useState(false);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [_, setConnectionStage] = useState<{
+  const [connectionStage, setConnectionStage] = useState<{
     [key: string]: string;
   }>({});
   const [connectionError, setConnectionError] = useState<{
@@ -205,8 +204,12 @@ const BrokerConnectionPanel: React.FC<BrokerConnectionPanelProps> = ({
               From Calculation to Execution — Instantly
             </h4>
             <p className="text-teal-200/90 text-xs font-medium leading-relaxed">
-              No switching apps, no manual errors,{' '}
-              <span className="text-emerald-300">Every second counts.</span>
+              {Object.values(connectionStage).find(stage => stage) || (
+                <>
+                  No switching apps, no manual errors,{' '}
+                  <span className="text-emerald-300">Every second counts.</span>
+                </>
+              )}
             </p>
           </div>
 
