@@ -35,9 +35,6 @@ import type {
   TabType,
   MarketHealth,
 } from './types';
-import brokerApiService from '../../services/brokerApiService';
-import { useQuery } from '@tanstack/react-query';
-
 const firebaseConfig = {
   apiKey: 'AIzaSyCgaB_xeab-FEImuUNkTX6oYpdXa48Ztjc',
   authDomain: 'traderview-d3103.firebaseapp.com',
@@ -100,13 +97,7 @@ const TradingCalculator: React.FC = () => {
     setIsDarkMode,
   });
 
-  // Fetch active session
-  const { data: activeSession } = useQuery({
-    queryKey: ['broker', 'active-session'],
-    queryFn: () => brokerApiService.getActiveSession(),
-  });
-
-  const hasActiveSession = activeSession?.hasActiveSession;
+  const hasActiveSession = settingsContext.hasActiveSession;
 
   // Get allocation level thresholds for risk assessment
   const getAllocationThresholds = () => {

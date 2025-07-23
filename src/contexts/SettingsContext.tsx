@@ -231,6 +231,7 @@ const DEFAULT_SETTINGS: UserSettings = {
 interface SettingsContextType {
   settings: UserSettings;
   isLoading: boolean;
+  hasActiveSession: boolean;
   updateSettings: (updates: Partial<UserSettings>) => void;
   updateRiskLevel: (riskLevel: RiskLevel) => void;
   addRiskLevel: (riskLevel: Omit<RiskLevel, 'id'>) => void;
@@ -264,74 +265,114 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({
 }) => {
   const [settings, setSettings] = useState<UserSettings>(DEFAULT_SETTINGS);
   const [isLoaded, setIsLoaded] = useState<boolean>(false);
-  
+
   // Use React Query for session checking with matching key
-  const { isLoading: isLoadingActiveSession } = useQuery({
+  const { data: activeSession, isLoading: isLoadingActiveSession } = useQuery({
     queryKey: ['broker', 'active-session'],
     queryFn: () => brokerApiService.getActiveSession(),
     staleTime: 0, // Always refetch on mount for fresh session data
   });
-  
+
   // Combined loading state
   const isLoading = !isLoaded || isLoadingActiveSession;
+  const hasActiveSession = activeSession?.hasActiveSession ?? false;
 
   // Load settings from localStorage on mount with enhanced UX delay
   useEffect(() => {
     const loadSettings = async () => {
       // Add a minimum delay for better UX
       const startTime = Date.now();
-      
+
       try {
         const savedSettings = localStorage.getItem('userSettings');
         if (savedSettings) {
           const parsed = JSON.parse(savedSettings);
-          
+
           // Check if migration is needed
-          const needsMigration = !parsed.version || parsed.version < SETTINGS_VERSION;
-          
+          const needsMigration =
+            !parsed.version || parsed.version < SETTINGS_VERSION;
+
           const migratedSettings = { ...DEFAULT_SETTINGS, ...parsed };
-          
+
           if (needsMigration) {
-            console.log('Migrating settings from version', parsed.version || 'unknown', 'to', SETTINGS_VERSION);
-            
+            console.log(
+              'Migrating settings from version',
+              parsed.version || 'unknown',
+              'to',
+              SETTINGS_VERSION
+            );
+
             // Force update allocation levels to include all 4 defaults
             migratedSettings.allocationLevels = DEFAULT_ALLOCATION_LEVELS;
             // Force update stop loss levels to include all 4 defaults
             migratedSettings.stopLossLevels = DEFAULT_STOP_LOSS_LEVELS;
             migratedSettings.version = SETTINGS_VERSION;
-            
+
             // Force save the migrated settings
-            localStorage.setItem('userSettings', JSON.stringify(migratedSettings));
+            localStorage.setItem(
+              'userSettings',
+              JSON.stringify(migratedSettings)
+            );
           } else {
             // Even if not migrating, ensure all 4 allocation levels exist
-            const requiredAllocationIds = ['conservative', 'balanced', 'high', 'extreme'];
-            const existingAllocationIds = (migratedSettings.allocationLevels || []).map((l: AllocationLevel) => l.id);
-            const missingAllocationLevels = requiredAllocationIds.filter(id => !existingAllocationIds.includes(id));
-            
+            const requiredAllocationIds = [
+              'conservative',
+              'balanced',
+              'high',
+              'extreme',
+            ];
+            const existingAllocationIds = (
+              migratedSettings.allocationLevels || []
+            ).map((l: AllocationLevel) => l.id);
+            const missingAllocationLevels = requiredAllocationIds.filter(
+              (id) => !existingAllocationIds.includes(id)
+            );
+
             // Ensure all 4 stop loss levels exist
             const requiredStopLossIds = ['tight', 'normal', 'loose', 'wide'];
-            const existingStopLossIds = (migratedSettings.stopLossLevels || []).map((l: StopLossLevel) => l.id);
-            const missingStopLossLevels = requiredStopLossIds.filter(id => !existingStopLossIds.includes(id));
-            
+            const existingStopLossIds = (
+              migratedSettings.stopLossLevels || []
+            ).map((l: StopLossLevel) => l.id);
+            const missingStopLossLevels = requiredStopLossIds.filter(
+              (id) => !existingStopLossIds.includes(id)
+            );
+
             let needsUpdate = false;
-            
-            if (!migratedSettings.allocationLevels || migratedSettings.allocationLevels.length < 4 || missingAllocationLevels.length > 0) {
-              console.log('Fixing missing allocation levels:', missingAllocationLevels);
+
+            if (
+              !migratedSettings.allocationLevels ||
+              migratedSettings.allocationLevels.length < 4 ||
+              missingAllocationLevels.length > 0
+            ) {
+              console.log(
+                'Fixing missing allocation levels:',
+                missingAllocationLevels
+              );
               migratedSettings.allocationLevels = DEFAULT_ALLOCATION_LEVELS;
               needsUpdate = true;
             }
-            
-            if (!migratedSettings.stopLossLevels || migratedSettings.stopLossLevels.length < 4 || missingStopLossLevels.length > 0) {
-              console.log('Fixing missing stop loss levels:', missingStopLossLevels);
+
+            if (
+              !migratedSettings.stopLossLevels ||
+              migratedSettings.stopLossLevels.length < 4 ||
+              missingStopLossLevels.length > 0
+            ) {
+              console.log(
+                'Fixing missing stop loss levels:',
+                missingStopLossLevels
+              );
               migratedSettings.stopLossLevels = DEFAULT_STOP_LOSS_LEVELS;
               needsUpdate = true;
             }
-            
+
             if (needsUpdate) {
-              localStorage.setItem('userSettings', JSON.stringify(migratedSettings));
+              localStorage.setItem(
+                'userSettings',
+                JSON.stringify(migratedSettings)
+              );
             }
           }
-          
+
           // Merge with defaults to ensure all properties exist
           setSettings(migratedSettings);
         } else {
@@ -362,11 +403,11 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({
         console.error('Error loading settings:', error);
         setSettings(DEFAULT_SETTINGS);
       }
-      
+
       // Ensure minimum delay for smooth UX
       const elapsedTime = Date.now() - startTime;
       const remainingTime = Math.max(0, 1000 - elapsedTime); // 1 second minimum
-      
+
       setTimeout(() => {
         setIsLoaded(true);
       }, remainingTime);
@@ -374,7 +415,6 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({
 
     loadSettings();
   }, []);
-
 
   // Save settings to localStorage whenever they change (but only after initial load)
   useEffect(() => {
@@ -448,7 +488,9 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({
   };
 
   // Add new allocation level
-  const addAllocationLevel = (newAllocationLevel: Omit<AllocationLevel, 'id'>) => {
+  const addAllocationLevel = (
+    newAllocationLevel: Omit<AllocationLevel, 'id'>
+  ) => {
     const id = `custom-${Date.now()}`;
     const allocationLevel: AllocationLevel = { ...newAllocationLevel, id };
 
@@ -462,7 +504,9 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({
   const removeAllocationLevel = (id: string) => {
     setSettings((prev) => ({
       ...prev,
-      allocationLevels: prev.allocationLevels.filter((level) => level.id !== id),
+      allocationLevels: prev.allocationLevels.filter(
+        (level) => level.id !== id
+      ),
       // Reset default if we're removing it
       defaultAllocationLevel:
         prev.defaultAllocationLevel === id
@@ -558,6 +602,7 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({
   const value: SettingsContextType = {
     settings,
     isLoading,
+    hasActiveSession,
     updateSettings,
     updateRiskLevel,
     addRiskLevel,
