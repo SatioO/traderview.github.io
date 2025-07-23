@@ -81,8 +81,8 @@ const TradingCalculator: React.FC = () => {
   // Removed marketSmithData state - no longer needed for streamlined UX
 
   // Settings context for capital management
-  const { settings: settingsContext, updateSettings } = useSettings();
-
+  const { settings: settingsContext, updateSettings, hasActiveBrokerSession } = useSettings();
+  
   // Settings integration
   const {
     settings,
@@ -96,8 +96,6 @@ const TradingCalculator: React.FC = () => {
     setActiveTab,
     setIsDarkMode,
   });
-
-  const hasActiveSession = settingsContext.hasActiveSession;
 
   // Get allocation level thresholds for risk assessment
   const getAllocationThresholds = () => {
@@ -1294,7 +1292,9 @@ const TradingCalculator: React.FC = () => {
               </div>
 
               {/* Instrument Selection */}
-              {hasActiveSession && <InstrumentAutocomplete className="mb-6" />}
+              {hasActiveBrokerSession && (
+                <InstrumentAutocomplete className="mb-6" />
+              )}
 
               {/* Gaming Battle Setup */}
               <div className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-2xl p-4 border border-purple-500/30 backdrop-blur-sm">
@@ -2396,6 +2396,7 @@ const TradingCalculator: React.FC = () => {
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
       />
+
     </div>
   );
 };

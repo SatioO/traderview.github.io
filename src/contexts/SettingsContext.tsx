@@ -50,6 +50,10 @@ export interface UserSettings {
   // Version for migration
   version?: number;
 
+  // Broker Session Management
+  // Indicates if the user has an active session with the brokerage
+  hasActiveBrokerSession: boolean;
+
   // Account Settings
   accountBalance: number;
 
@@ -208,6 +212,7 @@ const SETTINGS_VERSION = 2; // Increment when structure changes
 // Default Settings
 const DEFAULT_SETTINGS: UserSettings = {
   version: SETTINGS_VERSION,
+  hasActiveBrokerSession: false,
   accountBalance: 100000,
   riskLevels: DEFAULT_RISK_LEVELS,
   defaultRiskLevel: 'conservative',
@@ -231,7 +236,7 @@ const DEFAULT_SETTINGS: UserSettings = {
 interface SettingsContextType {
   settings: UserSettings;
   isLoading: boolean;
-  hasActiveSession: boolean;
+  hasActiveBrokerSession: boolean;
   updateSettings: (updates: Partial<UserSettings>) => void;
   updateRiskLevel: (riskLevel: RiskLevel) => void;
   addRiskLevel: (riskLevel: Omit<RiskLevel, 'id'>) => void;
@@ -272,10 +277,10 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({
     queryFn: () => brokerApiService.getActiveSession(),
     staleTime: 0, // Always refetch on mount for fresh session data
   });
-
+  
   // Combined loading state
   const isLoading = !isLoaded || isLoadingActiveSession;
-  const hasActiveSession = activeSession?.hasActiveSession ?? false;
+  const hasActiveBrokerSession = activeSession?.hasActiveSession ?? false;
 
   // Load settings from localStorage on mount with enhanced UX delay
   useEffect(() => {
@@ -602,7 +607,7 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({
   const value: SettingsContextType = {
     settings,
     isLoading,
-    hasActiveSession,
+    hasActiveBrokerSession,
     updateSettings,
     updateRiskLevel,
     addRiskLevel,
