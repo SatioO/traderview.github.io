@@ -20,6 +20,7 @@ import { initializeApp } from 'firebase/app';
 import { getAnalytics } from 'firebase/analytics';
 import { useTradingSettings } from '../../hooks/useTradingSettings';
 import { useSettings } from '../../contexts/SettingsContext';
+import { useTrading } from '../../contexts/TradingContext';
 import Modal from '../../components/ui/Modal';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
@@ -81,8 +82,12 @@ const TradingCalculator: React.FC = () => {
   // Removed marketSmithData state - no longer needed for streamlined UX
 
   // Settings context for capital management
-  const { settings: settingsContext, updateSettings, hasActiveBrokerSession } = useSettings();
-  
+  const {
+    settings: settingsContext,
+    updateSettings,
+    hasActiveBrokerSession,
+  } = useSettings();
+
   // Settings integration
   const {
     settings,
@@ -96,6 +101,12 @@ const TradingCalculator: React.FC = () => {
     setActiveTab,
     setIsDarkMode,
   });
+
+  // Trading context for instrument quotes and price data
+  const {
+    state: { selectedInstrument, isLoadingQuote, quoteError },
+    currentPrice,
+  } = useTrading();
 
   // Get allocation level thresholds for risk assessment
   const getAllocationThresholds = () => {
@@ -150,6 +161,22 @@ const TradingCalculator: React.FC = () => {
       document.documentElement.classList.remove('dark');
     }
   }, [isDarkMode]);
+
+  // Auto-populate entry price when instrument quote is loaded
+  useEffect(() => {
+    if (currentPrice && selectedInstrument) {
+      // Always update entry price with live price when quote is available
+      // This ensures calculations are always based on current market price
+      setFormData((prev) => ({
+        ...prev,
+        entryPrice: currentPrice,
+      }));
+    }
+  }, [currentPrice, selectedInstrument]);
+
+  // Check if current entry price matches the live price (auto-populated)
+  const isEntryPriceAutoPopulated =
+    currentPrice && Math.abs(formData.entryPrice - currentPrice) < 0.01;
 
   // Format currency in INR
   const formatCurrency = useCallback((amount: number): string => {
@@ -1582,15 +1609,35 @@ const TradingCalculator: React.FC = () => {
                           const value = e.target.value;
                           handleInputChange('entryPrice', value);
                         }}
-                        className="w-full px-4 py-3 pl-10 bg-black/40 border-2 border-green-500/50 rounded-xl focus:border-green-400 focus:ring-2 focus:ring-green-400/20 text-white placeholder-green-300/50 font-mono transition-all duration-300 focus:shadow-lg focus:shadow-green-500/20"
+                        className={`w-full px-4 py-3 pl-10 pr-10 bg-black/40 border-2 rounded-xl text-white placeholder-green-300/50 font-mono transition-all duration-300 focus:shadow-lg ${
+                          isLoadingQuote
+                            ? 'border-yellow-500/50 focus:border-yellow-400 focus:ring-2 focus:ring-yellow-400/20'
+                            : isEntryPriceAutoPopulated
+                            ? 'border-blue-500/50 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 focus:shadow-blue-500/20'
+                            : 'border-green-500/50 focus:border-green-400 focus:ring-2 focus:ring-green-400/20 focus:shadow-green-500/20'
+                        }`}
                         min="0"
                         step="0.1"
-                        placeholder="0.00"
+                        placeholder={
+                          isLoadingQuote ? 'Loading price...' : '0.00'
+                        }
+                        disabled={isLoadingQuote}
                       />
                       <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-400">
                         ₹
                       </span>
                     </div>
+                    {/* Quote Error Display */}
+                    {quoteError && selectedInstrument && (
+                      <div className="mt-2 p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
+                        <div className="flex items-center space-x-2">
+                          <AlertTriangle className="w-4 h-4 text-red-400" />
+                          <span className="text-xs text-red-300">
+                            Failed to fetch live price
+                          </span>
+                        </div>
+                      </div>
+                    )}
                   </div>
                   <div className="relative">
                     <label className="block text-sm font-medium text-red-300 mb-2">
@@ -2396,7 +2443,6 @@ const TradingCalculator: React.FC = () => {
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
       />
-
     </div>
   );
 };

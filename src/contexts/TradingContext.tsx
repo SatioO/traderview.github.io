@@ -5,6 +5,7 @@ import React, {
   useCallback,
   type ReactNode,
 } from 'react';
+import type { InstrumentQuote } from '../services/tradingApiService';
 
 // Trading Instrument Interface
 export interface TradingInstrument {
@@ -39,6 +40,9 @@ export interface OrderData {
 // Trading State Interface
 interface TradingState {
   selectedInstrument: TradingInstrument | null;
+  selectedInstrumentQuote: InstrumentQuote | null;
+  isLoadingQuote: boolean;
+  quoteError: string | null;
   searchResults: TradingInstrument[];
   isSearching: boolean;
   searchQuery: string;
@@ -61,6 +65,9 @@ type TradingAction =
   | { type: 'SET_SEARCHING'; payload: boolean }
   | { type: 'SELECT_INSTRUMENT'; payload: TradingInstrument }
   | { type: 'CLEAR_INSTRUMENT' }
+  | { type: 'SET_INSTRUMENT_QUOTE'; payload: InstrumentQuote | null }
+  | { type: 'SET_LOADING_QUOTE'; payload: boolean }
+  | { type: 'SET_QUOTE_ERROR'; payload: string | null }
   | { type: 'UPDATE_ORDER_DATA'; payload: Partial<OrderData> }
   | { type: 'SET_CALCULATED_QUANTITY'; payload: number }
   | { type: 'SET_ESTIMATED_COST'; payload: number }
@@ -72,6 +79,9 @@ type TradingAction =
 // Initial State
 const initialState: TradingState = {
   selectedInstrument: null,
+  selectedInstrumentQuote: null,
+  isLoadingQuote: false,
+  quoteError: null,
   searchResults: [],
   isSearching: false,
   searchQuery: '',
@@ -105,10 +115,13 @@ function tradingReducer(state: TradingState, action: TradingAction): TradingStat
       return {
         ...state,
         selectedInstrument: action.payload,
+        selectedInstrumentQuote: null, // Reset quote when selecting new instrument
+        quoteError: null,
         orderData: {
           ...state.orderData,
           tradingsymbol: action.payload.tradingsymbol,
           exchange: action.payload.exchange,
+          price: undefined, // Reset price when selecting new instrument
         },
         searchResults: [],
         searchQuery: `${action.payload.tradingsymbol} (${action.payload.exchange})`,
@@ -118,6 +131,9 @@ function tradingReducer(state: TradingState, action: TradingAction): TradingStat
       return {
         ...state,
         selectedInstrument: null,
+        selectedInstrumentQuote: null,
+        isLoadingQuote: false,
+        quoteError: null,
         orderData: {
           ...initialState.orderData,
         },
@@ -126,6 +142,33 @@ function tradingReducer(state: TradingState, action: TradingAction): TradingStat
         calculatedQuantity: 0,
         estimatedCost: 0,
         brokerageCalculation: null,
+      };
+
+    case 'SET_INSTRUMENT_QUOTE':
+      return {
+        ...state,
+        selectedInstrumentQuote: action.payload,
+        isLoadingQuote: false,
+        quoteError: null,
+        // Auto-populate entry price from quote if no price is set
+        orderData: {
+          ...state.orderData,
+          price: state.orderData.price || action.payload?.last_price,
+        },
+      };
+
+    case 'SET_LOADING_QUOTE':
+      return {
+        ...state,
+        isLoadingQuote: action.payload,
+        quoteError: action.payload ? null : state.quoteError, // Clear error when starting new load
+      };
+
+    case 'SET_QUOTE_ERROR':
+      return {
+        ...state,
+        quoteError: action.payload,
+        isLoadingQuote: false,
       };
     
     case 'UPDATE_ORDER_DATA':
@@ -180,6 +223,9 @@ interface TradingContextType {
   setSearching: (searching: boolean) => void;
   selectInstrument: (instrument: TradingInstrument) => void;
   clearInstrument: () => void;
+  setInstrumentQuote: (quote: InstrumentQuote | null) => void;
+  setLoadingQuote: (loading: boolean) => void;
+  setQuoteError: (error: string | null) => void;
   updateOrderData: (data: Partial<OrderData>) => void;
   setCalculatedQuantity: (quantity: number) => void;
   setEstimatedCost: (cost: number) => void;
@@ -190,6 +236,9 @@ interface TradingContextType {
   // Computed properties
   isOrderReady: boolean;
   canPlaceOrder: boolean;
+  currentPrice: number | null;
+  priceChange: number | null;
+  priceChangePercent: number | null;
 }
 
 // Create Context
@@ -222,6 +271,18 @@ export const TradingProvider: React.FC<TradingProviderProps> = ({ children }) =>
 
   const clearInstrument = useCallback(() => {
     dispatch({ type: 'CLEAR_INSTRUMENT' });
+  }, []);
+
+  const setInstrumentQuote = useCallback((quote: InstrumentQuote | null) => {
+    dispatch({ type: 'SET_INSTRUMENT_QUOTE', payload: quote });
+  }, []);
+
+  const setLoadingQuote = useCallback((loading: boolean) => {
+    dispatch({ type: 'SET_LOADING_QUOTE', payload: loading });
+  }, []);
+
+  const setQuoteError = useCallback((error: string | null) => {
+    dispatch({ type: 'SET_QUOTE_ERROR', payload: error });
   }, []);
 
   const updateOrderData = useCallback((data: Partial<OrderData>) => {
@@ -264,6 +325,26 @@ export const TradingProvider: React.FC<TradingProviderProps> = ({ children }) =>
     state.orderStatus !== 'placing' && 
     state.orderStatus !== 'validating';
 
+  // Current price from quote
+  const currentPrice = state.selectedInstrumentQuote?.last_price || null;
+
+  // Price change calculation
+  const priceChange = state.selectedInstrumentQuote?.net_change || null;
+
+  // Price change percentage calculation
+  const priceChangePercent = React.useMemo(() => {
+    if (!state.selectedInstrumentQuote || !state.selectedInstrumentQuote.ohlc?.close) {
+      return null;
+    }
+    
+    const { last_price, ohlc } = state.selectedInstrumentQuote;
+    const previousClose = ohlc.close;
+    
+    if (previousClose === 0) return null;
+    
+    return ((last_price - previousClose) / previousClose) * 100;
+  }, [state.selectedInstrumentQuote]);
+
   const value: TradingContextType = {
     state,
     dispatch,
@@ -272,6 +353,9 @@ export const TradingProvider: React.FC<TradingProviderProps> = ({ children }) =>
     setSearching,
     selectInstrument,
     clearInstrument,
+    setInstrumentQuote,
+    setLoadingQuote,
+    setQuoteError,
     updateOrderData,
     setCalculatedQuantity,
     setEstimatedCost,
@@ -281,6 +365,9 @@ export const TradingProvider: React.FC<TradingProviderProps> = ({ children }) =>
     resetOrder,
     isOrderReady,
     canPlaceOrder,
+    currentPrice,
+    priceChange,
+    priceChangePercent,
   };
 
   return (

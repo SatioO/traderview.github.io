@@ -12,12 +12,19 @@ interface InstrumentAutocompleteProps {
 const InstrumentAutocomplete: React.FC<InstrumentAutocompleteProps> = ({
   className = '',
 }) => {
-  const { selectInstrument, clearInstrument } = useTrading();
+  const { 
+    selectInstrument, 
+    clearInstrument, 
+    setInstrumentQuote, 
+    setLoadingQuote, 
+    setQuoteError 
+  } = useTrading();
   const [inputValue, setInputValue] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const [selectedInstrument, setSelectedInstrument] =
     useState<TradingInstrument | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [highlightedIndex, setHighlightedIndex] = useState(-1);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -71,6 +78,9 @@ const InstrumentAutocomplete: React.FC<InstrumentAutocompleteProps> = ({
         clearInstrument();
       }
 
+      // Reset highlighted index when typing
+      setHighlightedIndex(-1);
+
       // Open dropdown if typing and no selection
       if (value.length >= 2 && !selectedInstrument) {
         setIsOpen(true);
@@ -79,6 +89,37 @@ const InstrumentAutocomplete: React.FC<InstrumentAutocompleteProps> = ({
       }
     },
     [selectedInstrument, clearInstrument]
+  );
+
+  // Fetch quote for selected instrument
+  const fetchInstrumentQuote = useCallback(
+    async (instrument: TradingInstrument) => {
+      try {
+        setLoadingQuote(true);
+        setQuoteError(null);
+        
+        const quote = await tradingApiService.getSingleInstrumentQuote(
+          instrument.tradingsymbol,
+          instrument.exchange
+        );
+        
+        if (quote) {
+          setInstrumentQuote(quote);
+        } else {
+          setQuoteError('Quote not available for this instrument');
+        }
+      } catch (error) {
+        console.error('Error fetching instrument quote:', error);
+        setQuoteError(
+          error instanceof Error 
+            ? error.message 
+            : 'Failed to fetch quote'
+        );
+      } finally {
+        setLoadingQuote(false);
+      }
+    },
+    [setInstrumentQuote, setLoadingQuote, setQuoteError]
   );
 
   // Handle instrument selection
@@ -94,10 +135,17 @@ const InstrumentAutocomplete: React.FC<InstrumentAutocompleteProps> = ({
       setSelectedInstrument(instrument);
       setInputValue(instrument.tradingsymbol);
       setIsOpen(false);
+      setHighlightedIndex(-1);
+      
+      // Select instrument in context first
       selectInstrument(instrument);
+      
+      // Then fetch the quote asynchronously
+      fetchInstrumentQuote(instrument);
+      
       inputRef.current?.blur();
     },
-    [selectInstrument]
+    [selectInstrument, fetchInstrumentQuote]
   );
 
   // Handle clear button
@@ -108,10 +156,47 @@ const InstrumentAutocomplete: React.FC<InstrumentAutocompleteProps> = ({
       setSelectedInstrument(null);
       setIsOpen(false);
       setSearchQuery('');
+      setHighlightedIndex(-1);
       clearInstrument();
       inputRef.current?.focus();
     },
     [clearInstrument]
+  );
+
+  // Handle keyboard navigation
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (!isOpen || instruments.length === 0) return;
+
+      switch (e.key) {
+        case 'ArrowDown':
+          e.preventDefault();
+          setHighlightedIndex((prev) => 
+            prev < instruments.length - 1 ? prev + 1 : prev
+          );
+          break;
+          
+        case 'ArrowUp':
+          e.preventDefault();
+          setHighlightedIndex((prev) => (prev > 0 ? prev - 1 : prev));
+          break;
+          
+        case 'Enter':
+          e.preventDefault();
+          if (highlightedIndex >= 0 && highlightedIndex < instruments.length) {
+            handleSelect(instruments[highlightedIndex]);
+          }
+          break;
+          
+        case 'Escape':
+          e.preventDefault();
+          setIsOpen(false);
+          setHighlightedIndex(-1);
+          inputRef.current?.blur();
+          break;
+      }
+    },
+    [isOpen, instruments, highlightedIndex, handleSelect]
   );
 
   // Handle focus events
@@ -144,6 +229,24 @@ const InstrumentAutocomplete: React.FC<InstrumentAutocompleteProps> = ({
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [isOpen]);
+
+  // Reset highlighted index when instruments change
+  useEffect(() => {
+    setHighlightedIndex(-1);
+  }, [instruments]);
+
+  // Scroll highlighted item into view
+  useEffect(() => {
+    if (highlightedIndex >= 0 && dropdownRef.current) {
+      const highlightedElement = dropdownRef.current.querySelector(`#option-${highlightedIndex}`);
+      if (highlightedElement) {
+        highlightedElement.scrollIntoView({
+          block: 'nearest',
+          behavior: 'smooth'
+        });
+      }
+    }
+  }, [highlightedIndex]);
 
   // Show dropdown based on conditions
   const shouldShowDropdown =
@@ -237,9 +340,17 @@ const InstrumentAutocomplete: React.FC<InstrumentAutocompleteProps> = ({
             type="text"
             value={inputValue}
             onChange={handleInputChange}
+            onKeyDown={handleKeyDown}
             onFocus={handleFocus}
             placeholder="Search (e.g., infy, reliance)"
-            className="w-full px-4 py-3 pr-12 bg-black/30 border border-purple-500/30 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all duration-200 tracking-wider"
+            className="w-full px-4 py-3 pr-12 bg-black/30 border border-purple-500/30 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all duration-200 uppercase tracking-wider"
+            role="combobox"
+            aria-expanded={isOpen}
+            aria-haspopup="listbox"
+            aria-autocomplete="list"
+            aria-activedescendant={
+              highlightedIndex >= 0 ? `option-${highlightedIndex}` : undefined
+            }
           />
 
           {/* Right side icons */}
@@ -355,13 +466,20 @@ const InstrumentAutocomplete: React.FC<InstrumentAutocompleteProps> = ({
                   </div>
                 </div>
               ) : instruments.length > 0 ? (
-                <div className="max-h-80 overflow-y-auto custom-scrollbar">
+                <div className="max-h-80 overflow-y-auto custom-scrollbar" role="listbox">
                   {instruments.map((instrument, index) => (
                     <button
                       key={`${instrument.tradingsymbol}-${instrument.exchange}-${instrument.instrument_token}`}
+                      id={`option-${index}`}
                       onClick={() => handleSelect(instrument)}
-                      className="group w-full text-left p-3 hover:bg-slate-800/40 border-b border-slate-700/20 last:border-b-0 focus:outline-none focus:bg-slate-700/30 transition-all duration-200 relative"
+                      className={`group w-full text-left p-3 border-b border-slate-700/20 last:border-b-0 focus:outline-none transition-all duration-200 relative ${
+                        index === highlightedIndex
+                          ? 'bg-purple-500/20 border-purple-400/30'
+                          : 'hover:bg-slate-800/40 focus:bg-slate-700/30'
+                      }`}
                       style={{ animationDelay: `${index * 50}ms` }}
+                      role="option"
+                      aria-selected={index === highlightedIndex}
                     >
                       {/* Simple left accent */}
                       <div className="absolute left-0 top-0 bottom-0 w-[1px] bg-purple-400/0 group-hover:bg-purple-400/60 transition-all duration-200" />

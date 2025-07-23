@@ -51,6 +51,57 @@ interface BrokerageCalculationResponse {
   status: 'success' | 'error';
 }
 
+// Market Depth Interface
+export interface MarketDepth {
+  price: number;
+  quantity: number;
+  orders: number;
+}
+
+// OHLC Interface
+export interface OHLC {
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+}
+
+// Instrument Quote Interface
+export interface InstrumentQuote {
+  instrument_token: number;
+  timestamp: string;
+  last_trade_time?: string;
+  last_price: number;
+  last_quantity?: number;
+  buy_quantity?: number;
+  sell_quantity?: number;
+  volume: number;
+  average_price?: number;
+  oi?: number;
+  oi_day_high?: number;
+  oi_day_low?: number;
+  net_change?: number;
+  lower_circuit_limit?: number;
+  upper_circuit_limit?: number;
+  ohlc: OHLC;
+  depth?: {
+    buy: MarketDepth[];
+    sell: MarketDepth[];
+  };
+}
+
+// Quote Response Interface
+export interface InstrumentQuotesResponse {
+  success: boolean;
+  data: Record<string, InstrumentQuote>;
+  requestedCount: number;
+  receivedCount: number;
+  missingInstruments: string[];
+  message: string;
+  timestamp: string;
+  requestId: string;
+}
+
 class TradingApiService {
   private baseUrl: string = '/instruments';
 
@@ -367,6 +418,53 @@ class TradingApiService {
       return await response.json();
     } catch (error) {
       console.error('Error canceling order:', error);
+      throw error;
+    }
+  }
+
+  // Get real-time quotes for multiple instruments
+  async getInstrumentQuotes(instruments: string[]): Promise<InstrumentQuotesResponse> {
+    if (!instruments || instruments.length === 0) {
+      throw new Error('Instruments array cannot be empty');
+    }
+
+    if (instruments.length > 500) {
+      throw new Error('Maximum 500 instruments allowed per request');
+    }
+
+    try {
+      const response = await this.makeRequest<InstrumentQuotesResponse>(
+        `${this.baseUrl}/quotes`,
+        {
+          method: 'POST',
+          body: JSON.stringify({ instruments }),
+        }
+      );
+
+      return response;
+    } catch (error) {
+      console.error('Error fetching instrument quotes:', error);
+      throw error;
+    }
+  }
+
+  // Get quote for a single instrument (convenience method)
+  async getSingleInstrumentQuote(
+    tradingsymbol: string,
+    exchange: string
+  ): Promise<InstrumentQuote | null> {
+    const instrumentKey = `${exchange}:${tradingsymbol}`;
+    
+    try {
+      const response = await this.getInstrumentQuotes([instrumentKey]);
+      
+      if (response.success && response.data[instrumentKey]) {
+        return response.data[instrumentKey];
+      }
+      
+      return null;
+    } catch (error) {
+      console.error('Error fetching single instrument quote:', error);
       throw error;
     }
   }
