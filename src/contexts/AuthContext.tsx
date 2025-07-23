@@ -114,6 +114,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           authService.clearAuthData();
           setUser(null);
           setIsAuthenticated(false);
+          // Redirect to login instead of just throwing error
+          window.location.href = '/login';
           throw new Error('Token invalid');
         }
 
@@ -134,10 +136,38 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setUser(null);
         setUserProfile(null);
         setIsAuthenticated(false);
+        
+        // Clear broker tokens on auth failure
+        availableBrokers.forEach((broker) => {
+          broker.removeToken();
+        });
+        
+        // Clear query cache
+        queryClient.clear();
+        
+        // Check if this is a token expiration error and redirect
+        if (error instanceof Error && 
+            (error.message.includes('Authentication failed') || 
+             error.message.includes('ACCESS_TOKEN_EXPIRED') ||
+             error.message.includes('Token invalid'))) {
+          console.log('Authentication failed, redirecting to login...');
+          window.location.href = '/login';
+        }
+        
         throw error;
       }
     },
-    retry: false,
+    retry: (failureCount, error) => {
+      // Don't retry on authentication errors - redirect instead
+      if (error instanceof Error && 
+          (error.message.includes('Authentication failed') || 
+           error.message.includes('ACCESS_TOKEN_EXPIRED') ||
+           error.message.includes('Token invalid') ||
+           error.message.includes('Not authenticated'))) {
+        return false;
+      }
+      return failureCount < 1; // Only retry once for other errors
+    },
     staleTime: 5 * 60 * 1000,
     enabled: authService.isAuthenticated(),
   });

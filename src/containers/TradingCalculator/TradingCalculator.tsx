@@ -15,6 +15,7 @@ import {
   OctagonX,
   Plus,
   Minus,
+  Send,
 } from 'lucide-react';
 import { initializeApp } from 'firebase/app';
 import { getAnalytics } from 'firebase/analytics';
@@ -79,14 +80,16 @@ const TradingCalculator: React.FC = () => {
     'price'
   );
   const [stopLossPercentage, setStopLossPercentage] = useState<number>(3);
-  // Removed marketSmithData state - no longer needed for streamlined UX
-
   // Settings context for capital management
   const {
     settings: settingsContext,
     updateSettings,
     hasActiveBrokerSession,
   } = useSettings();
+
+  const [entryPriceMode, setEntryPriceMode] = useState<'lmt' | 'mkt'>(
+    hasActiveBrokerSession ? 'mkt' : 'lmt'
+  );
 
   // Settings integration
   const {
@@ -1609,23 +1612,63 @@ const TradingCalculator: React.FC = () => {
                           const value = e.target.value;
                           handleInputChange('entryPrice', value);
                         }}
-                        className={`w-full px-4 py-3 pl-10 pr-10 bg-black/40 border-2 rounded-xl text-white placeholder-green-300/50 font-mono transition-all duration-300 focus:shadow-lg ${
-                          isLoadingQuote
-                            ? 'border-yellow-500/50 focus:border-yellow-400 focus:ring-2 focus:ring-yellow-400/20'
+                        className={`w-full px-4 py-3 pl-10 pr-20 border-2 rounded-xl text-white font-mono transition-all duration-300 focus:shadow-lg ${
+                          entryPriceMode === 'mkt'
+                            ? 'bg-gray-800/40 border-gray-500/50 text-gray-400 placeholder-gray-500/70 cursor-not-allowed'
+                            : isLoadingQuote
+                            ? 'bg-black/40 border-yellow-500/50 focus:border-yellow-400 focus:ring-2 focus:ring-yellow-400/20 placeholder-green-300/50'
                             : isEntryPriceAutoPopulated
-                            ? 'border-blue-500/50 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 focus:shadow-blue-500/20'
-                            : 'border-green-500/50 focus:border-green-400 focus:ring-2 focus:ring-green-400/20 focus:shadow-green-500/20'
+                            ? 'bg-black/40 border-blue-500/50 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 focus:shadow-blue-500/20 placeholder-green-300/50'
+                            : 'bg-black/40 border-green-500/50 focus:border-green-400 focus:ring-2 focus:ring-green-400/20 focus:shadow-green-500/20 placeholder-green-300/50'
                         }`}
                         min="0"
                         step="0.1"
                         placeholder={
-                          isLoadingQuote ? 'Loading price...' : '0.00'
+                          entryPriceMode === 'mkt'
+                            ? 'Market price'
+                            : isLoadingQuote
+                            ? 'Loading price...'
+                            : '0.00'
                         }
-                        disabled={isLoadingQuote}
+                        disabled={isLoadingQuote || entryPriceMode === 'mkt'}
                       />
-                      <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-400">
+                      <span
+                        className={`absolute left-3 top-1/2 transform -translate-y-1/2 transition-all duration-300 ${
+                          entryPriceMode === 'mkt'
+                            ? 'text-gray-300'
+                            : 'text-green-400'
+                        }`}
+                      >
                         ₹
                       </span>
+
+                      {/* Mode Toggle on same row */}
+                      {hasActiveBrokerSession && (
+                        <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex bg-black/60 rounded-md p-0.5 border border-green-500/30">
+                          <button
+                            type="button"
+                            onClick={() => setEntryPriceMode('mkt')}
+                            className={`px-1.5 py-0.5 text-xs font-medium rounded-sm transition-all duration-200 ${
+                              entryPriceMode === 'mkt'
+                                ? 'bg-gray-600/40 text-gray-300 border border-gray-500/60 shadow-sm'
+                                : 'text-green-400/70 hover:text-green-300'
+                            }`}
+                          >
+                            MKT
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setEntryPriceMode('lmt')}
+                            className={`px-1.5 py-0.5 text-xs font-medium rounded-sm transition-all duration-200 ${
+                              entryPriceMode === 'lmt'
+                                ? 'bg-green-500/30 text-green-300 border border-green-400/50 shadow-sm'
+                                : 'text-green-400/70 hover:text-green-300'
+                            }`}
+                          >
+                            LMT
+                          </button>
+                        </div>
+                      )}
                     </div>
                     {/* Quote Error Display */}
                     {quoteError && selectedInstrument && (
@@ -1839,6 +1882,36 @@ const TradingCalculator: React.FC = () => {
                       )}
                   </div>
                 </div>
+
+                {/* Place Order Button */}
+                {hasActiveBrokerSession && (
+                  <div className="mt-6">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        // TODO: Implement place order functionality
+                        console.log('Place order clicked', {
+                          entryPriceMode,
+                          entryPrice: formData.entryPrice,
+                          stopLoss: formData.stopLoss,
+                          stopLossMode,
+                          // Add other relevant data
+                        });
+                      }}
+                      className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-300 hover:scale-[1.02] shadow-lg hover:shadow-purple-500/30 flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                      disabled={
+                        !selectedInstrument ||
+                        !formData.entryPrice ||
+                        !formData.stopLoss
+                      }
+                    >
+                      <span className="flex items-center justify-center space-x-2">
+                        <Send className="w-5 h-5" />
+                        <span>Place Order</span>
+                      </span>
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           </div>

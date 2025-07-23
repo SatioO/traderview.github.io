@@ -55,19 +55,27 @@ export interface DisconnectBrokerResponse {
 class BrokerApiService {
   private baseUrl: string = '/brokers';
 
-  private async makeRequest<T>(endpoint: string, options?: RequestInit): Promise<T> {
-    const response = await fetch(`${(apiClient as any).baseURL || 'http://localhost:3000/api'}${endpoint}`, {
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${(apiClient as any).getStoredAccessToken()}`,
-        ...(options?.headers as Record<string, string> || {})
-      },
-      ...options
-    });
+  private async makeRequest<T>(
+    endpoint: string,
+    options?: RequestInit
+  ): Promise<T> {
+    const response = await fetch(
+      `${apiClient.baseURL || 'http://localhost:3000/api'}${endpoint}`,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${apiClient.getStoredAccessToken()}`,
+          ...((options?.headers as Record<string, string>) || {}),
+        },
+        ...options,
+      }
+    );
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.message || `Request failed with status ${response.status}`);
+      throw new Error(
+        error.message || `Request failed with status ${response.status}`
+      );
     }
 
     return response.json();
@@ -75,7 +83,9 @@ class BrokerApiService {
 
   // Get all available brokers with connection status
   async getAvailableBrokers(): Promise<AvailableBrokersResponse> {
-    return this.makeRequest<AvailableBrokersResponse>(`${this.baseUrl}/available`);
+    return this.makeRequest<AvailableBrokersResponse>(
+      `${this.baseUrl}/available`
+    );
   }
 
   // Initiate broker connection - get login URL
@@ -87,7 +97,9 @@ class BrokerApiService {
   }
 
   // Force connect to broker (disconnects existing sessions)
-  async forceConnectBroker(brokerId: string): Promise<BrokerConnectionResponse> {
+  async forceConnectBroker(
+    brokerId: string
+  ): Promise<BrokerConnectionResponse> {
     return this.makeRequest<BrokerConnectionResponse>(
       `${this.baseUrl}/force-connect/${brokerId}`,
       { method: 'POST' }
@@ -95,19 +107,24 @@ class BrokerApiService {
   }
 
   // Complete broker authentication after OAuth callback
-  async completeBrokerAuth(brokerId: string, requestToken: string): Promise<BrokerCallbackResponse> {
+  async completeBrokerAuth(
+    brokerId: string,
+    requestToken: string
+  ): Promise<BrokerCallbackResponse> {
     return this.makeRequest<BrokerCallbackResponse>(
       `${this.baseUrl}/callback/${brokerId}`,
       {
         method: 'POST',
-        body: JSON.stringify({ request_token: requestToken })
+        body: JSON.stringify({ request_token: requestToken }),
       }
     );
   }
 
   // Get active broker session for dashboard
   async getActiveSession(): Promise<ActiveSessionResponse> {
-    return this.makeRequest<ActiveSessionResponse>(`${this.baseUrl}/active-session`);
+    return this.makeRequest<ActiveSessionResponse>(
+      `${this.baseUrl}/active-session`
+    );
   }
 
   // Disconnect specific broker
@@ -119,8 +136,12 @@ class BrokerApiService {
   }
 
   // Get all connected brokers
-  async getConnectedBrokers(): Promise<{ connectedBrokers: ActiveBrokerSession[] }> {
-    return this.makeRequest<{ connectedBrokers: ActiveBrokerSession[] }>(`${this.baseUrl}/connected`);
+  async getConnectedBrokers(): Promise<{
+    connectedBrokers: ActiveBrokerSession[];
+  }> {
+    return this.makeRequest<{ connectedBrokers: ActiveBrokerSession[] }>(
+      `${this.baseUrl}/connected`
+    );
   }
 }
 

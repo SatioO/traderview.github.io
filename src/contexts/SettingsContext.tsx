@@ -274,8 +274,35 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({
   // Use React Query for session checking with matching key
   const { data: activeSession, isLoading: isLoadingActiveSession } = useQuery({
     queryKey: ['broker', 'active-session'],
-    queryFn: () => brokerApiService.getActiveSession(),
+    queryFn: async () => {
+      try {
+        return await brokerApiService.getActiveSession();
+      } catch (error) {
+        // Handle authentication errors gracefully
+        if (error instanceof Error && 
+            (error.message.includes('Authentication failed') || 
+             error.message.includes('ACCESS_TOKEN_EXPIRED') ||
+             error.message.includes('Token invalid'))) {
+          console.log('Token expired, redirecting to login...');
+          // Clear any cached auth data and redirect to login
+          window.location.href = '/login';
+          return { hasActiveSession: false };
+        }
+        throw error;
+      }
+    },
     staleTime: 0, // Always refetch on mount for fresh session data
+    retry: (failureCount, error) => {
+      // Don't retry on authentication errors
+      if (error instanceof Error && 
+          (error.message.includes('Authentication failed') || 
+           error.message.includes('ACCESS_TOKEN_EXPIRED') ||
+           error.message.includes('Token invalid'))) {
+        return false;
+      }
+      // Retry up to 2 times for other errors
+      return failureCount < 2;
+    },
   });
   
   // Combined loading state

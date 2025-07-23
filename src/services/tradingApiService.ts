@@ -110,11 +110,11 @@ class TradingApiService {
     options?: RequestInit
   ): Promise<T> {
     const response = await fetch(
-      `${(apiClient as any).baseURL || 'http://localhost:3000/api'}${endpoint}`,
+      `${apiClient.baseURL || 'http://localhost:3000/api'}${endpoint}`,
       {
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${(apiClient as any).getStoredAccessToken()}`,
+          Authorization: `Bearer ${apiClient.getStoredAccessToken()}`,
           ...((options?.headers as Record<string, string>) || {}),
         },
         ...options,
@@ -423,7 +423,9 @@ class TradingApiService {
   }
 
   // Get real-time quotes for multiple instruments
-  async getInstrumentQuotes(instruments: string[]): Promise<InstrumentQuotesResponse> {
+  async getInstrumentQuotes(
+    instruments: string[]
+  ): Promise<InstrumentQuotesResponse> {
     if (!instruments || instruments.length === 0) {
       throw new Error('Instruments array cannot be empty');
     }
@@ -454,14 +456,14 @@ class TradingApiService {
     exchange: string
   ): Promise<InstrumentQuote | null> {
     const instrumentKey = `${exchange}:${tradingsymbol}`;
-    
+
     try {
       const response = await this.getInstrumentQuotes([instrumentKey]);
-      
+
       if (response.success && response.data[instrumentKey]) {
         return response.data[instrumentKey];
       }
-      
+
       return null;
     } catch (error) {
       console.error('Error fetching single instrument quote:', error);

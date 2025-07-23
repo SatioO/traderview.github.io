@@ -12,12 +12,12 @@ interface InstrumentAutocompleteProps {
 const InstrumentAutocomplete: React.FC<InstrumentAutocompleteProps> = ({
   className = '',
 }) => {
-  const { 
-    selectInstrument, 
-    clearInstrument, 
-    setInstrumentQuote, 
-    setLoadingQuote, 
-    setQuoteError 
+  const {
+    selectInstrument,
+    clearInstrument,
+    setInstrumentQuote,
+    setLoadingQuote,
+    setQuoteError,
   } = useTrading();
   const [inputValue, setInputValue] = useState('');
   const [isOpen, setIsOpen] = useState(false);
@@ -97,12 +97,12 @@ const InstrumentAutocomplete: React.FC<InstrumentAutocompleteProps> = ({
       try {
         setLoadingQuote(true);
         setQuoteError(null);
-        
+
         const quote = await tradingApiService.getSingleInstrumentQuote(
           instrument.tradingsymbol,
           instrument.exchange
         );
-        
+
         if (quote) {
           setInstrumentQuote(quote);
         } else {
@@ -111,9 +111,7 @@ const InstrumentAutocomplete: React.FC<InstrumentAutocompleteProps> = ({
       } catch (error) {
         console.error('Error fetching instrument quote:', error);
         setQuoteError(
-          error instanceof Error 
-            ? error.message 
-            : 'Failed to fetch quote'
+          error instanceof Error ? error.message : 'Failed to fetch quote'
         );
       } finally {
         setLoadingQuote(false);
@@ -136,13 +134,13 @@ const InstrumentAutocomplete: React.FC<InstrumentAutocompleteProps> = ({
       setInputValue(instrument.tradingsymbol);
       setIsOpen(false);
       setHighlightedIndex(-1);
-      
+
       // Select instrument in context first
       selectInstrument(instrument);
-      
+
       // Then fetch the quote asynchronously
       fetchInstrumentQuote(instrument);
-      
+
       inputRef.current?.blur();
     },
     [selectInstrument, fetchInstrumentQuote]
@@ -171,23 +169,23 @@ const InstrumentAutocomplete: React.FC<InstrumentAutocompleteProps> = ({
       switch (e.key) {
         case 'ArrowDown':
           e.preventDefault();
-          setHighlightedIndex((prev) => 
+          setHighlightedIndex((prev) =>
             prev < instruments.length - 1 ? prev + 1 : prev
           );
           break;
-          
+
         case 'ArrowUp':
           e.preventDefault();
           setHighlightedIndex((prev) => (prev > 0 ? prev - 1 : prev));
           break;
-          
+
         case 'Enter':
           e.preventDefault();
           if (highlightedIndex >= 0 && highlightedIndex < instruments.length) {
             handleSelect(instruments[highlightedIndex]);
           }
           break;
-          
+
         case 'Escape':
           e.preventDefault();
           setIsOpen(false);
@@ -238,11 +236,13 @@ const InstrumentAutocomplete: React.FC<InstrumentAutocompleteProps> = ({
   // Scroll highlighted item into view
   useEffect(() => {
     if (highlightedIndex >= 0 && dropdownRef.current) {
-      const highlightedElement = dropdownRef.current.querySelector(`#option-${highlightedIndex}`);
+      const highlightedElement = dropdownRef.current.querySelector(
+        `#option-${highlightedIndex}`
+      );
       if (highlightedElement) {
         highlightedElement.scrollIntoView({
           block: 'nearest',
-          behavior: 'smooth'
+          behavior: 'smooth',
         });
       }
     }
@@ -466,7 +466,10 @@ const InstrumentAutocomplete: React.FC<InstrumentAutocompleteProps> = ({
                   </div>
                 </div>
               ) : instruments.length > 0 ? (
-                <div className="max-h-80 overflow-y-auto custom-scrollbar" role="listbox">
+                <div
+                  className="max-h-80 overflow-y-auto custom-scrollbar"
+                  role="listbox"
+                >
                   {instruments.map((instrument, index) => (
                     <button
                       key={`${instrument.tradingsymbol}-${instrument.exchange}-${instrument.instrument_token}`}

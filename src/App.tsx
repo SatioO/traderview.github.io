@@ -1,8 +1,14 @@
 import './App.css';
-import { BrowserRouter, useRoutes, Navigate, useLocation } from 'react-router-dom';
+import {
+  BrowserRouter,
+  useRoutes,
+  Navigate,
+  useLocation,
+} from 'react-router-dom';
 import { SettingsProvider, useSettings } from './contexts/SettingsContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { TradingProvider } from './contexts/TradingContext';
+// import { LiveDataProvider } from './contexts/LiveDataProvider';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import { getUnprotectedRoutes, getProtectedRoutes, ROUTES } from './routes';
 import LoadingScreen from './components/LoadingScreen';
@@ -12,14 +18,14 @@ function AppRoutes() {
   // Convert route configs to RouteObjects
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const convertRoutes = (routes: any[]) => {
-    return routes.map(route => {
+    return routes.map((route) => {
       if (route.index) {
         return {
           index: true,
           element: route.element,
         };
       }
-      
+
       return {
         path: route.path,
         element: route.element,
@@ -27,8 +33,12 @@ function AppRoutes() {
     });
   };
 
-  const unprotectedRouteObjects: RouteObject[] = convertRoutes(getUnprotectedRoutes());
-  const protectedRouteObjects: RouteObject[] = convertRoutes(getProtectedRoutes()).map(route => ({
+  const unprotectedRouteObjects: RouteObject[] = convertRoutes(
+    getUnprotectedRoutes()
+  );
+  const protectedRouteObjects: RouteObject[] = convertRoutes(
+    getProtectedRoutes()
+  ).map((route) => ({
     ...route,
     element: <ProtectedRoute>{route.element}</ProtectedRoute>,
   }));
@@ -49,42 +59,47 @@ function AppRoutes() {
 function AppContent() {
   const { isLoading: isSettingsLoading } = useSettings();
   const location = useLocation();
-  
+
   // Get unprotected route paths for comparison
   const unprotectedRoutes = getUnprotectedRoutes();
-  const unprotectedPaths = unprotectedRoutes.map(route => route.path).filter(Boolean);
-  
+  const unprotectedPaths = unprotectedRoutes
+    .map((route) => route.path)
+    .filter(Boolean);
+
   // Check if current path is unprotected
-  const isUnprotectedRoute = unprotectedPaths.some(path => {
+  const isUnprotectedRoute = unprotectedPaths.some((path) => {
     if (path === '*') return false; // Ignore wildcard routes
     // Handle dynamic routes like /auth/:brokerName/callback
     const pathPattern = path.replace(/:[^/]+/g, '[^/]+');
     const regex = new RegExp(`^${pathPattern}$`);
     return regex.test(location.pathname);
   });
-  
+
   // For unprotected routes, skip settings loading screen
   const shouldShowLoadingScreen = !isUnprotectedRoute && isSettingsLoading;
 
   return (
     <>
       <LoadingScreen isLoading={shouldShowLoadingScreen} />
-      {(!shouldShowLoadingScreen) && <AppRoutes />}
+      {!shouldShowLoadingScreen && <AppRoutes />}
     </>
   );
 }
 
 function App() {
-  const basename = import.meta.env.MODE === 'development' 
-    ? '/' 
-    : import.meta.env.VITE_BASE_PATH || '/';
+  const basename =
+    import.meta.env.MODE === 'development'
+      ? '/'
+      : import.meta.env.VITE_BASE_PATH || '/';
 
   return (
     <BrowserRouter basename={basename}>
       <AuthProvider>
         <SettingsProvider>
           <TradingProvider>
+            {/* <LiveDataProvider> */}
             <AppContent />
+            {/* </LiveDataProvider> */}
           </TradingProvider>
         </SettingsProvider>
       </AuthProvider>
