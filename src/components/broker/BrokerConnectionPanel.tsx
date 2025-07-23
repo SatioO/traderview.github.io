@@ -468,27 +468,6 @@ const BrokerConnectionPanel: React.FC<BrokerConnectionPanelProps> = ({
             </div>
           )}
         </div>
-
-        {/* Enhanced Loading State */}
-        {isLoading && (
-          <div className="flex items-center justify-between pt-4 border-t border-violet-400/20 bg-gradient-to-r from-transparent via-violet-900/10 to-transparent">
-            <div className="flex items-center space-x-2">
-              <div className="w-4 h-4 border-2 border-violet-400/40 border-t-violet-300 rounded-full animate-spin"></div>
-              <span className="text-violet-200 text-xs font-medium animate-pulse">
-                Loading brokers...
-              </span>
-            </div>
-            <div className="flex items-center space-x-2">
-              {[1, 2].map((index) => (
-                <div
-                  key={index}
-                  className="w-10 h-10 bg-gradient-to-br from-slate-800/60 to-slate-700/40 rounded-xl border border-violet-400/20 animate-pulse shadow-lg"
-                  style={{ animationDelay: `${index * 0.2}s` }}
-                ></div>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Error Messages for Brokers */}

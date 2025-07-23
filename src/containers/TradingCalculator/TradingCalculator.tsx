@@ -26,6 +26,7 @@ import Input from '../../components/ui/Input';
 import SettingsModal from '../../components/Settings/SettingsModal';
 import EnhancedHeader from '../../components/Header/EnhancedHeader';
 import BrokerConnectionPanel from '../../components/broker/BrokerConnectionPanel';
+import InstrumentAutocomplete from '../../components/trading/InstrumentAutocomplete';
 import type {
   FormData,
   Calculations,
@@ -34,6 +35,8 @@ import type {
   TabType,
   MarketHealth,
 } from './types';
+import brokerApiService from '../../services/brokerApiService';
+import { useQuery } from '@tanstack/react-query';
 
 const firebaseConfig = {
   apiKey: 'AIzaSyCgaB_xeab-FEImuUNkTX6oYpdXa48Ztjc',
@@ -80,6 +83,9 @@ const TradingCalculator: React.FC = () => {
   const [stopLossPercentage, setStopLossPercentage] = useState<number>(3);
   // Removed marketSmithData state - no longer needed for streamlined UX
 
+  // Settings context for capital management
+  const { settings: settingsContext, updateSettings } = useSettings();
+
   // Settings integration
   const {
     settings,
@@ -94,8 +100,13 @@ const TradingCalculator: React.FC = () => {
     setIsDarkMode,
   });
 
-  // Settings context for capital management
-  const { settings: settingsContext, updateSettings } = useSettings();
+  // Fetch active session
+  const { data: activeSession } = useQuery({
+    queryKey: ['broker', 'active-session'],
+    queryFn: () => brokerApiService.getActiveSession(),
+  });
+
+  const hasActiveSession = activeSession?.hasActiveSession;
 
   // Get allocation level thresholds for risk assessment
   const getAllocationThresholds = () => {
@@ -1290,6 +1301,9 @@ const TradingCalculator: React.FC = () => {
                   </button>
                 </div>
               </div>
+
+              {/* Instrument Selection */}
+              {hasActiveSession && <InstrumentAutocomplete className="mb-6" />}
 
               {/* Gaming Battle Setup */}
               <div className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-2xl p-4 border border-purple-500/30 backdrop-blur-sm">

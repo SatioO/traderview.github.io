@@ -2,6 +2,7 @@ import './App.css';
 import { BrowserRouter, useRoutes, Navigate, useLocation } from 'react-router-dom';
 import { SettingsProvider, useSettings } from './contexts/SettingsContext';
 import { AuthProvider } from './contexts/AuthContext';
+import { TradingProvider } from './contexts/TradingContext';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import { getUnprotectedRoutes, getProtectedRoutes, ROUTES } from './routes';
 import LoadingScreen from './components/LoadingScreen';
@@ -82,7 +83,9 @@ function App() {
     <BrowserRouter basename={basename}>
       <AuthProvider>
         <SettingsProvider>
-          <AppContent />
+          <TradingProvider>
+            <AppContent />
+          </TradingProvider>
         </SettingsProvider>
       </AuthProvider>
     </BrowserRouter>
