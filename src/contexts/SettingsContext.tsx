@@ -159,7 +159,7 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({
     },
   });
 
-  // Use React Query for session checking with matching key
+  // Use React Query for session checking with matching key - only when authenticated
   const { data: activeSession, isLoading: isLoadingActiveSession } = useQuery({
     queryKey: ['broker', 'active-session'],
     queryFn: async () => {
@@ -181,6 +181,7 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({
         throw error;
       }
     },
+    enabled: isAuthenticated, // Only run when user is authenticated
     staleTime: 0, // Always refetch on mount for fresh session data
     retry: (failureCount, error) => {
       // Don't retry on authentication errors
@@ -254,6 +255,17 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({
   const isLoading =
     (isAuthenticated && isLoadingSettings) || isLoadingActiveSession;
   const hasActiveBrokerSession = activeSession?.hasActiveSession ?? false;
+  
+  // Debug: Log when loading screen should show
+  useEffect(() => {
+    console.log('🔄 Loading screen status:', {
+      isAuthenticated,
+      isLoadingSettings,
+      isLoadingActiveSession,
+      finalIsLoading: isLoading,
+      shouldShowForUnauthenticated: !isAuthenticated && isLoading
+    });
+  }, [isAuthenticated, isLoadingSettings, isLoadingActiveSession, isLoading]);
 
   // Update settings function - now async and uses API
   const updateSettings = async (updates: Partial<UserSettings>) => {
