@@ -71,7 +71,10 @@ type TradingAction =
   | { type: 'UPDATE_ORDER_DATA'; payload: Partial<OrderData> }
   | { type: 'SET_CALCULATED_QUANTITY'; payload: number }
   | { type: 'SET_ESTIMATED_COST'; payload: number }
-  | { type: 'SET_BROKERAGE_CALCULATION'; payload: TradingState['brokerageCalculation'] }
+  | {
+      type: 'SET_BROKERAGE_CALCULATION';
+      payload: TradingState['brokerageCalculation'];
+    }
   | { type: 'SET_ORDER_STATUS'; payload: TradingState['orderStatus'] }
   | { type: 'SET_ORDER_ERROR'; payload: string | null }
   | { type: 'RESET_ORDER' };
@@ -100,17 +103,20 @@ const initialState: TradingState = {
 };
 
 // Reducer Function
-function tradingReducer(state: TradingState, action: TradingAction): TradingState {
+function tradingReducer(
+  state: TradingState,
+  action: TradingAction
+): TradingState {
   switch (action.type) {
     case 'SET_SEARCH_QUERY':
       return { ...state, searchQuery: action.payload };
-    
+
     case 'SET_SEARCH_RESULTS':
       return { ...state, searchResults: action.payload };
-    
+
     case 'SET_SEARCHING':
       return { ...state, isSearching: action.payload };
-    
+
     case 'SELECT_INSTRUMENT':
       return {
         ...state,
@@ -126,7 +132,7 @@ function tradingReducer(state: TradingState, action: TradingAction): TradingStat
         searchResults: [],
         searchQuery: `${action.payload.tradingsymbol} (${action.payload.exchange})`,
       };
-    
+
     case 'CLEAR_INSTRUMENT':
       return {
         ...state,
@@ -170,32 +176,32 @@ function tradingReducer(state: TradingState, action: TradingAction): TradingStat
         quoteError: action.payload,
         isLoadingQuote: false,
       };
-    
+
     case 'UPDATE_ORDER_DATA':
       return {
         ...state,
         orderData: { ...state.orderData, ...action.payload },
       };
-    
+
     case 'SET_CALCULATED_QUANTITY':
       return {
         ...state,
         calculatedQuantity: action.payload,
         orderData: { ...state.orderData, quantity: action.payload },
       };
-    
+
     case 'SET_ESTIMATED_COST':
       return { ...state, estimatedCost: action.payload };
-    
+
     case 'SET_BROKERAGE_CALCULATION':
       return { ...state, brokerageCalculation: action.payload };
-    
+
     case 'SET_ORDER_STATUS':
       return { ...state, orderStatus: action.payload };
-    
+
     case 'SET_ORDER_ERROR':
       return { ...state, orderError: action.payload };
-    
+
     case 'RESET_ORDER':
       return {
         ...state,
@@ -207,7 +213,7 @@ function tradingReducer(state: TradingState, action: TradingAction): TradingStat
           trigger_price: undefined,
         },
       };
-    
+
     default:
       return state;
   }
@@ -229,7 +235,9 @@ interface TradingContextType {
   updateOrderData: (data: Partial<OrderData>) => void;
   setCalculatedQuantity: (quantity: number) => void;
   setEstimatedCost: (cost: number) => void;
-  setBrokerageCalculation: (calculation: TradingState['brokerageCalculation']) => void;
+  setBrokerageCalculation: (
+    calculation: TradingState['brokerageCalculation']
+  ) => void;
   setOrderStatus: (status: TradingState['orderStatus']) => void;
   setOrderError: (error: string | null) => void;
   resetOrder: () => void;
@@ -249,7 +257,9 @@ interface TradingProviderProps {
   children: ReactNode;
 }
 
-export const TradingProvider: React.FC<TradingProviderProps> = ({ children }) => {
+export const TradingProvider: React.FC<TradingProviderProps> = ({
+  children,
+}) => {
   const [state, dispatch] = useReducer(tradingReducer, initialState);
 
   // Helper functions
@@ -297,9 +307,12 @@ export const TradingProvider: React.FC<TradingProviderProps> = ({ children }) =>
     dispatch({ type: 'SET_ESTIMATED_COST', payload: cost });
   }, []);
 
-  const setBrokerageCalculation = useCallback((calculation: TradingState['brokerageCalculation']) => {
-    dispatch({ type: 'SET_BROKERAGE_CALCULATION', payload: calculation });
-  }, []);
+  const setBrokerageCalculation = useCallback(
+    (calculation: TradingState['brokerageCalculation']) => {
+      dispatch({ type: 'SET_BROKERAGE_CALCULATION', payload: calculation });
+    },
+    []
+  );
 
   const setOrderStatus = useCallback((status: TradingState['orderStatus']) => {
     dispatch({ type: 'SET_ORDER_STATUS', payload: status });
@@ -316,13 +329,14 @@ export const TradingProvider: React.FC<TradingProviderProps> = ({ children }) =>
   // Computed properties
   const isOrderReady = Boolean(
     state.selectedInstrument &&
-    state.orderData.tradingsymbol &&
-    state.orderData.exchange &&
-    state.calculatedQuantity > 0
+      state.orderData.tradingsymbol &&
+      state.orderData.exchange &&
+      state.calculatedQuantity > 0
   );
 
-  const canPlaceOrder = isOrderReady && 
-    state.orderStatus !== 'placing' && 
+  const canPlaceOrder =
+    isOrderReady &&
+    state.orderStatus !== 'placing' &&
     state.orderStatus !== 'validating';
 
   // Current price from quote
@@ -333,15 +347,18 @@ export const TradingProvider: React.FC<TradingProviderProps> = ({ children }) =>
 
   // Price change percentage calculation
   const priceChangePercent = React.useMemo(() => {
-    if (!state.selectedInstrumentQuote || !state.selectedInstrumentQuote.ohlc?.close) {
+    if (
+      !state.selectedInstrumentQuote ||
+      !state.selectedInstrumentQuote.ohlc?.close
+    ) {
       return null;
     }
-    
+
     const { last_price, ohlc } = state.selectedInstrumentQuote;
     const previousClose = ohlc.close;
-    
+
     if (previousClose === 0) return null;
-    
+
     return ((last_price - previousClose) / previousClose) * 100;
   }, [state.selectedInstrumentQuote]);
 
@@ -371,13 +388,12 @@ export const TradingProvider: React.FC<TradingProviderProps> = ({ children }) =>
   };
 
   return (
-    <TradingContext.Provider value={value}>
-      {children}
-    </TradingContext.Provider>
+    <TradingContext.Provider value={value}>{children}</TradingContext.Provider>
   );
 };
 
 // Custom hook
+// eslint-disable-next-line react-refresh/only-export-components
 export const useTrading = (): TradingContextType => {
   const context = useContext(TradingContext);
   if (context === undefined) {

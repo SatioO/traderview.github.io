@@ -16,7 +16,6 @@ import type { RouteObject } from 'react-router-dom';
 
 function AppRoutes() {
   // Convert route configs to RouteObjects
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const convertRoutes = (routes: any[]) => {
     return routes.map((route) => {
       if (route.index) {

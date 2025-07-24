@@ -18,8 +18,6 @@ import {
 import { useOrderPlacement } from '../../hooks/useOrderPlacement';
 import { orderService } from '../../services/orderService';
 import { FloatingOrderNotification } from '../../components/OrderPlacement/FloatingOrderNotification';
-import { initializeApp } from 'firebase/app';
-import { getAnalytics } from 'firebase/analytics';
 import { useTradingSettings } from '../../hooks/useTradingSettings';
 import { useSettings } from '../../contexts/SettingsContext';
 import { useTrading } from '../../contexts/TradingContext';
@@ -38,16 +36,11 @@ import type {
   TabType,
   MarketHealth,
 } from './types';
-import { FIREBASE_CONFIG, BROKERAGE_RATES } from './constants';
+import { BROKERAGE_RATES } from './constants';
 import MarketOutlookSection from './components/MarketOutlookSection';
 import TradingModeSelector from './components/TradingModeSelector';
 import RiskLevelSelector from './components/RiskLevelSelector';
 import AllocationLevelSelector from './components/AllocationLevelSelector';
-
-// Initialize Firebase
-const app = initializeApp(FIREBASE_CONFIG);
-getAnalytics(app);
-
 
 const TradingCalculator: React.FC = () => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -763,7 +756,8 @@ const TradingCalculator: React.FC = () => {
                                   <span className="text-yellow-300">Risk:</span>
                                   <span className="font-bold text-orange-300">
                                     {(
-                                      ((formData.entryPrice - formData.stopLoss) /
+                                      ((formData.entryPrice -
+                                        formData.stopLoss) /
                                         formData.entryPrice) *
                                       100
                                     ).toFixed(2)}
@@ -779,7 +773,6 @@ const TradingCalculator: React.FC = () => {
                                 </>
                               )}
                             </div>
-                            
                           </div>
                         )}
                     </label>

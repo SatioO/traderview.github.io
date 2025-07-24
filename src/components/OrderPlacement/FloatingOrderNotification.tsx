@@ -347,7 +347,7 @@ export const FloatingOrderNotification: React.FC<
           </div>
         </div>
 
-        <style jsx>{`
+        <style>{`
           @keyframes shrink {
             from {
               width: 100%;

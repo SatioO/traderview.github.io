@@ -1,3 +1,4 @@
+import { analyticsService } from '../services/analyticsService';
 import React, {
   createContext,
   useContext,
@@ -48,7 +49,6 @@ interface AuthContextType {
     isCurrent: boolean;
   }>;
   revokeSession: (sessionId: string) => Promise<void>;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   availableBrokers: any[];
   loginWithBroker: (brokerName: string) => void;
   handleBrokerCallback: (
@@ -68,17 +68,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
   const [signupError, setSignupError] = useState<string | null>(null);
-  const [activeSessions, setActiveSessions] = useState<Array<{
-    id: string;
-    deviceInfo: {
-      userAgent: string;
-      ipAddress: string;
-      deviceId?: string;
-    };
-    createdAt: string;
-    lastUsedAt: string;
-    isCurrent: boolean;
-  }>>([]);
+  const [activeSessions, setActiveSessions] = useState<
+    Array<{
+      id: string;
+      deviceInfo: {
+        userAgent: string;
+        ipAddress: string;
+        deviceId?: string;
+      };
+      createdAt: string;
+      lastUsedAt: string;
+      isCurrent: boolean;
+    }>
+  >([]);
   const queryClient = useQueryClient();
 
   // Get available brokers
@@ -92,6 +94,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         if (storedUser) {
           setUser(storedUser);
           setIsAuthenticated(true);
+          analyticsService.setUser({
+            userId: storedUser.id,
+            email: storedUser.email,
+            displayName: `${storedUser.firstName} ${storedUser.lastName}`,
+          });
         }
       }
     };
@@ -122,7 +129,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         // Get user profile if authenticated
         const profile = await authService.getUserProfile();
         setUserProfile(profile);
-        
+
         const storedUser = authService.getStoredUser();
         if (storedUser) {
           setUser(storedUser);
@@ -136,34 +143,38 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setUser(null);
         setUserProfile(null);
         setIsAuthenticated(false);
-        
+
         // Clear broker tokens on auth failure
         availableBrokers.forEach((broker) => {
           broker.removeToken();
         });
-        
+
         // Clear query cache
         queryClient.clear();
-        
+
         // Check if this is a token expiration error and redirect
-        if (error instanceof Error && 
-            (error.message.includes('Authentication failed') || 
-             error.message.includes('ACCESS_TOKEN_EXPIRED') ||
-             error.message.includes('Token invalid'))) {
+        if (
+          error instanceof Error &&
+          (error.message.includes('Authentication failed') ||
+            error.message.includes('ACCESS_TOKEN_EXPIRED') ||
+            error.message.includes('Token invalid'))
+        ) {
           console.log('Authentication failed, redirecting to login...');
           window.location.href = '/login';
         }
-        
+
         throw error;
       }
     },
     retry: (failureCount, error) => {
       // Don't retry on authentication errors - redirect instead
-      if (error instanceof Error && 
-          (error.message.includes('Authentication failed') || 
-           error.message.includes('ACCESS_TOKEN_EXPIRED') ||
-           error.message.includes('Token invalid') ||
-           error.message.includes('Not authenticated'))) {
+      if (
+        error instanceof Error &&
+        (error.message.includes('Authentication failed') ||
+          error.message.includes('ACCESS_TOKEN_EXPIRED') ||
+          error.message.includes('Token invalid') ||
+          error.message.includes('Not authenticated'))
+      ) {
         return false;
       }
       return failureCount < 1; // Only retry once for other errors
@@ -289,12 +300,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setLoginError(null);
       // Use the new broker API service to get login URL
       const response = await brokerApiService.connectBroker(brokerName);
-      
+
       // Redirect to broker login URL
       window.location.href = response.loginUrl;
     } catch (error) {
       setLoginError(
-        error instanceof Error ? error.message : `${brokerName} connection failed`
+        error instanceof Error
+          ? error.message
+          : `${brokerName} connection failed`
       );
     }
   }, []);
@@ -311,7 +324,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         );
 
         // Invalidate broker-related queries to refresh UI
-        queryClient.invalidateQueries({ queryKey: ['broker', 'active-session'] });
+        queryClient.invalidateQueries({
+          queryKey: ['broker', 'active-session'],
+        });
         queryClient.invalidateQueries({ queryKey: ['brokers', 'available'] });
         queryClient.invalidateQueries({ queryKey: ['verifyToken'] });
         queryClient.invalidateQueries({ queryKey: ['userProfile'] });
@@ -327,13 +342,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             brokerUserId: response.user.brokerUserId,
             brokerUserName: response.user.brokerUserName,
             broker: response.broker,
-          }
+          },
         };
 
         return brokerResponse;
       } catch (error) {
         const errorMessage =
-          error instanceof Error ? error.message : 'Broker authentication failed';
+          error instanceof Error
+            ? error.message
+            : 'Broker authentication failed';
         setLoginError(errorMessage);
         throw error;
       }

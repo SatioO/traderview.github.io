@@ -1,3 +1,5 @@
+import { analyticsService } from './analyticsService';
+
 export interface LoginRequest {
   email: string;
   password: string;
@@ -368,6 +370,23 @@ const authService = {
       response.refreshToken,
       response.user
     );
+
+    // Set user context in analytics first
+    analyticsService.setUser({
+      userId: response.user.id,
+      username: response.user.firstName + ' ' + response.user.lastName,
+      email: response.user.email,
+      displayName: `${response.user.firstName} ${response.user.lastName}`,
+    });
+
+    // Then, track the login event with user details
+    analyticsService.trackEvent('login_success', {
+      method: 'email',
+      userId: response.user.id,
+      email: response.user.email,
+      name: response.user.firstName + ' ' + response.user.lastName,
+    });
+
     return response;
   },
 
@@ -378,6 +397,21 @@ const authService = {
       response.refreshToken,
       response.user
     );
+
+    // Set user context in analytics first
+    analyticsService.setUser({
+      userId: response.user.id,
+      email: response.user.email,
+      displayName: `${response.user.firstName} ${response.user.lastName}`,
+    });
+
+    // Then, track the signup event with user details
+    analyticsService.trackEvent('signup_success', {
+      method: 'email',
+      userId: response.user.id,
+      email: response.user.email,
+    });
+
     return response;
   },
 
