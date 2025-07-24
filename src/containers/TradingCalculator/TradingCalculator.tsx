@@ -1186,10 +1186,37 @@ const TradingCalculator: React.FC = () => {
                     )}
                   </div>
                   <div className="relative">
-                    <label className="block text-sm font-medium text-red-300 mb-2">
-                      <OctagonX className="inline w-4 h-4 mr-1 text-red-400" />
-                      Stop Loss
-                      <Info className="inline w-4 h-4 ml-1 text-red-400 cursor-help" />
+                    <label className="flex items-center justify-between text-sm font-medium text-red-300 mb-2">
+                      <div className="flex items-center">
+                        <OctagonX className="inline w-4 h-4 mr-1 text-red-400" />
+                        Stop Loss
+                        <Info className="inline w-4 h-4 ml-1 text-red-400 cursor-help" />
+                      </div>
+                      {formData.entryPrice > 0 &&
+                        formData.stopLoss > 0 &&
+                        formData.stopLoss < formData.entryPrice && (
+                          <div className="flex items-center space-x-1 text-xs">
+                            {stopLossMode === 'price' ? (
+                              <>
+                                <span className="text-yellow-300">Risk:</span>
+                                <span className="font-bold text-orange-300">
+                                  {(
+                                    ((formData.entryPrice - formData.stopLoss) /
+                                      formData.entryPrice) *
+                                    100
+                                  ).toFixed(2)}%
+                                </span>
+                              </>
+                            ) : (
+                              <>
+                                <span className="text-yellow-300">SL:</span>
+                                <span className="font-bold text-orange-300">
+                                  ₹{formData.stopLoss.toFixed(2)}
+                                </span>
+                              </>
+                            )}
+                          </div>
+                        )}
                     </label>
 
                     {stopLossMode === 'price' ? (
@@ -1350,39 +1377,6 @@ const TradingCalculator: React.FC = () => {
                       </div>
                     )}
 
-                    {/* Dynamic Label Based on Mode */}
-                    {formData.entryPrice > 0 &&
-                      formData.stopLoss > 0 &&
-                      formData.stopLoss < formData.entryPrice && (
-                        <div className="mt-3 text-center">
-                          <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-400/40 rounded-lg px-3 py-1">
-                            {stopLossMode === 'price' ? (
-                              <>
-                                <span className="text-xs text-yellow-300">
-                                  ⚠️ Trade Risk:
-                                </span>
-                                <span className="text-sm font-bold text-orange-300">
-                                  {(
-                                    ((formData.entryPrice - formData.stopLoss) /
-                                      formData.entryPrice) *
-                                    100
-                                  ).toFixed(2)}
-                                  %
-                                </span>
-                              </>
-                            ) : (
-                              <>
-                                <span className="text-xs text-yellow-300">
-                                  💰 Stop Loss:
-                                </span>
-                                <span className="text-sm font-bold text-orange-300">
-                                  ₹{formData.stopLoss}
-                                </span>
-                              </>
-                            )}
-                          </div>
-                        </div>
-                      )}
                   </div>
                 </div>
 
