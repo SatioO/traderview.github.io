@@ -1,5 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { X, ExternalLink, CheckCircle, Clock, AlertCircle, TrendingUp, Zap, Shield, Wifi, Star, Globe, Lock, Users } from 'lucide-react';
+import {
+  X,
+  ExternalLink,
+  CheckCircle,
+  Clock,
+  Zap,
+  Shield,
+  Star,
+  Globe,
+  Lock,
+  Users,
+} from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import Button from '../ui/Button';
 
@@ -8,13 +19,12 @@ interface BrokerConnectionModalProps {
   onClose: () => void;
 }
 
-const BrokerConnectionModal: React.FC<BrokerConnectionModalProps> = ({ 
-  isOpen, 
-  onClose 
+const BrokerConnectionModal: React.FC<BrokerConnectionModalProps> = ({
+  isOpen,
+  onClose,
 }) => {
   const { availableBrokers, loginWithBroker, userProfile } = useAuth();
   const [selectedBroker, setSelectedBroker] = useState<string | null>(null);
-  const [connectionStep, setConnectionStep] = useState<'select' | 'connecting' | 'success'>('select');
 
   // Close on escape key
   useEffect(() => {
@@ -37,19 +47,19 @@ const BrokerConnectionModal: React.FC<BrokerConnectionModalProps> = ({
 
   const getConnectionStatus = (brokerId: string) => {
     if (!userProfile?.connectedBrokers) return 'disconnected';
-    
+
     const isConnected = userProfile.connectedBrokers.some(
-      broker => broker.broker === brokerId
+      (broker) => broker.broker === brokerId
     );
-    
+
     return isConnected ? 'connected' : 'disconnected';
   };
 
   const getConnectedBrokerInfo = (brokerId: string) => {
     if (!userProfile?.connectedBrokers) return null;
-    
+
     return userProfile.connectedBrokers.find(
-      broker => broker.broker === brokerId
+      (broker) => broker.broker === brokerId
     );
   };
 
@@ -66,16 +76,21 @@ const BrokerConnectionModal: React.FC<BrokerConnectionModalProps> = ({
     const configs = {
       kite: {
         name: 'Zerodha Kite',
-        description: 'India\'s largest discount brokerage platform',
+        description: "India's largest discount brokerage platform",
         logo: '🛡️',
         color: '#FF6D28',
         bgGradient: 'from-orange-500/10 via-red-500/5 to-orange-500/10',
         borderColor: 'border-orange-400/30 hover:border-orange-400/50',
-        features: ['₹0 equity delivery', 'Advanced charting', 'API access', 'Portfolio analytics'],
+        features: [
+          '₹0 equity delivery',
+          'Advanced charting',
+          'API access',
+          'Portfolio analytics',
+        ],
         rating: 4.8,
         users: '1.5M+',
         established: '2010',
-        security: 'Bank-grade encryption'
+        security: 'Bank-grade encryption',
       },
       groww: {
         name: 'Groww',
@@ -84,11 +99,16 @@ const BrokerConnectionModal: React.FC<BrokerConnectionModalProps> = ({
         color: '#00C896',
         bgGradient: 'from-emerald-500/10 via-green-500/5 to-teal-500/10',
         borderColor: 'border-emerald-400/30 hover:border-emerald-400/50',
-        features: ['Zero AMC', 'Paperless KYC', 'Mutual funds', 'Easy interface'],
+        features: [
+          'Zero AMC',
+          'Paperless KYC',
+          'Mutual funds',
+          'Easy interface',
+        ],
         rating: 4.6,
         users: '1M+',
         established: '2016',
-        security: '256-bit SSL encryption'
+        security: '256-bit SSL encryption',
       },
       angelone: {
         name: 'Angel One',
@@ -97,27 +117,34 @@ const BrokerConnectionModal: React.FC<BrokerConnectionModalProps> = ({
         color: '#3B82F6',
         bgGradient: 'from-blue-500/10 via-indigo-500/5 to-blue-500/10',
         borderColor: 'border-blue-400/30 hover:border-blue-400/50',
-        features: ['Research reports', 'Advisory services', 'SmartAPI', 'Mobile first'],
+        features: [
+          'Research reports',
+          'Advisory services',
+          'SmartAPI',
+          'Mobile first',
+        ],
         rating: 4.5,
         users: '800K+',
         established: '1996',
-        security: 'Multi-factor authentication'
+        security: 'Multi-factor authentication',
+      },
+    };
+
+    return (
+      configs[brokerId as keyof typeof configs] || {
+        name: brokerId,
+        description: 'Trading platform',
+        logo: '📊',
+        color: '#6366F1',
+        bgGradient: 'from-purple-500/10 via-indigo-500/5 to-purple-500/10',
+        borderColor: 'border-purple-400/30 hover:border-purple-400/50',
+        features: ['Trading platform'],
+        rating: 4.0,
+        users: 'N/A',
+        established: 'N/A',
+        security: 'Secure connection',
       }
-    };
-    
-    return configs[brokerId as keyof typeof configs] || {
-      name: brokerId,
-      description: 'Trading platform',
-      logo: '📊',
-      color: '#6366F1',
-      bgGradient: 'from-purple-500/10 via-indigo-500/5 to-purple-500/10',
-      borderColor: 'border-purple-400/30 hover:border-purple-400/50',
-      features: ['Trading platform'],
-      rating: 4.0,
-      users: 'N/A',
-      established: 'N/A',
-      security: 'Secure connection'
-    };
+    );
   };
 
   if (!isOpen) return null;
@@ -155,22 +182,76 @@ const BrokerConnectionModal: React.FC<BrokerConnectionModalProps> = ({
                 />
 
                 {/* Trading Connection Nodes */}
-                <circle cx="300" cy="250" r="4" fill="rgba(168,85,247,0.8)" className="animate-node-pulse">
-                  <animate attributeName="r" values="4;8;4" dur="3s" repeatCount="indefinite" />
+                <circle
+                  cx="300"
+                  cy="250"
+                  r="4"
+                  fill="rgba(168,85,247,0.8)"
+                  className="animate-node-pulse"
+                >
+                  <animate
+                    attributeName="r"
+                    values="4;8;4"
+                    dur="3s"
+                    repeatCount="indefinite"
+                  />
                 </circle>
-                <circle cx="600" cy="180" r="3" fill="rgba(6,182,212,0.8)" className="animate-node-pulse-delayed">
-                  <animate attributeName="r" values="3;6;3" dur="2.5s" repeatCount="indefinite" />
+                <circle
+                  cx="600"
+                  cy="180"
+                  r="3"
+                  fill="rgba(6,182,212,0.8)"
+                  className="animate-node-pulse-delayed"
+                >
+                  <animate
+                    attributeName="r"
+                    values="3;6;3"
+                    dur="2.5s"
+                    repeatCount="indefinite"
+                  />
                 </circle>
 
                 <defs>
-                  <linearGradient id="primaryGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                    <stop offset="0%" stopColor="rgb(168,85,247)" stopOpacity="0.9" />
-                    <stop offset="50%" stopColor="rgb(236,72,153)" stopOpacity="0.7" />
-                    <stop offset="100%" stopColor="rgb(6,182,212)" stopOpacity="0.5" />
+                  <linearGradient
+                    id="primaryGradient"
+                    x1="0%"
+                    y1="0%"
+                    x2="100%"
+                    y2="0%"
+                  >
+                    <stop
+                      offset="0%"
+                      stopColor="rgb(168,85,247)"
+                      stopOpacity="0.9"
+                    />
+                    <stop
+                      offset="50%"
+                      stopColor="rgb(236,72,153)"
+                      stopOpacity="0.7"
+                    />
+                    <stop
+                      offset="100%"
+                      stopColor="rgb(6,182,212)"
+                      stopOpacity="0.5"
+                    />
                   </linearGradient>
-                  <linearGradient id="secondaryGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                    <stop offset="0%" stopColor="rgb(6,182,212)" stopOpacity="0.8" />
-                    <stop offset="100%" stopColor="rgb(16,185,129)" stopOpacity="0.4" />
+                  <linearGradient
+                    id="secondaryGradient"
+                    x1="0%"
+                    y1="0%"
+                    x2="100%"
+                    y2="0%"
+                  >
+                    <stop
+                      offset="0%"
+                      stopColor="rgb(6,182,212)"
+                      stopOpacity="0.8"
+                    />
+                    <stop
+                      offset="100%"
+                      stopColor="rgb(16,185,129)"
+                      stopOpacity="0.4"
+                    />
                   </linearGradient>
                 </defs>
               </svg>
@@ -205,7 +286,6 @@ const BrokerConnectionModal: React.FC<BrokerConnectionModalProps> = ({
       <div className="fixed inset-0 bg-gradient-radial from-transparent via-transparent to-black/20 pointer-events-none" />
 
       <div className="relative w-full max-w-4xl bg-gradient-to-br from-slate-900/98 via-purple-900/95 to-slate-800/98 backdrop-blur-3xl rounded-[2rem] border border-purple-400/40 max-h-[90vh] overflow-hidden transform transition-all duration-700 ease-out animate-terminal-float mx-auto shadow-[0_0_50px_rgba(168,85,247,0.3)]">
-        
         {/* Floating Premium Elements */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-8 left-12 w-2 h-2 bg-gradient-to-r from-purple-400 to-cyan-400 rounded-full animate-ping opacity-60"></div>
@@ -216,7 +296,7 @@ const BrokerConnectionModal: React.FC<BrokerConnectionModalProps> = ({
 
         {/* Dynamic light bar */}
         <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-purple-400/50 to-transparent" />
-        
+
         {/* Glass morphism overlay */}
         <div className="absolute inset-0 bg-gradient-to-br from-white/[0.02] via-transparent to-black/10 pointer-events-none rounded-[2rem]" />
 
@@ -251,26 +331,32 @@ const BrokerConnectionModal: React.FC<BrokerConnectionModalProps> = ({
 
         {/* Content */}
         <div className="p-8 space-y-8 max-h-[70vh] overflow-y-auto">
-          
           {/* Header with current stats */}
           <div className="text-center space-y-4">
             <p className="text-slate-300 text-sm">
-              Connect with India's most trusted brokers for seamless trading experience
+              Connect with India's most trusted brokers for seamless trading
+              experience
             </p>
-            
+
             {/* Stats Row */}
             <div className="flex items-center justify-center space-x-6">
               <div className="flex items-center space-x-2">
                 <Shield className="w-4 h-4 text-emerald-400" />
-                <span className="text-xs text-emerald-300 font-semibold">Bank-Grade Security</span>
+                <span className="text-xs text-emerald-300 font-semibold">
+                  Bank-Grade Security
+                </span>
               </div>
               <div className="flex items-center space-x-2">
                 <Zap className="w-4 h-4 text-yellow-400" />
-                <span className="text-xs text-yellow-300 font-semibold">Instant Connection</span>
+                <span className="text-xs text-yellow-300 font-semibold">
+                  Instant Connection
+                </span>
               </div>
               <div className="flex items-center space-x-2">
                 <Lock className="w-4 h-4 text-cyan-400" />
-                <span className="text-xs text-cyan-300 font-semibold">Zero Data Storage</span>
+                <span className="text-xs text-cyan-300 font-semibold">
+                  Zero Data Storage
+                </span>
               </div>
             </div>
           </div>
@@ -281,7 +367,7 @@ const BrokerConnectionModal: React.FC<BrokerConnectionModalProps> = ({
               <Zap className="w-4 h-4 text-purple-400" />
               <span>Choose Your Trading Platform</span>
             </h3>
-            
+
             {/* Premium Broker Cards */}
             <div className="grid gap-4">
               {availableBrokers.map((broker) => {
@@ -293,7 +379,9 @@ const BrokerConnectionModal: React.FC<BrokerConnectionModalProps> = ({
                 return (
                   <div
                     key={broker.name}
-                    className={`group relative bg-gradient-to-r ${config.bgGradient} backdrop-blur-xl rounded-2xl p-6 border transition-all duration-300 hover:scale-[1.02] cursor-pointer ${
+                    className={`group relative bg-gradient-to-r ${
+                      config.bgGradient
+                    } backdrop-blur-xl rounded-2xl p-6 border transition-all duration-300 hover:scale-[1.02] cursor-pointer ${
                       status === 'connected'
                         ? 'border-emerald-400/40 ring-2 ring-emerald-500/40 shadow-lg shadow-emerald-500/20'
                         : isSelected
@@ -314,7 +402,7 @@ const BrokerConnectionModal: React.FC<BrokerConnectionModalProps> = ({
                         <div className="flex items-center space-x-4">
                           {/* Enhanced Logo */}
                           <div className="relative">
-                            <div 
+                            <div
                               className="p-4 rounded-xl border-2 transition-all duration-300 group-hover:scale-105"
                               style={{
                                 backgroundColor: `${config.color}20`,
@@ -343,7 +431,7 @@ const BrokerConnectionModal: React.FC<BrokerConnectionModalProps> = ({
                                 </div>
                               )}
                             </div>
-                            
+
                             <p className="text-sm text-slate-400 mb-3">
                               {config.description}
                             </p>
@@ -352,15 +440,21 @@ const BrokerConnectionModal: React.FC<BrokerConnectionModalProps> = ({
                             <div className="flex items-center space-x-4 mb-3">
                               <div className="flex items-center space-x-1">
                                 <Star className="w-3 h-3 text-yellow-400 fill-current" />
-                                <span className="text-xs text-yellow-300 font-semibold">{config.rating}</span>
+                                <span className="text-xs text-yellow-300 font-semibold">
+                                  {config.rating}
+                                </span>
                               </div>
                               <div className="flex items-center space-x-1">
                                 <Users className="w-3 h-3 text-cyan-400" />
-                                <span className="text-xs text-cyan-300 font-semibold">{config.users}</span>
+                                <span className="text-xs text-cyan-300 font-semibold">
+                                  {config.users}
+                                </span>
                               </div>
                               <div className="flex items-center space-x-1">
                                 <Globe className="w-3 h-3 text-purple-400" />
-                                <span className="text-xs text-purple-300 font-semibold">Est. {config.established}</span>
+                                <span className="text-xs text-purple-300 font-semibold">
+                                  Est. {config.established}
+                                </span>
                               </div>
                             </div>
 
@@ -369,11 +463,18 @@ const BrokerConnectionModal: React.FC<BrokerConnectionModalProps> = ({
                               <div className="text-xs text-slate-400 space-y-1 mb-3">
                                 <div className="flex items-center space-x-2">
                                   <Clock className="w-3 h-3" />
-                                  <span>Connected on {new Date(connectedInfo.connectedAt).toLocaleDateString()}</span>
+                                  <span>
+                                    Connected on{' '}
+                                    {new Date(
+                                      connectedInfo.connectedAt
+                                    ).toLocaleDateString()}
+                                  </span>
                                 </div>
                                 <div className="flex items-center space-x-2">
                                   <Shield className="w-3 h-3" />
-                                  <span>Account: {connectedInfo.brokerUserName}</span>
+                                  <span>
+                                    Account: {connectedInfo.brokerUserName}
+                                  </span>
                                 </div>
                               </div>
                             )}
@@ -426,12 +527,16 @@ const BrokerConnectionModal: React.FC<BrokerConnectionModalProps> = ({
                       <div className="flex items-center justify-between pt-3 border-t border-slate-600/30">
                         <div className="flex items-center space-x-2">
                           <Lock className="w-3 h-3 text-slate-400" />
-                          <span className="text-xs text-slate-400">{config.security}</span>
+                          <span className="text-xs text-slate-400">
+                            {config.security}
+                          </span>
                         </div>
                         {isSelected && (
                           <div className="flex items-center space-x-1">
                             <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse"></div>
-                            <span className="text-xs text-purple-300 font-semibold">Selected</span>
+                            <span className="text-xs text-purple-300 font-semibold">
+                              Selected
+                            </span>
                           </div>
                         )}
                       </div>
@@ -443,8 +548,12 @@ const BrokerConnectionModal: React.FC<BrokerConnectionModalProps> = ({
               {availableBrokers.length === 0 && (
                 <div className="text-center py-12">
                   <ExternalLink className="w-16 h-16 text-slate-500 mx-auto mb-4" />
-                  <p className="text-slate-400 text-lg font-semibold">No Brokers Available</p>
-                  <p className="text-slate-500 text-sm mt-2">More trading platforms coming soon!</p>
+                  <p className="text-slate-400 text-lg font-semibold">
+                    No Brokers Available
+                  </p>
+                  <p className="text-slate-500 text-sm mt-2">
+                    More trading platforms coming soon!
+                  </p>
                 </div>
               )}
             </div>
@@ -459,18 +568,21 @@ const BrokerConnectionModal: React.FC<BrokerConnectionModalProps> = ({
               <div className="flex items-start space-x-3">
                 <Shield className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" />
                 <div>
-                  <h3 className="text-sm font-semibold text-blue-300">🔒 Privacy Guaranteed</h3>
+                  <h3 className="text-sm font-semibold text-blue-300">
+                    🔒 Privacy Guaranteed
+                  </h3>
                   <p className="text-xs text-blue-200/80 mt-1">
-                    TradeView uses official broker APIs. Your credentials are never stored and handled securely through OAuth2.
+                    TradeView uses official broker APIs. Your credentials are
+                    never stored and handled securely through OAuth2.
                   </p>
                 </div>
               </div>
             </div>
-            
+
             {/* Action Buttons */}
             <div className="flex space-x-3">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={onClose}
                 className="px-6 py-3 border-slate-600/30 hover:border-slate-500/50"
               >
@@ -478,11 +590,15 @@ const BrokerConnectionModal: React.FC<BrokerConnectionModalProps> = ({
               </Button>
             </div>
           </div>
-          
+
           {/* Coming Soon Banner */}
           <div className="mt-4 text-center">
             <p className="text-xs text-slate-400">
-              🚀 <span className="text-purple-300 font-semibold">Coming Soon:</span> Upstox, 5Paisa, IIFL Securities & more!
+              🚀{' '}
+              <span className="text-purple-300 font-semibold">
+                Coming Soon:
+              </span>{' '}
+              Upstox, 5Paisa, IIFL Securities & more!
             </p>
           </div>
         </div>

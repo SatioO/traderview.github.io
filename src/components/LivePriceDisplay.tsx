@@ -1,8 +1,14 @@
-import React, { useState } from 'react';
-import { TrendingUp, TrendingDown, Minus, Signal, SignalHigh, SignalLow } from 'lucide-react';
+import React from 'react';
+import {
+  TrendingUp,
+  TrendingDown,
+  Minus,
+  Signal,
+  SignalHigh,
+  SignalLow,
+} from 'lucide-react';
 import { useInstrumentTick } from '../hooks/useInstrumentTick';
 import { useLiveData } from '../hooks/useLiveData';
-import type { InstrumentTick } from '../adapters/ports/BrokerDataAdapter';
 
 interface LivePriceDisplayProps {
   token: number;
@@ -17,8 +23,12 @@ export const LivePriceDisplay: React.FC<LivePriceDisplayProps> = ({
   mode = 'ltp',
   className = '',
 }) => {
-  const { tick, isSubscribed, subscriptionError } = useInstrumentTick(token, symbol, mode);
-  const { isConnected, connectionStatus } = useLiveData();
+  const { tick, isSubscribed, subscriptionError } = useInstrumentTick(
+    token,
+    symbol,
+    mode
+  );
+  const { isConnected } = useLiveData();
 
   if (!isConnected) {
     return (
@@ -65,22 +75,24 @@ export const LivePriceDisplay: React.FC<LivePriceDisplayProps> = ({
 
   const formatChange = (change: number, changePercent: number) => {
     const sign = change >= 0 ? '+' : '';
-    return `${sign}${formatPrice(change)} (${sign}${changePercent.toFixed(2)}%)`;
+    return `${sign}${formatPrice(change)} (${sign}${changePercent.toFixed(
+      2
+    )}%)`;
   };
 
   return (
     <div className={`flex items-center space-x-3 ${className}`}>
       {/* Connection Status */}
       <SignalHigh className="w-4 h-4 text-green-500" />
-      
+
       {/* Symbol */}
       <span className="font-medium text-gray-900">{symbol}</span>
-      
+
       {/* Price */}
       <span className={`font-bold text-lg ${getPriceColor(tick.change)}`}>
         ₹{formatPrice(tick.lastPrice)}
       </span>
-      
+
       {/* Change */}
       <div className="flex items-center space-x-1">
         {getTrendIcon(tick.change)}
@@ -109,7 +121,7 @@ export const LivePriceDisplay: React.FC<LivePriceDisplayProps> = ({
 // Example component showing multiple instruments
 export const LivePriceList: React.FC = () => {
   const { isConnected, connectionStatus, isInitializing } = useLiveData();
-  
+
   // Example instruments (Kite token numbers for popular stocks)
   const instruments = [
     { token: 738561, symbol: 'RELIANCE' },
@@ -123,7 +135,9 @@ export const LivePriceList: React.FC = () => {
       <div className="p-4 bg-blue-50 rounded-lg">
         <div className="flex items-center space-x-2">
           <Signal className="w-5 h-5 text-blue-500 animate-pulse" />
-          <span className="text-blue-700">Initializing live data connection...</span>
+          <span className="text-blue-700">
+            Initializing live data connection...
+          </span>
         </div>
       </div>
     );
@@ -135,7 +149,8 @@ export const LivePriceList: React.FC = () => {
         <div className="flex items-center space-x-2">
           <SignalLow className="w-5 h-5 text-red-500" />
           <span className="text-red-700">
-            Live data not connected. {connectionStatus?.error || 'Please check your broker session.'}
+            Live data not connected.{' '}
+            {connectionStatus?.error || 'Please check your broker session.'}
           </span>
         </div>
       </div>
@@ -151,7 +166,7 @@ export const LivePriceList: React.FC = () => {
           <span className="text-sm text-green-600">Connected</span>
         </div>
       </div>
-      
+
       <div className="space-y-3">
         {instruments.map((instrument) => (
           <div
@@ -169,6 +184,5 @@ export const LivePriceList: React.FC = () => {
     </div>
   );
 };
-
 
 export default LivePriceDisplay;
