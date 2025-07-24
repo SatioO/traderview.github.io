@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import type { FormData, MarketHealth } from '../types';
 
 interface MarketOutlookSectionProps {
@@ -6,7 +6,6 @@ interface MarketOutlookSectionProps {
   showMarketOutlookPanel: boolean;
   setShowMarketOutlookPanel: (show: boolean) => void;
   setFormData: React.Dispatch<React.SetStateAction<FormData>>;
-  getMarketSizingInfo: (health: MarketHealth) => { label: string; adjustment: string };
 }
 
 const MarketOutlookSection: React.FC<MarketOutlookSectionProps> = ({
@@ -14,17 +13,65 @@ const MarketOutlookSection: React.FC<MarketOutlookSectionProps> = ({
   showMarketOutlookPanel,
   setShowMarketOutlookPanel,
   setFormData,
-  getMarketSizingInfo,
 }) => {
+  // Get market health display info
+  const getMarketSizingInfo = useCallback((marketHealth: MarketHealth) => {
+    switch (marketHealth) {
+      case 'confirmed-uptrend':
+        return {
+          label: 'Confirmed Uptrend',
+          icon: '🚀',
+          color: 'emerald',
+          description: 'Strong bullish momentum - Full position sizing',
+          sizingLevel: 100,
+          adjustment: '100%',
+        };
+      case 'uptrend-under-pressure':
+        return {
+          label: 'Uptrend Under Pressure',
+          icon: '🔥',
+          color: 'yellow',
+          description: 'Weakening momentum - Reduced position sizing',
+          sizingLevel: 75,
+          adjustment: '75%',
+        };
+      case 'rally-attempt':
+        return {
+          label: 'Rally Attempt',
+          icon: '⚖️',
+          color: 'orange',
+          description: 'Uncertain direction - Conservative sizing',
+          sizingLevel: 50,
+          adjustment: '50%',
+        };
+      case 'downtrend':
+        return {
+          label: 'Downtrend',
+          icon: '🩸',
+          color: 'red',
+          description: 'Bearish conditions - Minimal position sizing',
+          sizingLevel: 25,
+          adjustment: '25%',
+        };
+      default:
+        return {
+          label: 'Unknown',
+          icon: '❓',
+          color: 'gray',
+          description: 'Market status unclear',
+          sizingLevel: 50,
+          adjustment: '50%',
+        };
+    }
+  }, []);
+
   return (
     <>
       {/* Market Outlook - Fixed Compact Design */}
       <div className={showMarketOutlookPanel ? 'mb-6' : ''}>
         <div
           className="flex items-center justify-between px-3 py-3 rounded-2xl bg-black/30 border border-green-500/20 cursor-pointer hover:border-green-400/40 transition-all duration-500 ease-out hover:bg-black/40 hover:shadow-lg hover:shadow-green-500/10 hover:scale-[1.02] transform"
-          onClick={() =>
-            setShowMarketOutlookPanel(!showMarketOutlookPanel)
-          }
+          onClick={() => setShowMarketOutlookPanel(!showMarketOutlookPanel)}
         >
           {/* Left - Status & Title */}
           <div className="flex items-center space-x-3">
@@ -425,36 +472,31 @@ const MarketOutlookSection: React.FC<MarketOutlookSectionProps> = ({
                       <div className="flex items-center space-x-2">
                         <div
                           className={`w-3 h-3 rounded-full ${
-                            formData.marketHealth ===
-                            'confirmed-uptrend'
+                            formData.marketHealth === 'confirmed-uptrend'
                               ? 'bg-green-400'
                               : formData.marketHealth ===
                                 'uptrend-under-pressure'
                               ? 'bg-yellow-400'
-                              : formData.marketHealth ===
-                                'rally-attempt'
+                              : formData.marketHealth === 'rally-attempt'
                               ? 'bg-orange-400'
                               : 'bg-red-400'
                           } animate-pulse`}
                         ></div>
                         <span
                           className={`text-sm font-bold ${
-                            formData.marketHealth ===
-                            'confirmed-uptrend'
+                            formData.marketHealth === 'confirmed-uptrend'
                               ? 'text-green-300'
                               : formData.marketHealth ===
                                 'uptrend-under-pressure'
                               ? 'text-yellow-300'
-                              : formData.marketHealth ===
-                                'rally-attempt'
+                              : formData.marketHealth === 'rally-attempt'
                               ? 'text-orange-300'
                               : 'text-red-300'
                           }`}
                         >
                           {formData.marketHealth === 'confirmed-uptrend'
                             ? 'LOW RISK'
-                            : formData.marketHealth ===
-                              'uptrend-under-pressure'
+                            : formData.marketHealth === 'uptrend-under-pressure'
                             ? 'MEDIUM RISK'
                             : formData.marketHealth === 'rally-attempt'
                             ? 'HIGH RISK'
@@ -500,8 +542,7 @@ const MarketOutlookSection: React.FC<MarketOutlookSectionProps> = ({
                         <p className="text-gray-200 text-xs leading-relaxed italic">
                           {formData.marketHealth === 'confirmed-uptrend'
                             ? 'In strong markets, be more aggressive. When stocks are working, increase position sizes progressively.'
-                            : formData.marketHealth ===
-                              'uptrend-under-pressure'
+                            : formData.marketHealth === 'uptrend-under-pressure'
                             ? 'In weak markets, make adjustments - take quicker profits and smaller losses to preserve capital.'
                             : formData.marketHealth === 'rally-attempt'
                             ? "During rally attempts, reduce risk. It's not how often you trade, but how profitable your trades are."
@@ -538,10 +579,7 @@ const MarketOutlookSection: React.FC<MarketOutlookSectionProps> = ({
                     <div className="mt-2 text-center">
                       <span className="text-xs text-gray-400">
                         💡 Position size automatically adjusted to{' '}
-                        {
-                          getMarketSizingInfo(formData.marketHealth)
-                            .adjustment
-                        }
+                        {getMarketSizingInfo(formData.marketHealth).adjustment}
                       </span>
                     </div>
                   </div>

@@ -1,16 +1,14 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   Info,
-  Shield,
-  Zap,
   Package,
+  Zap,
   Banknote,
   Flame,
   Scale,
   Receipt,
   AlertTriangle,
   TrendingUp,
-  PieChart,
   ArrowUp,
   OctagonX,
   Plus,
@@ -42,16 +40,14 @@ import type {
 } from './types';
 import { FIREBASE_CONFIG, BROKERAGE_RATES } from './constants';
 import MarketOutlookSection from './components/MarketOutlookSection';
+import TradingModeSelector from './components/TradingModeSelector';
+import RiskLevelSelector from './components/RiskLevelSelector';
+import AllocationLevelSelector from './components/AllocationLevelSelector';
 
 // Initialize Firebase
 const app = initializeApp(FIREBASE_CONFIG);
 getAnalytics(app);
 
-// Helper function to get risk level icons
-const getRiskLevelIcon = (): React.ComponentType<{ className?: string }> => {
-  // All risk levels use Shield icon (same as allocation levels)
-  return Shield;
-};
 
 const TradingCalculator: React.FC = () => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -118,24 +114,6 @@ const TradingCalculator: React.FC = () => {
     lastError,
   } = useOrderPlacement();
 
-  // Get allocation level thresholds for risk assessment
-  const getAllocationThresholds = () => {
-    const levels = getAllocationLevels();
-    return {
-      conservative:
-        levels.find((l) => l.id === 'conservative')?.percentage || 10,
-      balanced: levels.find((l) => l.id === 'balanced')?.percentage || 20,
-      high: levels.find((l) => l.id === 'high')?.percentage || 30,
-      extreme: levels.find((l) => l.id === 'extreme')?.percentage || 40,
-    };
-  };
-
-  // Helper function to get Lucide icon component from icon name
-  const getAllocationIcon = (): React.ComponentType<{ className?: string }> => {
-    // All allocation levels use Shield icon (same as risk levels)
-    return Shield;
-  };
-
   // Calculate brokerage automatically for delivery equity (buy only)
   const calculateBrokerage = useCallback(
     (buyPrice: number, positionSize: number): ChargesBreakdown => {
@@ -143,7 +121,8 @@ const TradingCalculator: React.FC = () => {
 
       // Charges for delivery equity (buy only)
       const stt = BROKERAGE_RATES.STT * turnoverBuy;
-      const transactionCharges = BROKERAGE_RATES.TRANSACTION_CHARGES * turnoverBuy;
+      const transactionCharges =
+        BROKERAGE_RATES.TRANSACTION_CHARGES * turnoverBuy;
       const sebiCharges = BROKERAGE_RATES.SEBI_CHARGES * turnoverBuy;
       const gst = BROKERAGE_RATES.GST * (transactionCharges + sebiCharges);
       const stampDuty = BROKERAGE_RATES.STAMP_DUTY * turnoverBuy;
@@ -217,57 +196,6 @@ const TradingCalculator: React.FC = () => {
     },
     []
   );
-
-  // Get market health display info
-  const getMarketSizingInfo = useCallback((marketHealth: MarketHealth) => {
-    switch (marketHealth) {
-      case 'confirmed-uptrend':
-        return {
-          label: 'Confirmed Uptrend',
-          icon: '🚀',
-          color: 'emerald',
-          description: 'Strong bullish momentum - Full position sizing',
-          sizingLevel: 100,
-          adjustment: '100%',
-        };
-      case 'uptrend-under-pressure':
-        return {
-          label: 'Uptrend Under Pressure',
-          icon: '🔥',
-          color: 'yellow',
-          description: 'Weakening momentum - Reduced position sizing',
-          sizingLevel: 75,
-          adjustment: '75%',
-        };
-      case 'rally-attempt':
-        return {
-          label: 'Rally Attempt',
-          icon: '⚖️',
-          color: 'orange',
-          description: 'Uncertain direction - Conservative sizing',
-          sizingLevel: 50,
-          adjustment: '50%',
-        };
-      case 'downtrend':
-        return {
-          label: 'Downtrend',
-          icon: '🩸',
-          color: 'red',
-          description: 'Bearish conditions - Minimal position sizing',
-          sizingLevel: 25,
-          adjustment: '25%',
-        };
-      default:
-        return {
-          label: 'Unknown',
-          icon: '❓',
-          color: 'gray',
-          description: 'Market status unclear',
-          sizingLevel: 50,
-          adjustment: '50%',
-        };
-    }
-  }, []);
 
   // Removed MarketSmith API integration for cleaner UX
 
@@ -692,137 +620,16 @@ const TradingCalculator: React.FC = () => {
                 showMarketOutlookPanel={showMarketOutlookPanel}
                 setShowMarketOutlookPanel={setShowMarketOutlookPanel}
                 setFormData={setFormData}
-                getMarketSizingInfo={getMarketSizingInfo}
               />
 
               {/* Compact Broker Connection Panel */}
               <BrokerConnectionPanel />
 
-              {/* Creative Tile-Style Mode Selector */}
-              <div className="mb-6">
-                <div className="grid grid-cols-2 gap-4 p-3 bg-black/20 rounded-2xl backdrop-blur-sm border border-purple-500/20">
-                  {/* Risk Mode Tile */}
-                  <button
-                    onClick={() => {
-                      setActiveTab('risk');
-                      updateActiveTab('risk');
-                    }}
-                    className={`group relative p-3 text-sm font-bold rounded-xl border-2 transition-all duration-300 hover:scale-105 overflow-hidden ${
-                      activeTab === 'risk'
-                        ? 'border-red-400 bg-red-500/10 shadow-lg shadow-red-500/30 text-red-300 transform scale-105'
-                        : 'border-purple-500/30 bg-black/30 text-purple-300 hover:border-red-400/50 hover:bg-red-500/5 hover:text-red-300'
-                    }`}
-                  >
-                    {/* Animated background */}
-                    <div className="absolute inset-0 opacity-20">
-                      <div
-                        className={`absolute inset-0 bg-gradient-to-br transition-all duration-500 ${
-                          activeTab === 'risk'
-                            ? 'from-red-600/40 via-pink-600/40 to-orange-600/40 animate-pulse'
-                            : 'from-transparent to-transparent'
-                        }`}
-                      ></div>
-                    </div>
-
-                    <div className="relative z-10 flex flex-col items-center space-y-2">
-                      {/* Icon with glow effect */}
-                      <div
-                        className={`relative transition-all duration-300 group-hover:scale-110`}
-                      >
-                        <TrendingUp
-                          className={`w-6 h-6 transition-colors duration-300 ${
-                            activeTab === 'risk'
-                              ? 'text-red-400'
-                              : 'text-purple-400 group-hover:text-red-400'
-                          }`}
-                        />
-                      </div>
-
-                      {/* Title */}
-                      <div className="text-center">
-                        <div className="font-bold text-sm mb-1">RISK MODE</div>
-                        <div className="text-xs opacity-75">High Stakes</div>
-                      </div>
-                    </div>
-
-                    {/* Achievement indicator */}
-                    {activeTab === 'risk' && (
-                      <div className="absolute top-2 right-2 w-3 h-3 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full animate-pulse">
-                        <div className="absolute inset-0 w-3 h-3 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full animate-ping opacity-30"></div>
-                      </div>
-                    )}
-
-                    {/* Shimmer effect */}
-                    {activeTab === 'risk' && (
-                      <div className="absolute inset-0 opacity-30">
-                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-pulse"></div>
-                      </div>
-                    )}
-                  </button>
-
-                  {/* Allocation Mode Tile */}
-                  <button
-                    onClick={() => {
-                      setActiveTab('allocation');
-                      updateActiveTab('allocation');
-                    }}
-                    className={`group relative p-3 text-sm font-bold rounded-xl border-2 transition-all duration-300 hover:scale-105 overflow-hidden ${
-                      activeTab === 'allocation'
-                        ? 'border-blue-400 bg-blue-500/10 shadow-lg shadow-blue-500/30 text-blue-300 transform scale-105'
-                        : 'border-purple-500/30 bg-black/30 text-purple-300 hover:border-blue-400/50 hover:bg-blue-500/5 hover:text-blue-300'
-                    }`}
-                  >
-                    {/* Animated background */}
-                    <div className="absolute inset-0 opacity-20">
-                      <div
-                        className={`absolute inset-0 bg-gradient-to-br transition-all duration-500 ${
-                          activeTab === 'allocation'
-                            ? 'from-blue-600/40 via-cyan-600/40 to-purple-600/40 animate-pulse'
-                            : 'from-transparent to-transparent'
-                        }`}
-                      ></div>
-                    </div>
-
-                    <div className="relative z-10 flex flex-col items-center space-y-2">
-                      {/* Icon with glow effect */}
-                      <div
-                        className={`relative transitio
-                          n-all duration-300 'group-hover:scale-110`}
-                      >
-                        <PieChart
-                          className={`w-6 h-6 transition-colors duration-300 ${
-                            activeTab === 'allocation'
-                              ? 'text-blue-400'
-                              : 'text-purple-400 group-hover:text-blue-400'
-                          }`}
-                        />
-                      </div>
-
-                      {/* Title */}
-                      <div className="text-center">
-                        <div className="font-bold text-sm mb-1">
-                          ALLOCATION MODE
-                        </div>
-                        <div className="text-xs opacity-75">Strategic</div>
-                      </div>
-                    </div>
-
-                    {/* Achievement indicator */}
-                    {activeTab === 'allocation' && (
-                      <div className="absolute top-2 right-2 w-3 h-3 bg-gradient-to-r from-blue-400 to-cyan-400 rounded-full animate-pulse">
-                        <div className="absolute inset-0 w-3 h-3 bg-gradient-to-r from-blue-400 to-cyan-400 rounded-full animate-ping opacity-30"></div>
-                      </div>
-                    )}
-
-                    {/* Shimmer effect */}
-                    {activeTab === 'allocation' && (
-                      <div className="absolute inset-0 opacity-30">
-                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-pulse"></div>
-                      </div>
-                    )}
-                  </button>
-                </div>
-              </div>
+              <TradingModeSelector
+                activeTab={activeTab}
+                setActiveTab={setActiveTab}
+                updateActiveTab={updateActiveTab}
+              />
 
               {/* Instrument Selection */}
               {hasActiveBrokerSession && (
@@ -833,268 +640,22 @@ const TradingCalculator: React.FC = () => {
               <div className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-2xl p-4 border border-purple-500/30 backdrop-blur-sm">
                 {/* Enhanced Risk-Based Sizing Tab */}
                 {activeTab === 'risk' && (
-                  <div className="relative overflow-hidden">
-                    {/* Risk Level Header with Dynamic Meter */}
-                    <div className="flex items-center justify-between mb-4">
-                      <label className="text-sm font-medium text-purple-300 flex items-center">
-                        <Zap className="w-4 h-4 mr-2" />
-                        Risk Level
-                        <Info
-                          className="inline w-4 h-4 ml-2 text-purple-400 cursor-help"
-                          xlinkTitle="Strategic allocation of your portfolio to this trade"
-                        />
-                      </label>
-
-                      {/* Real-time Risk Meter */}
-                      <div className="flex items-center space-x-4">
-                        <div className="text-xs text-purple-300">
-                          THREAT LEVEL
-                        </div>
-                        <div className="relative w-16 h-2 bg-black/40 rounded-full overflow-hidden">
-                          <div
-                            className="absolute left-0 top-0 h-full bg-gradient-to-r from-green-400 via-yellow-400 to-red-400 rounded-full transition-all duration-500"
-                            style={{
-                              width: `${Math.min(
-                                ((Number(formData.riskPercentage) || 0) * 100) /
-                                  3,
-                                100
-                              )}%`,
-                            }}
-                          ></div>
-                        </div>
-                        <div
-                          className={`text-xs font-bold ${
-                            (Number(formData.riskPercentage) || 0) >= 3
-                              ? 'text-red-400 animate-pulse'
-                              : (Number(formData.riskPercentage) || 0) > 2
-                              ? 'text-orange-400'
-                              : (Number(formData.riskPercentage) || 0) > 1
-                              ? 'text-yellow-400'
-                              : 'text-green-400'
-                          }`}
-                        >
-                          {(Number(formData.riskPercentage) || 0) >= 3
-                            ? 'EXTREME'
-                            : (Number(formData.riskPercentage) || 0) > 2
-                            ? 'HIGH'
-                            : (Number(formData.riskPercentage) || 0) > 1
-                            ? 'MED'
-                            : 'LOW'}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Risk Level Buttons - Matching Allocation Style */}
-                    <div className="grid grid-cols-4 gap-2 mb-4 p-2">
-                      {getRiskLevels().map((riskLevel, index) => {
-                        const riskColors = [
-                          'emerald',
-                          'yellow',
-                          'orange',
-                          'red',
-                        ];
-                        const isSelected =
-                          Number(formData.riskPercentage) ===
-                          riskLevel.percentage;
-
-                        return (
-                          <button
-                            key={riskLevel.id}
-                            onClick={() => {
-                              handleInputChange(
-                                'riskPercentage',
-                                riskLevel.percentage.toString()
-                              );
-                              updateRiskLevel(riskLevel.id);
-                            }}
-                            className={`group relative py-3 px-2 text-xs font-bold rounded-lg border-2 transition-all duration-300 hover:scale-105 ${
-                              isSelected
-                                ? `border-${riskColors[index]}-400 bg-${riskColors[index]}-500/10 shadow-lg shadow-${riskColors[index]}-500/30 text-${riskColors[index]}-300 transform scale-105`
-                                : `border-purple-500/30 bg-black/30 text-purple-300 hover:border-${riskColors[index]}-400/50 hover:bg-${riskColors[index]}-500/5 hover:text-${riskColors[index]}-300`
-                            }`}
-                            title={riskLevel.description}
-                          >
-                            <div className="flex flex-col items-center space-y-1">
-                              <div
-                                className={`text-${riskColors[index]}-400 transition-colors duration-300`}
-                              >
-                                {React.createElement(getRiskLevelIcon(), {
-                                  className: 'w-4 h-4',
-                                })}
-                              </div>
-                              <div className="text-sm font-bold">
-                                {riskLevel.percentage}%
-                              </div>
-                              <div className="text-xs opacity-75">
-                                {riskLevel.name
-                                  .replace(' play', '')
-                                  .replace(' approach', '')
-                                  .replace(' strategy', '')
-                                  .replace(' risk', '')}
-                              </div>
-                            </div>
-
-                            {isSelected && (
-                              <div className="absolute top-1 right-1 w-2 h-2 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full animate-pulse"></div>
-                            )}
-                          </button>
-                        );
-                      })}
-                    </div>
-
-                    {/* Enhanced Input Field - Always Visible */}
-                    <div className="relative">
-                      <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-xl blur-sm"></div>
-                      <input
-                        type="number"
-                        value={
-                          formData.riskPercentage === ''
-                            ? ''
-                            : formData.riskPercentage
-                        }
-                        onChange={(e) => {
-                          handleInputChange('riskPercentage', e.target.value);
-                        }}
-                        className="relative w-full px-4 py-3 bg-black/40 border-2 border-purple-500/50 rounded-xl focus:border-purple-400 focus:ring-2 focus:ring-purple-400/20 text-white placeholder-purple-300/50 font-mono text-lg transition-all duration-300 focus:shadow-lg focus:shadow-purple-500/20"
-                        min="0.25"
-                        max="10"
-                        step="0.25"
-                        placeholder="Enter risk %..."
-                      />
-                    </div>
-                  </div>
+                  <RiskLevelSelector
+                    formData={formData}
+                    handleInputChange={handleInputChange}
+                    getRiskLevels={getRiskLevels}
+                    updateRiskLevel={updateRiskLevel}
+                  />
                 )}
 
                 {/* Enhanced Allocation-Based Sizing Tab */}
                 {activeTab === 'allocation' && (
-                  <div className="relative overflow-hidden">
-                    {/* Allocation Header with Portfolio Visualization */}
-                    <div className="flex items-center justify-between mb-4">
-                      <label className="text-sm font-medium text-purple-300 flex items-center">
-                        <span className="mr-2">🎯</span>
-                        Portfolio Allocation Level
-                        <Info
-                          className="inline w-4 h-4 ml-2 text-purple-400 cursor-help"
-                          xlinkTitle="Strategic allocation of your portfolio to this trade"
-                        />
-                      </label>
-
-                      {/* Real-time Allocation Meter */}
-                      <div className="flex items-center space-x-2">
-                        <div className="text-xs text-blue-300">ALLOCATION</div>
-                        <div className="relative w-16 h-2 bg-black/40 rounded-full overflow-hidden">
-                          <div
-                            className="absolute left-0 top-0 h-full bg-gradient-to-r from-blue-400 via-cyan-400 to-purple-400 rounded-full transition-all duration-500"
-                            style={{
-                              width: `${Math.min(
-                                Number(formData.allocationPercentage) || 0,
-                                100
-                              )}%`,
-                            }}
-                          ></div>
-                        </div>
-                        <div
-                          className={`text-xs font-bold ${
-                            (Number(formData.allocationPercentage) || 0) >
-                            getAllocationThresholds().high
-                              ? 'text-red-400'
-                              : (Number(formData.allocationPercentage) || 0) >
-                                getAllocationThresholds().balanced
-                              ? 'text-yellow-400'
-                              : 'text-green-400'
-                          }`}
-                        >
-                          {(Number(formData.allocationPercentage) || 0) >
-                          getAllocationThresholds().high
-                            ? 'HIGH'
-                            : (Number(formData.allocationPercentage) || 0) >
-                              getAllocationThresholds().balanced
-                            ? 'MED'
-                            : 'LOW'}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Quick Allocation Buttons */}
-                    <div className="grid grid-cols-4 gap-2 mb-4 p-2">
-                      {getAllocationLevels().map((allocationLevel, index) => {
-                        const allocationColors = [
-                          'emerald',
-                          'blue',
-                          'orange',
-                          'red',
-                        ];
-                        const isSelected =
-                          Number(formData.allocationPercentage) ===
-                          allocationLevel.percentage;
-
-                        return (
-                          <button
-                            key={allocationLevel.id}
-                            onClick={() => {
-                              handleInputChange(
-                                'allocationPercentage',
-                                allocationLevel.percentage.toString()
-                              );
-                              updateAllocationLevel(allocationLevel.id);
-                            }}
-                            className={`group relative py-3 px-2 text-xs font-bold rounded-lg border-2 transition-all duration-300 hover:scale-105 ${
-                              isSelected
-                                ? `border-${allocationColors[index]}-400 bg-${allocationColors[index]}-500/10 shadow-lg shadow-${allocationColors[index]}-500/30 text-${allocationColors[index]}-300 transform scale-105`
-                                : `border-purple-500/30 bg-black/30 text-purple-300 hover:border-${allocationColors[index]}-400/50 hover:bg-${allocationColors[index]}-500/5 hover:text-${allocationColors[index]}-300`
-                            }`}
-                          >
-                            <div className="flex flex-col items-center space-y-1">
-                              <div
-                                className={`text-${allocationColors[index]}-400 transition-colors duration-300`}
-                              >
-                                {React.createElement(getAllocationIcon(), {
-                                  className: 'w-4 h-4',
-                                })}
-                              </div>
-                              <div className="text-sm font-bold">
-                                {allocationLevel.percentage}%
-                              </div>
-                              <div className="text-xs opacity-75">
-                                {allocationLevel.name.replace(
-                                  ' allocation',
-                                  ''
-                                )}
-                              </div>
-                            </div>
-
-                            {isSelected && (
-                              <div className="absolute top-1 right-1 w-2 h-2 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full animate-pulse"></div>
-                            )}
-                          </button>
-                        );
-                      })}
-                    </div>
-
-                    {/* Enhanced Input Field */}
-                    <div className="relative">
-                      <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-cyan-500/10 rounded-xl blur-sm"></div>
-                      <input
-                        type="number"
-                        value={
-                          formData.allocationPercentage === ''
-                            ? ''
-                            : formData.allocationPercentage
-                        }
-                        onChange={(e) =>
-                          handleInputChange(
-                            'allocationPercentage',
-                            e.target.value
-                          )
-                        }
-                        className="relative w-full px-4 py-3 bg-black/40 border-2 border-blue-500/50 rounded-xl focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 text-white placeholder-blue-300/50 font-mono text-lg transition-all duration-300 focus:shadow-lg focus:shadow-blue-500/20"
-                        min="5"
-                        max="100"
-                        step="5"
-                        placeholder="Enter allocation %..."
-                      />
-                    </div>
-                  </div>
+                  <AllocationLevelSelector
+                    formData={formData}
+                    handleInputChange={handleInputChange}
+                    getAllocationLevels={getAllocationLevels}
+                    updateAllocationLevel={updateAllocationLevel}
+                  />
                 )}
 
                 {/* Gaming Price Controls */}
@@ -1195,26 +756,30 @@ const TradingCalculator: React.FC = () => {
                       {formData.entryPrice > 0 &&
                         formData.stopLoss > 0 &&
                         formData.stopLoss < formData.entryPrice && (
-                          <div className="flex items-center space-x-1 text-xs">
-                            {stopLossMode === 'price' ? (
-                              <>
-                                <span className="text-yellow-300">Risk:</span>
-                                <span className="font-bold text-orange-300">
-                                  {(
-                                    ((formData.entryPrice - formData.stopLoss) /
-                                      formData.entryPrice) *
-                                    100
-                                  ).toFixed(2)}%
-                                </span>
-                              </>
-                            ) : (
-                              <>
-                                <span className="text-yellow-300">SL:</span>
-                                <span className="font-bold text-orange-300">
-                                  ₹{formData.stopLoss.toFixed(2)}
-                                </span>
-                              </>
-                            )}
+                          <div className="flex items-center space-x-3">
+                            <div className="flex items-center space-x-1 text-xs">
+                              {stopLossMode === 'price' ? (
+                                <>
+                                  <span className="text-yellow-300">Risk:</span>
+                                  <span className="font-bold text-orange-300">
+                                    {(
+                                      ((formData.entryPrice - formData.stopLoss) /
+                                        formData.entryPrice) *
+                                      100
+                                    ).toFixed(2)}
+                                    %
+                                  </span>
+                                </>
+                              ) : (
+                                <>
+                                  <span className="text-yellow-300">SL:</span>
+                                  <span className="font-bold text-orange-300">
+                                    ₹{formData.stopLoss.toFixed(2)}
+                                  </span>
+                                </>
+                              )}
+                            </div>
+                            
                           </div>
                         )}
                     </label>
@@ -1376,7 +941,6 @@ const TradingCalculator: React.FC = () => {
                         </div>
                       </div>
                     )}
-
                   </div>
                 </div>
 
