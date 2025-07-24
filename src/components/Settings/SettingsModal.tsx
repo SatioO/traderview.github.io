@@ -628,70 +628,76 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     // Final validation before save
     if (hasValidationErrors) {
       return;
     }
 
-    // Update risk levels with new percentages
-    localSettings.riskLevels.forEach((level) => {
-      if (editedLevels[level.id] !== undefined) {
-        const updatedLevel: RiskLevel = {
-          ...level,
-          percentage: Number(editedLevels[level.id]),
-        };
-        updateRiskLevel(updatedLevel);
+    try {
+      // Update risk levels with new percentages
+      for (const level of localSettings.riskLevels) {
+        if (editedLevels[level.id] !== undefined) {
+          const updatedLevel: RiskLevel = {
+            ...level,
+            percentage: Number(editedLevels[level.id]),
+          };
+          await updateRiskLevel(updatedLevel);
+        }
       }
-    });
 
-    // Update allocation levels with new percentages
-    localSettings.allocationLevels.forEach((level) => {
-      if (editedAllocationLevels[level.id] !== undefined) {
-        const updatedLevel: AllocationLevel = {
-          ...level,
-          percentage: Number(editedAllocationLevels[level.id]),
-        };
-        updateAllocationLevel(updatedLevel);
+      // Update allocation levels with new percentages
+      for (const level of localSettings.allocationLevels) {
+        if (editedAllocationLevels[level.id] !== undefined) {
+          const updatedLevel: AllocationLevel = {
+            ...level,
+            percentage: Number(editedAllocationLevels[level.id]),
+          };
+          await updateAllocationLevel(updatedLevel);
+        }
       }
-    });
 
-    // Update stop loss levels with new percentages
-    localSettings.stopLossLevels.forEach((level) => {
-      if (editedStopLossLevels[level.id] !== undefined) {
-        const updatedLevel: StopLossLevel = {
-          ...level,
-          percentage: Number(editedStopLossLevels[level.id]),
-        };
-        updateStopLossLevel(updatedLevel);
+      // Update stop loss levels with new percentages
+      for (const level of localSettings.stopLossLevels) {
+        if (editedStopLossLevels[level.id] !== undefined) {
+          const updatedLevel: StopLossLevel = {
+            ...level,
+            percentage: Number(editedStopLossLevels[level.id]),
+          };
+          await updateStopLossLevel(updatedLevel);
+        }
       }
-    });
 
-    // Update trading capital if changed
-    if (editedCapital !== undefined) {
-      updateSettings({ accountBalance: Number(editedCapital) });
+      // Update trading capital if changed
+      if (editedCapital !== undefined) {
+        await updateSettings({ accountBalance: Number(editedCapital) });
+      }
+
+      // Update stop loss setting if changed
+      if (
+        localSettings.defaultStopLossPercentage !==
+        settings.defaultStopLossPercentage
+      ) {
+        await updateSettings({
+          defaultStopLossPercentage: localSettings.defaultStopLossPercentage,
+        });
+      }
+
+      // Clear local edits after saving
+      setEditedLevels({});
+      setEditedAllocationLevels({});
+      setEditedStopLossLevels({});
+      setEditedCapital(undefined);
+      setValidationErrors({});
+      setOrderConflicts({});
+      setShakeAnimations({});
+
+      onClose();
+    } catch (error) {
+      console.error('Failed to save settings:', error);
+      // Keep modal open on error so user can try again
+      // TODO: Add user-friendly error notification
     }
-
-    // Update stop loss setting if changed
-    if (
-      localSettings.defaultStopLossPercentage !==
-      settings.defaultStopLossPercentage
-    ) {
-      updateSettings({
-        defaultStopLossPercentage: localSettings.defaultStopLossPercentage,
-      });
-    }
-
-    // Clear local edits after saving
-    setEditedLevels({});
-    setEditedAllocationLevels({});
-    setEditedStopLossLevels({});
-    setEditedCapital(undefined);
-    setValidationErrors({});
-    setOrderConflicts({});
-    setShakeAnimations({});
-
-    onClose();
   };
 
   const getDisplayValue = (level: RiskLevel) => {

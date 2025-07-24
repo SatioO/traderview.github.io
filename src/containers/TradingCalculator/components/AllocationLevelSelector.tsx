@@ -20,7 +20,7 @@ interface AllocationLevelSelectorProps {
   formData: FormData;
   handleInputChange: (field: keyof FormData, value: string) => void;
   getAllocationLevels: () => AllocationLevel[];
-  updateAllocationLevel: (id: string) => void;
+  updateAllocationLevel: (id: string) => Promise<void>;
 }
 
 const AllocationLevelSelector: React.FC<AllocationLevelSelectorProps> = ({
@@ -101,12 +101,16 @@ const AllocationLevelSelector: React.FC<AllocationLevelSelectorProps> = ({
           return (
             <button
               key={allocationLevel.id}
-              onClick={() => {
+              onClick={async () => {
                 handleInputChange(
                   'allocationPercentage',
                   allocationLevel.percentage.toString()
                 );
-                updateAllocationLevel(allocationLevel.id);
+                try {
+                  await updateAllocationLevel(allocationLevel.id);
+                } catch (error) {
+                  console.error('Failed to update allocation level:', error);
+                }
               }}
               className={`group relative py-3 px-2 text-xs font-bold rounded-lg border-2 transition-all duration-300 hover:scale-105 ${
                 isSelected

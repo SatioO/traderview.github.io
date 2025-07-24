@@ -13,7 +13,7 @@ interface RiskLevelSelectorProps {
   formData: FormData;
   handleInputChange: (field: keyof FormData, value: string) => void;
   getRiskLevels: () => RiskLevel[];
-  updateRiskLevel: (id: string) => void;
+  updateRiskLevel: (id: string) => Promise<void>;
 }
 
 const RiskLevelSelector: React.FC<RiskLevelSelectorProps> = ({
@@ -85,12 +85,16 @@ const RiskLevelSelector: React.FC<RiskLevelSelectorProps> = ({
           return (
             <button
               key={riskLevel.id}
-              onClick={() => {
+              onClick={async () => {
                 handleInputChange(
                   'riskPercentage',
                   riskLevel.percentage.toString()
                 );
-                updateRiskLevel(riskLevel.id);
+                try {
+                  await updateRiskLevel(riskLevel.id);
+                } catch (error) {
+                  console.error('Failed to update risk level:', error);
+                }
               }}
               className={`group relative py-3 px-2 text-xs font-bold rounded-lg border-2 transition-all duration-300 hover:scale-105 ${
                 isSelected

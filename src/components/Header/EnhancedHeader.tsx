@@ -81,13 +81,21 @@ const EnhancedHeader: React.FC<EnhancedHeaderProps> = ({
     await logout();
   };
 
-  const handleCapitalSave = () => {
+  const handleCapitalSave = async () => {
     const newAmount = parseFloat(tempCapital.replace(/,/g, ''));
     if (!isNaN(newAmount) && newAmount > 0) {
-      updateSettings({ accountBalance: newAmount });
+      try {
+        await updateSettings({ accountBalance: newAmount });
+        setShowCapitalEdit(false);
+        setTempCapital('');
+      } catch (error) {
+        console.error('Failed to update account balance:', error);
+        // Keep modal open on error so user can try again
+      }
+    } else {
+      setShowCapitalEdit(false);
+      setTempCapital('');
     }
-    setShowCapitalEdit(false);
-    setTempCapital('');
   };
 
   const handleCapitalEdit = () => {

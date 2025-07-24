@@ -2,15 +2,15 @@ import React, {
   createContext,
   useContext,
   useEffect,
-  useState,
   type ReactNode,
 } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import type {
   MarketHealth,
   TabType,
 } from '../containers/TradingCalculator/types';
 import { brokerApiService } from '../services/brokerApiService';
+import { preferencesService } from '../services/preferencesService';
 
 // Risk Level Configuration
 export interface RiskLevel {
@@ -206,8 +206,8 @@ const DEFAULT_STOP_LOSS_LEVELS: StopLossLevel[] = [
   },
 ];
 
-// Settings version for migration
-const SETTINGS_VERSION = 2; // Increment when structure changes
+// Settings version for migration (kept for compatibility)
+const SETTINGS_VERSION = 2; // No longer used with backend API
 
 // Default Settings
 const DEFAULT_SETTINGS: UserSettings = {
@@ -236,23 +236,27 @@ const DEFAULT_SETTINGS: UserSettings = {
 interface SettingsContextType {
   settings: UserSettings;
   isLoading: boolean;
+  error: Error | null;
   hasActiveBrokerSession: boolean;
-  updateSettings: (updates: Partial<UserSettings>) => void;
-  updateRiskLevel: (riskLevel: RiskLevel) => void;
-  addRiskLevel: (riskLevel: Omit<RiskLevel, 'id'>) => void;
-  removeRiskLevel: (id: string) => void;
-  updateAllocationLevel: (allocationLevel: AllocationLevel) => void;
-  addAllocationLevel: (allocationLevel: Omit<AllocationLevel, 'id'>) => void;
-  removeAllocationLevel: (id: string) => void;
-  updateStopLossLevel: (stopLossLevel: StopLossLevel) => void;
-  addStopLossLevel: (stopLossLevel: Omit<StopLossLevel, 'id'>) => void;
-  removeStopLossLevel: (id: string) => void;
-  resetSettings: () => void;
+  updateSettings: (updates: Partial<UserSettings>) => Promise<void>;
+  updateRiskLevel: (riskLevel: RiskLevel) => Promise<void>;
+  addRiskLevel: (riskLevel: Omit<RiskLevel, 'id'>) => Promise<void>;
+  removeRiskLevel: (id: string) => Promise<void>;
+  updateAllocationLevel: (allocationLevel: AllocationLevel) => Promise<void>;
+  addAllocationLevel: (
+    allocationLevel: Omit<AllocationLevel, 'id'>
+  ) => Promise<void>;
+  removeAllocationLevel: (id: string) => Promise<void>;
+  updateStopLossLevel: (stopLossLevel: StopLossLevel) => Promise<void>;
+  addStopLossLevel: (stopLossLevel: Omit<StopLossLevel, 'id'>) => Promise<void>;
+  removeStopLossLevel: (id: string) => Promise<void>;
+  resetSettings: () => Promise<void>;
   getCurrentRiskLevel: () => RiskLevel | undefined;
   getCurrentAllocationLevel: () => AllocationLevel | undefined;
   getCurrentStopLossLevel: () => StopLossLevel | undefined;
   exportSettings: () => string;
-  importSettings: (settingsJson: string) => boolean;
+  importSettings: (settingsJson: string) => Promise<boolean>;
+  refetchSettings: () => Promise<void>;
 }
 
 // Create Context
@@ -268,8 +272,31 @@ interface SettingsProviderProps {
 export const SettingsProvider: React.FC<SettingsProviderProps> = ({
   children,
 }) => {
-  const [settings, setSettings] = useState<UserSettings>(DEFAULT_SETTINGS);
-  const [isLoaded, setIsLoaded] = useState<boolean>(false);
+  const queryClient = useQueryClient();
+
+  // Fetch preferences from backend using React Query
+  const {
+    data: settings,
+    isLoading: isLoadingSettings,
+    error: settingsError,
+    refetch: refetchSettings,
+  } = useQuery({
+    queryKey: ['user', 'preferences'],
+    queryFn: () => preferencesService.getPreferences(),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    retry: (failureCount, error) => {
+      // Don't retry on authentication errors
+      if (
+        error instanceof Error &&
+        (error.message.includes('Authentication failed') ||
+          error.message.includes('ACCESS_TOKEN_EXPIRED') ||
+          error.message.includes('Token invalid'))
+      ) {
+        return false;
+      }
+      return failureCount < 2;
+    },
+  });
 
   // Use React Query for session checking with matching key
   const { data: activeSession, isLoading: isLoadingActiveSession } = useQuery({
@@ -279,10 +306,12 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({
         return await brokerApiService.getActiveSession();
       } catch (error) {
         // Handle authentication errors gracefully
-        if (error instanceof Error && 
-            (error.message.includes('Authentication failed') || 
-             error.message.includes('ACCESS_TOKEN_EXPIRED') ||
-             error.message.includes('Token invalid'))) {
+        if (
+          error instanceof Error &&
+          (error.message.includes('Authentication failed') ||
+            error.message.includes('ACCESS_TOKEN_EXPIRED') ||
+            error.message.includes('Token invalid'))
+        ) {
           console.log('Token expired, redirecting to login...');
           // Clear any cached auth data and redirect to login
           window.location.href = '/login';
@@ -294,334 +323,247 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({
     staleTime: 0, // Always refetch on mount for fresh session data
     retry: (failureCount, error) => {
       // Don't retry on authentication errors
-      if (error instanceof Error && 
-          (error.message.includes('Authentication failed') || 
-           error.message.includes('ACCESS_TOKEN_EXPIRED') ||
-           error.message.includes('Token invalid'))) {
+      if (
+        error instanceof Error &&
+        (error.message.includes('Authentication failed') ||
+          error.message.includes('ACCESS_TOKEN_EXPIRED') ||
+          error.message.includes('Token invalid'))
+      ) {
         return false;
       }
       // Retry up to 2 times for other errors
       return failureCount < 2;
     },
   });
-  
-  // Combined loading state
-  const isLoading = !isLoaded || isLoadingActiveSession;
-  const hasActiveBrokerSession = activeSession?.hasActiveSession ?? false;
+  // Mutations for updating preferences
+  const updatePreferencesMutation = useMutation({
+    mutationFn: (updates: Partial<UserSettings>) =>
+      preferencesService.updatePartialPreferences(updates),
+    onMutate: async (updates) => {
+      // Cancel any outgoing refetches (so they don't overwrite our optimistic update)
+      await queryClient.cancelQueries({ queryKey: ['user', 'preferences'] });
 
-  // Load settings from localStorage on mount with enhanced UX delay
-  useEffect(() => {
-    const loadSettings = async () => {
-      // Add a minimum delay for better UX
-      const startTime = Date.now();
+      // Snapshot the previous value
+      const previousSettings = queryClient.getQueryData([
+        'user',
+        'preferences',
+      ]);
 
-      try {
-        const savedSettings = localStorage.getItem('userSettings');
-        if (savedSettings) {
-          const parsed = JSON.parse(savedSettings);
-
-          // Check if migration is needed
-          const needsMigration =
-            !parsed.version || parsed.version < SETTINGS_VERSION;
-
-          const migratedSettings = { ...DEFAULT_SETTINGS, ...parsed };
-
-          if (needsMigration) {
-            console.log(
-              'Migrating settings from version',
-              parsed.version || 'unknown',
-              'to',
-              SETTINGS_VERSION
-            );
-
-            // Force update allocation levels to include all 4 defaults
-            migratedSettings.allocationLevels = DEFAULT_ALLOCATION_LEVELS;
-            // Force update stop loss levels to include all 4 defaults
-            migratedSettings.stopLossLevels = DEFAULT_STOP_LOSS_LEVELS;
-            migratedSettings.version = SETTINGS_VERSION;
-
-            // Force save the migrated settings
-            localStorage.setItem(
-              'userSettings',
-              JSON.stringify(migratedSettings)
-            );
-          } else {
-            // Even if not migrating, ensure all 4 allocation levels exist
-            const requiredAllocationIds = [
-              'conservative',
-              'balanced',
-              'high',
-              'extreme',
-            ];
-            const existingAllocationIds = (
-              migratedSettings.allocationLevels || []
-            ).map((l: AllocationLevel) => l.id);
-            const missingAllocationLevels = requiredAllocationIds.filter(
-              (id) => !existingAllocationIds.includes(id)
-            );
-
-            // Ensure all 4 stop loss levels exist
-            const requiredStopLossIds = ['tight', 'normal', 'loose', 'wide'];
-            const existingStopLossIds = (
-              migratedSettings.stopLossLevels || []
-            ).map((l: StopLossLevel) => l.id);
-            const missingStopLossLevels = requiredStopLossIds.filter(
-              (id) => !existingStopLossIds.includes(id)
-            );
-
-            let needsUpdate = false;
-
-            if (
-              !migratedSettings.allocationLevels ||
-              migratedSettings.allocationLevels.length < 4 ||
-              missingAllocationLevels.length > 0
-            ) {
-              console.log(
-                'Fixing missing allocation levels:',
-                missingAllocationLevels
-              );
-              migratedSettings.allocationLevels = DEFAULT_ALLOCATION_LEVELS;
-              needsUpdate = true;
-            }
-
-            if (
-              !migratedSettings.stopLossLevels ||
-              migratedSettings.stopLossLevels.length < 4 ||
-              missingStopLossLevels.length > 0
-            ) {
-              console.log(
-                'Fixing missing stop loss levels:',
-                missingStopLossLevels
-              );
-              migratedSettings.stopLossLevels = DEFAULT_STOP_LOSS_LEVELS;
-              needsUpdate = true;
-            }
-
-            if (needsUpdate) {
-              localStorage.setItem(
-                'userSettings',
-                JSON.stringify(migratedSettings)
-              );
-            }
-          }
-
-          // Merge with defaults to ensure all properties exist
-          setSettings(migratedSettings);
-        } else {
-          // Load legacy preferences if they exist
-          const legacyAccountInfo = localStorage.getItem('accountInfo');
-          const legacyDarkMode = localStorage.getItem('darkMode');
-
-          let legacySettings = { ...DEFAULT_SETTINGS };
-
-          if (legacyAccountInfo) {
-            const legacy = JSON.parse(legacyAccountInfo);
-            legacySettings = {
-              ...legacySettings,
-              accountBalance:
-                legacy.accountBalance || legacySettings.accountBalance,
-              marketHealth: legacy.marketHealth || legacySettings.marketHealth,
-              activeTab: legacy.activeTab || legacySettings.activeTab,
-            };
-          }
-
-          if (legacyDarkMode) {
-            legacySettings.darkMode = JSON.parse(legacyDarkMode);
-          }
-
-          setSettings(legacySettings);
-        }
-      } catch (error) {
-        console.error('Error loading settings:', error);
-        setSettings(DEFAULT_SETTINGS);
+      // Optimistically update to the new value
+      if (previousSettings) {
+        const optimisticSettings = { ...previousSettings, ...updates };
+        queryClient.setQueryData(['user', 'preferences'], optimisticSettings);
       }
 
-      // Ensure minimum delay for smooth UX
-      const elapsedTime = Date.now() - startTime;
-      const remainingTime = Math.max(0, 1000 - elapsedTime); // 1 second minimum
+      // Return a context object with the snapshotted value
+      return { previousSettings };
+    },
+    onSuccess: (updatedSettings) => {
+      // Update the cache with actual server response
+      queryClient.setQueryData(['user', 'preferences'], updatedSettings);
+    },
+    onError: (error, _updates, context) => {
+      // Rollback to the previous value on error
+      if (context?.previousSettings) {
+        queryClient.setQueryData(
+          ['user', 'preferences'],
+          context.previousSettings
+        );
+      }
+      console.error('Failed to update preferences:', error);
+    },
+    onSettled: () => {
+      // Only invalidate on error - success already has fresh data from server
+      // This prevents unnecessary refetches that cause flickering
+    },
+  });
 
-      setTimeout(() => {
-        setIsLoaded(true);
-      }, remainingTime);
-    };
+  const resetPreferencesMutation = useMutation({
+    mutationFn: () => preferencesService.resetPreferences(),
+    onSuccess: (resetSettings) => {
+      // Update the cache with reset settings
+      queryClient.setQueryData(['user', 'preferences'], resetSettings);
+    },
+    onError: (error) => {
+      console.error('Failed to reset preferences:', error);
+    },
+  });
 
-    loadSettings();
-  }, []);
+  // Combined loading state
+  const isLoading = isLoadingSettings || isLoadingActiveSession;
+  const hasActiveBrokerSession = activeSession?.hasActiveSession ?? false;
+  const currentSettings = settings || DEFAULT_SETTINGS;
 
-  // Save settings to localStorage whenever they change (but only after initial load)
-  useEffect(() => {
-    if (!isLoaded) return; // Don't save during initial load
-
+  // Update settings function - now async and uses API
+  const updateSettings = async (updates: Partial<UserSettings>) => {
     try {
-      localStorage.setItem('userSettings', JSON.stringify(settings));
-
-      // Also save to legacy keys for backward compatibility
-      localStorage.setItem(
-        'accountInfo',
-        JSON.stringify({
-          accountBalance: settings.accountBalance,
-          marketHealth: settings.marketHealth,
-          activeTab: settings.activeTab,
-        })
-      );
-      localStorage.setItem('darkMode', JSON.stringify(settings.darkMode));
+      await updatePreferencesMutation.mutateAsync(updates);
     } catch (error) {
-      console.error('Error saving settings:', error);
+      console.error('Failed to update settings:', error);
+      throw error;
     }
-  }, [settings, isLoaded]);
-
-  // Update settings function
-  const updateSettings = (updates: Partial<UserSettings>) => {
-    setSettings((prev) => ({ ...prev, ...updates }));
   };
 
   // Update specific risk level
-  const updateRiskLevel = (updatedRiskLevel: RiskLevel) => {
-    setSettings((prev) => ({
-      ...prev,
-      riskLevels: prev.riskLevels.map((level) =>
-        level.id === updatedRiskLevel.id ? updatedRiskLevel : level
-      ),
-    }));
+  const updateRiskLevel = async (updatedRiskLevel: RiskLevel) => {
+    const updatedRiskLevels = currentSettings.riskLevels.map((level) =>
+      level.id === updatedRiskLevel.id ? updatedRiskLevel : level
+    );
+    await updateSettings({ riskLevels: updatedRiskLevels });
   };
 
   // Add new risk level
-  const addRiskLevel = (newRiskLevel: Omit<RiskLevel, 'id'>) => {
+  const addRiskLevel = async (newRiskLevel: Omit<RiskLevel, 'id'>) => {
     const id = `custom-${Date.now()}`;
     const riskLevel: RiskLevel = { ...newRiskLevel, id };
-
-    setSettings((prev) => ({
-      ...prev,
-      riskLevels: [...prev.riskLevels, riskLevel],
-    }));
+    const updatedRiskLevels = [...currentSettings.riskLevels, riskLevel];
+    await updateSettings({ riskLevels: updatedRiskLevels });
   };
 
   // Remove risk level
-  const removeRiskLevel = (id: string) => {
-    setSettings((prev) => ({
-      ...prev,
-      riskLevels: prev.riskLevels.filter((level) => level.id !== id),
-      // Reset default if we're removing it
-      defaultRiskLevel:
-        prev.defaultRiskLevel === id
-          ? prev.riskLevels[0]?.id || 'conservative'
-          : prev.defaultRiskLevel,
-    }));
+  const removeRiskLevel = async (id: string) => {
+    const updatedRiskLevels = currentSettings.riskLevels.filter(
+      (level) => level.id !== id
+    );
+    const updates: Partial<UserSettings> = { riskLevels: updatedRiskLevels };
+
+    // Reset default if we're removing it
+    if (currentSettings.defaultRiskLevel === id) {
+      updates.defaultRiskLevel = updatedRiskLevels[0]?.id || 'conservative';
+    }
+
+    await updateSettings(updates);
   };
 
   // Update specific allocation level
-  const updateAllocationLevel = (updatedAllocationLevel: AllocationLevel) => {
-    setSettings((prev) => ({
-      ...prev,
-      allocationLevels: prev.allocationLevels.map((level) =>
+  const updateAllocationLevel = async (
+    updatedAllocationLevel: AllocationLevel
+  ) => {
+    const updatedAllocationLevels = currentSettings.allocationLevels.map(
+      (level) =>
         level.id === updatedAllocationLevel.id ? updatedAllocationLevel : level
-      ),
-    }));
+    );
+    await updateSettings({ allocationLevels: updatedAllocationLevels });
   };
 
   // Add new allocation level
-  const addAllocationLevel = (
+  const addAllocationLevel = async (
     newAllocationLevel: Omit<AllocationLevel, 'id'>
   ) => {
     const id = `custom-${Date.now()}`;
     const allocationLevel: AllocationLevel = { ...newAllocationLevel, id };
-
-    setSettings((prev) => ({
-      ...prev,
-      allocationLevels: [...prev.allocationLevels, allocationLevel],
-    }));
+    const updatedAllocationLevels = [
+      ...currentSettings.allocationLevels,
+      allocationLevel,
+    ];
+    await updateSettings({ allocationLevels: updatedAllocationLevels });
   };
 
   // Remove allocation level
-  const removeAllocationLevel = (id: string) => {
-    setSettings((prev) => ({
-      ...prev,
-      allocationLevels: prev.allocationLevels.filter(
-        (level) => level.id !== id
-      ),
-      // Reset default if we're removing it
-      defaultAllocationLevel:
-        prev.defaultAllocationLevel === id
-          ? prev.allocationLevels[0]?.id || 'conservative'
-          : prev.defaultAllocationLevel,
-    }));
+  const removeAllocationLevel = async (id: string) => {
+    const updatedAllocationLevels = currentSettings.allocationLevels.filter(
+      (level) => level.id !== id
+    );
+    const updates: Partial<UserSettings> = {
+      allocationLevels: updatedAllocationLevels,
+    };
+
+    // Reset default if we're removing it
+    if (currentSettings.defaultAllocationLevel === id) {
+      updates.defaultAllocationLevel =
+        updatedAllocationLevels[0]?.id || 'conservative';
+    }
+
+    await updateSettings(updates);
   };
 
   // Update specific stop loss level
-  const updateStopLossLevel = (updatedStopLossLevel: StopLossLevel) => {
-    setSettings((prev) => ({
-      ...prev,
-      stopLossLevels: prev.stopLossLevels.map((level) =>
-        level.id === updatedStopLossLevel.id ? updatedStopLossLevel : level
-      ),
-    }));
+  const updateStopLossLevel = async (updatedStopLossLevel: StopLossLevel) => {
+    const updatedStopLossLevels = currentSettings.stopLossLevels.map((level) =>
+      level.id === updatedStopLossLevel.id ? updatedStopLossLevel : level
+    );
+    await updateSettings({ stopLossLevels: updatedStopLossLevels });
   };
 
   // Add new stop loss level
-  const addStopLossLevel = (newStopLossLevel: Omit<StopLossLevel, 'id'>) => {
+  const addStopLossLevel = async (
+    newStopLossLevel: Omit<StopLossLevel, 'id'>
+  ) => {
     const id = `custom-${Date.now()}`;
     const stopLossLevel: StopLossLevel = { ...newStopLossLevel, id };
-
-    setSettings((prev) => ({
-      ...prev,
-      stopLossLevels: [...prev.stopLossLevels, stopLossLevel],
-    }));
+    const updatedStopLossLevels = [
+      ...currentSettings.stopLossLevels,
+      stopLossLevel,
+    ];
+    await updateSettings({ stopLossLevels: updatedStopLossLevels });
   };
 
   // Remove stop loss level
-  const removeStopLossLevel = (id: string) => {
-    setSettings((prev) => ({
-      ...prev,
-      stopLossLevels: prev.stopLossLevels.filter((level) => level.id !== id),
-      // Reset default if we're removing it
-      defaultStopLossLevel:
-        prev.defaultStopLossLevel === id
-          ? prev.stopLossLevels[0]?.id || 'normal'
-          : prev.defaultStopLossLevel,
-    }));
+  const removeStopLossLevel = async (id: string) => {
+    const updatedStopLossLevels = currentSettings.stopLossLevels.filter(
+      (level) => level.id !== id
+    );
+    const updates: Partial<UserSettings> = {
+      stopLossLevels: updatedStopLossLevels,
+    };
+
+    // Reset default if we're removing it
+    if (currentSettings.defaultStopLossLevel === id) {
+      updates.defaultStopLossLevel = updatedStopLossLevels[0]?.id || 'normal';
+    }
+
+    await updateSettings(updates);
   };
 
   // Reset to default settings
-  const resetSettings = () => {
-    setSettings(DEFAULT_SETTINGS);
-    localStorage.removeItem('userSettings');
-    localStorage.removeItem('accountInfo');
-    localStorage.removeItem('darkMode');
+  const resetSettings = async () => {
+    try {
+      await resetPreferencesMutation.mutateAsync();
+    } catch (error) {
+      console.error('Failed to reset settings:', error);
+      throw error;
+    }
   };
 
   // Get current risk level object
   const getCurrentRiskLevel = (): RiskLevel | undefined => {
-    return settings.riskLevels.find(
-      (level) => level.id === settings.defaultRiskLevel
+    return currentSettings.riskLevels.find(
+      (level) => level.id === currentSettings.defaultRiskLevel
     );
   };
 
   // Get current allocation level object
   const getCurrentAllocationLevel = (): AllocationLevel | undefined => {
-    return settings.allocationLevels.find(
-      (level) => level.id === settings.defaultAllocationLevel
+    return currentSettings.allocationLevels.find(
+      (level) => level.id === currentSettings.defaultAllocationLevel
     );
   };
 
   // Get current stop loss level object
   const getCurrentStopLossLevel = (): StopLossLevel | undefined => {
-    return settings.stopLossLevels.find(
-      (level) => level.id === settings.defaultStopLossLevel
+    return currentSettings.stopLossLevels.find(
+      (level) => level.id === currentSettings.defaultStopLossLevel
     );
   };
 
   // Export settings as JSON
   const exportSettings = (): string => {
-    return JSON.stringify(settings, null, 2);
+    return JSON.stringify(currentSettings, null, 2);
   };
 
   // Import settings from JSON
-  const importSettings = (settingsJson: string): boolean => {
+  const importSettings = async (settingsJson: string): Promise<boolean> => {
     try {
       const imported = JSON.parse(settingsJson);
       // Validate the structure (basic validation)
       if (imported && typeof imported === 'object') {
-        setSettings({ ...DEFAULT_SETTINGS, ...imported });
+        // Remove version field as it's handled by backend
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { version, ...importedSettings } = imported;
+        await updatePreferencesMutation.mutateAsync({
+          ...DEFAULT_SETTINGS,
+          ...importedSettings,
+        });
         return true;
       }
       return false;
@@ -632,8 +574,9 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({
   };
 
   const value: SettingsContextType = {
-    settings,
+    settings: currentSettings,
     isLoading,
+    error: settingsError,
     hasActiveBrokerSession,
     updateSettings,
     updateRiskLevel,
@@ -651,6 +594,9 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({
     getCurrentStopLossLevel,
     exportSettings,
     importSettings,
+    refetchSettings: async () => {
+      await refetchSettings();
+    },
   };
 
   return (

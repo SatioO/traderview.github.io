@@ -384,14 +384,22 @@ const TradingCalculator: React.FC = () => {
     return amount.toString();
   };
 
-  const handleCapitalSave = () => {
+  const handleCapitalSave = async () => {
     const newAmount = parseFloat(tempCapital.replace(/,/g, ''));
     if (!isNaN(newAmount) && newAmount > 0) {
-      updateSettings({ accountBalance: newAmount });
-      setFormData({ ...formData, accountBalance: newAmount });
+      try {
+        await updateSettings({ accountBalance: newAmount });
+        setFormData({ ...formData, accountBalance: newAmount });
+        setShowCapitalEdit(false);
+        setTempCapital('');
+      } catch (error) {
+        console.error('Failed to update account balance:', error);
+        // Keep modal open on error so user can try again
+      }
+    } else {
+      setShowCapitalEdit(false);
+      setTempCapital('');
     }
-    setShowCapitalEdit(false);
-    setTempCapital('');
   };
 
   const handleIncrement = (step: number) => {

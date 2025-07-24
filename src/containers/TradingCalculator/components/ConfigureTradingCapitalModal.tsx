@@ -125,15 +125,23 @@ const ConfigureTradingCapitalModal: React.FC<ConfigureTradingCapitalModalProps> 
   };
 
   // Handle saving the capital
-  const handleCapitalSave = () => {
+  const handleCapitalSave = async () => {
     const newAmount = parseFloat(tempCapital.replace(/,/g, ''));
     if (!isNaN(newAmount) && newAmount > 0) {
-      updateSettings({ accountBalance: newAmount });
-      setFormData({ ...formData, accountBalance: newAmount });
-      onSave(newAmount);
+      try {
+        await updateSettings({ accountBalance: newAmount });
+        setFormData({ ...formData, accountBalance: newAmount });
+        onSave(newAmount);
+        onClose();
+        setTempCapital('');
+      } catch (error) {
+        console.error('Failed to update account balance:', error);
+        // Keep modal open on error so user can try again
+      }
+    } else {
+      onClose();
+      setTempCapital('');
     }
-    onClose();
-    setTempCapital('');
   };
 
   // Handle modal close
