@@ -6,6 +6,7 @@ interface MarketOutlookSectionProps {
   showMarketOutlookPanel: boolean;
   setShowMarketOutlookPanel: (show: boolean) => void;
   setFormData: React.Dispatch<React.SetStateAction<FormData>>;
+  onMarketHealthChange: (marketHealth: MarketHealth) => Promise<void>;
 }
 
 const MarketOutlookSection: React.FC<MarketOutlookSectionProps> = ({
@@ -13,6 +14,7 @@ const MarketOutlookSection: React.FC<MarketOutlookSectionProps> = ({
   showMarketOutlookPanel,
   setShowMarketOutlookPanel,
   setFormData,
+  onMarketHealthChange,
 }) => {
   // Get market health display info
   const getMarketSizingInfo = useCallback((marketHealth: MarketHealth) => {
@@ -558,7 +560,10 @@ const MarketOutlookSection: React.FC<MarketOutlookSectionProps> = ({
                   {/* Confirmation Action */}
                   <div className="mt-4 pt-3 border-t border-indigo-400/20">
                     <button
-                      onClick={() => setShowMarketOutlookPanel(false)}
+                      onClick={async () => {
+                        await onMarketHealthChange(formData.marketHealth);
+                        setShowMarketOutlookPanel(false);
+                      }}
                       className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-300 hover:scale-[1.02] shadow-lg hover:shadow-purple-500/30 flex items-center justify-center space-x-2"
                     >
                       <svg

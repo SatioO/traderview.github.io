@@ -85,6 +85,7 @@ const TradingCalculator: React.FC = () => {
     handleActiveTabChange: updateActiveTab,
     handleRiskLevelChange: updateRiskLevel,
     handleAllocationLevelChange: updateAllocationLevel,
+    handleMarketHealthChange,
   } = useTradingSettings({
     setFormData,
     setActiveTab,
@@ -628,6 +629,7 @@ const TradingCalculator: React.FC = () => {
                 showMarketOutlookPanel={showMarketOutlookPanel}
                 setShowMarketOutlookPanel={setShowMarketOutlookPanel}
                 setFormData={setFormData}
+                onMarketHealthChange={handleMarketHealthChange}
               />
 
               {/* Compact Broker Connection Panel */}
