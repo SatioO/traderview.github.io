@@ -24,18 +24,20 @@ export const useTradingSettings = ({
 
   // Sync settings to local state on settings change
   useEffect(() => {
+    if (!settings) return; // Don't update if settings haven't loaded yet
+    
     setFormData(prev => ({
       ...prev,
-      accountBalance: settings.accountBalance,
-      marketHealth: settings.marketHealth,
-      brokerageCost: settings.defaultBrokerageCost,
+      accountBalance: settings.accountBalance || prev.accountBalance,
+      marketHealth: settings.marketHealth || prev.marketHealth,
+      brokerageCost: settings.defaultBrokerageCost || prev.brokerageCost,
       // Only update percentage if we're not in the middle of an update
-      riskPercentage: isUpdatingRisk.current ? prev.riskPercentage : (getCurrentRiskLevel()?.percentage || 0.25),
-      allocationPercentage: isUpdatingAllocation.current ? prev.allocationPercentage : (getCurrentAllocationLevel()?.percentage || 10.0)
+      riskPercentage: isUpdatingRisk.current ? prev.riskPercentage : (getCurrentRiskLevel()?.percentage || prev.riskPercentage || 0.25),
+      allocationPercentage: isUpdatingAllocation.current ? prev.allocationPercentage : (getCurrentAllocationLevel()?.percentage || prev.allocationPercentage || 10.0)
     }));
 
-    setActiveTab(settings.activeTab);
-    setIsDarkMode(settings.darkMode);
+    setActiveTab(settings.activeTab || 'risk');
+    setIsDarkMode(settings.darkMode ?? true);
   }, [settings, setFormData, setActiveTab, setIsDarkMode, getCurrentRiskLevel, getCurrentAllocationLevel]);
 
   // Update settings when local state changes - now async with error handling
@@ -100,10 +102,10 @@ export const useTradingSettings = ({
   };
 
   // Get available risk levels for UI
-  const getRiskLevels = () => settings.riskLevels;
+  const getRiskLevels = () => settings?.riskLevels || [];
 
   // Get available allocation levels for UI
-  const getAllocationLevels = () => settings.allocationLevels;
+  const getAllocationLevels = () => settings?.allocationLevels || [];
 
   // Get current risk level info
   const getCurrentRiskInfo = () => getCurrentRiskLevel();

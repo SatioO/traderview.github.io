@@ -70,6 +70,7 @@ const TradingCalculator: React.FC = () => {
     settings: settingsContext,
     updateSettings,
     hasActiveBrokerSession,
+    isLoading: isLoadingSettings,
   } = useSettings();
 
   const [entryPriceMode, setEntryPriceMode] = useState<'lmt' | 'mkt'>(
@@ -161,7 +162,10 @@ const TradingCalculator: React.FC = () => {
     currentPrice && Math.abs(formData.entryPrice - currentPrice) < 0.01;
 
   // Format currency in INR
-  const formatCurrency = useCallback((amount: number): string => {
+  const formatCurrency = useCallback((amount: number | undefined): string => {
+    if (amount === undefined || amount === null || isNaN(amount)) {
+      return '₹0.00';
+    }
     return (
       '₹' +
       amount.toLocaleString('en-IN', {
@@ -373,7 +377,10 @@ const TradingCalculator: React.FC = () => {
     setCalculations(result);
   }, [calculatePositionSize, activeTab]);
 
-  const formatCurrencyShort = (amount: number): string => {
+  const formatCurrencyShort = (amount: number | undefined): string => {
+    if (amount === undefined || amount === null || isNaN(amount)) {
+      return '0';
+    }
     if (amount >= 10000000) {
       return `${(amount / 10000000).toFixed(1)}Cr`;
     } else if (amount >= 100000) {
@@ -1477,14 +1484,22 @@ const TradingCalculator: React.FC = () => {
           <div className="bg-gradient-to-r from-slate-800/50 to-gray-800/50 border border-white/10 rounded-2xl p-6">
             <div className="text-center space-y-3">
               <div className="text-3xl font-bold text-white">
-                {tempCapital
-                  ? formatCurrency(parseFloat(tempCapital))
-                  : formatCurrency(settingsContext.accountBalance)}
+                {isLoadingSettings ? (
+                  <div className="text-gray-400">Loading...</div>
+                ) : tempCapital ? (
+                  formatCurrency(parseFloat(tempCapital))
+                ) : (
+                  formatCurrency(settingsContext.accountBalance)
+                )}
               </div>
               <div className="text-lg text-cyan-300 font-semibold">
-                {tempCapital
-                  ? formatCurrencyShort(parseFloat(tempCapital))
-                  : formatCurrencyShort(settingsContext.accountBalance)}
+                {isLoadingSettings ? (
+                  <div className="text-gray-400">---</div>
+                ) : tempCapital ? (
+                  formatCurrencyShort(parseFloat(tempCapital))
+                ) : (
+                  formatCurrencyShort(settingsContext.accountBalance)
+                )}
               </div>
 
               {/* Progress bar showing capital level */}

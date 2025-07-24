@@ -11,6 +11,7 @@ import type {
 } from '../containers/TradingCalculator/types';
 import { brokerApiService } from '../services/brokerApiService';
 import { preferencesService } from '../services/preferencesService';
+import { useAuth } from './AuthContext';
 
 // Risk Level Configuration
 export interface RiskLevel {
@@ -86,151 +87,7 @@ export interface UserSettings {
   showPercentages: boolean;
 }
 
-// Default Risk Levels (using Shield icon for all levels like allocation levels)
-const DEFAULT_RISK_LEVELS: RiskLevel[] = [
-  {
-    id: 'conservative',
-    name: 'Conservative play',
-    percentage: 0.25,
-    description: 'Low risk, steady growth approach',
-    icon: 'Shield',
-    threatLevel: 'LOW',
-    color: '#10B981',
-  },
-  {
-    id: 'balanced',
-    name: 'Balanced approach',
-    percentage: 0.5,
-    description: 'Moderate risk with balanced returns',
-    icon: 'Shield',
-    threatLevel: 'MEDIUM',
-    color: '#F59E0B',
-  },
-  {
-    id: 'bold',
-    name: 'Bold strategy',
-    percentage: 0.75,
-    description: 'Higher risk for greater potential returns',
-    icon: 'Shield',
-    threatLevel: 'HIGH',
-    color: '#EF4444',
-  },
-  {
-    id: 'maximum',
-    name: 'Maximum risk',
-    percentage: 1.0,
-    description: 'Highest risk, highest potential reward',
-    icon: 'Shield',
-    threatLevel: 'MAXIMUM',
-    color: '#8B5CF6',
-  },
-];
-
-// Default Portfolio Allocation Levels (using Shield icon for all levels like risk levels)
-const DEFAULT_ALLOCATION_LEVELS: AllocationLevel[] = [
-  {
-    id: 'conservative',
-    name: 'Conservative allocation',
-    percentage: 10,
-    description: 'Low portfolio exposure',
-    icon: 'Shield',
-    riskCategory: 'CONSERVATIVE',
-    color: '#10B981',
-  },
-  {
-    id: 'balanced',
-    name: 'Balanced allocation',
-    percentage: 20,
-    description: 'Moderate portfolio exposure',
-    icon: 'Shield',
-    riskCategory: 'MODERATE',
-    color: '#F59E0B',
-  },
-  {
-    id: 'high',
-    name: 'High allocation',
-    percentage: 30,
-    description: 'Aggressive portfolio exposure',
-    icon: 'Shield',
-    riskCategory: 'AGGRESSIVE',
-    color: '#EF4444',
-  },
-  {
-    id: 'extreme',
-    name: 'Extreme allocation',
-    percentage: 40,
-    description: 'Maximum concentration risk',
-    icon: 'Shield',
-    riskCategory: 'EXTREME',
-    color: '#991B1B',
-  },
-];
-
-// Default Stop Loss Levels (using Shield icon for all levels like risk and allocation levels)
-const DEFAULT_STOP_LOSS_LEVELS: StopLossLevel[] = [
-  {
-    id: 'tight',
-    name: 'Tight stop loss',
-    percentage: 1,
-    description: 'Very close protection, minimal loss tolerance',
-    icon: 'Shield',
-    urgencyLevel: 'TIGHT',
-    color: '#10B981',
-  },
-  {
-    id: 'normal',
-    name: 'Normal stop loss',
-    percentage: 2,
-    description: 'Standard protection with moderate tolerance',
-    icon: 'Shield',
-    urgencyLevel: 'NORMAL',
-    color: '#F59E0B',
-  },
-  {
-    id: 'loose',
-    name: 'Loose stop loss',
-    percentage: 3,
-    description: 'Relaxed protection for volatile conditions',
-    icon: 'Shield',
-    urgencyLevel: 'LOOSE',
-    color: '#EF4444',
-  },
-  {
-    id: 'wide',
-    name: 'Wide stop loss',
-    percentage: 5,
-    description: 'Maximum tolerance for high volatility',
-    icon: 'Shield',
-    urgencyLevel: 'WIDE',
-    color: '#8B5CF6',
-  },
-];
-
-// Settings version for migration (kept for compatibility)
-const SETTINGS_VERSION = 2; // No longer used with backend API
-
-// Default Settings
-const DEFAULT_SETTINGS: UserSettings = {
-  version: SETTINGS_VERSION,
-  hasActiveBrokerSession: false,
-  accountBalance: 100000,
-  riskLevels: DEFAULT_RISK_LEVELS,
-  defaultRiskLevel: 'conservative',
-  marketHealth: 'confirmed-uptrend',
-  allocationLevels: DEFAULT_ALLOCATION_LEVELS,
-  defaultAllocationLevel: 'conservative',
-  stopLossLevels: DEFAULT_STOP_LOSS_LEVELS,
-  defaultStopLossLevel: 'normal',
-  activeTab: 'risk',
-  darkMode: true,
-  defaultBrokerageCost: 20,
-  autoCalculateTargets: true,
-  showAdvancedMetrics: false,
-  defaultStopLossPercentage: 3,
-  currencySymbol: '₹',
-  decimalPlaces: 2,
-  showPercentages: true,
-};
+// All default values are now handled by the backend API
 
 // Context Interface
 interface SettingsContextType {
@@ -274,7 +131,10 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({
 }) => {
   const queryClient = useQueryClient();
 
-  // Fetch preferences from backend using React Query
+  // Get reactive authentication status from AuthContext
+  const { isAuthenticated } = useAuth();
+
+  // Fetch preferences from backend using React Query - only when authenticated
   const {
     data: settings,
     isLoading: isLoadingSettings,
@@ -283,6 +143,7 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({
   } = useQuery({
     queryKey: ['user', 'preferences'],
     queryFn: () => preferencesService.getPreferences(),
+    enabled: isAuthenticated, // Only run query when user is authenticated
     staleTime: 5 * 60 * 1000, // 5 minutes
     retry: (failureCount, error) => {
       // Don't retry on authentication errors
@@ -389,10 +250,10 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({
     },
   });
 
-  // Combined loading state
-  const isLoading = isLoadingSettings || isLoadingActiveSession;
+  // Combined loading state - only loading if authenticated and settings are loading
+  const isLoading =
+    (isAuthenticated && isLoadingSettings) || isLoadingActiveSession;
   const hasActiveBrokerSession = activeSession?.hasActiveSession ?? false;
-  const currentSettings = settings || DEFAULT_SETTINGS;
 
   // Update settings function - now async and uses API
   const updateSettings = async (updates: Partial<UserSettings>) => {
@@ -406,7 +267,8 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({
 
   // Update specific risk level
   const updateRiskLevel = async (updatedRiskLevel: RiskLevel) => {
-    const updatedRiskLevels = currentSettings.riskLevels.map((level) =>
+    if (!settings) return;
+    const updatedRiskLevels = settings.riskLevels.map((level) =>
       level.id === updatedRiskLevel.id ? updatedRiskLevel : level
     );
     await updateSettings({ riskLevels: updatedRiskLevels });
@@ -414,21 +276,23 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({
 
   // Add new risk level
   const addRiskLevel = async (newRiskLevel: Omit<RiskLevel, 'id'>) => {
+    if (!settings) return;
     const id = `custom-${Date.now()}`;
     const riskLevel: RiskLevel = { ...newRiskLevel, id };
-    const updatedRiskLevels = [...currentSettings.riskLevels, riskLevel];
+    const updatedRiskLevels = [...settings.riskLevels, riskLevel];
     await updateSettings({ riskLevels: updatedRiskLevels });
   };
 
   // Remove risk level
   const removeRiskLevel = async (id: string) => {
-    const updatedRiskLevels = currentSettings.riskLevels.filter(
+    if (!settings) return;
+    const updatedRiskLevels = settings.riskLevels.filter(
       (level) => level.id !== id
     );
     const updates: Partial<UserSettings> = { riskLevels: updatedRiskLevels };
 
     // Reset default if we're removing it
-    if (currentSettings.defaultRiskLevel === id) {
+    if (settings.defaultRiskLevel === id) {
       updates.defaultRiskLevel = updatedRiskLevels[0]?.id || 'conservative';
     }
 
@@ -439,9 +303,9 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({
   const updateAllocationLevel = async (
     updatedAllocationLevel: AllocationLevel
   ) => {
-    const updatedAllocationLevels = currentSettings.allocationLevels.map(
-      (level) =>
-        level.id === updatedAllocationLevel.id ? updatedAllocationLevel : level
+    if (!settings) return;
+    const updatedAllocationLevels = settings.allocationLevels.map((level) =>
+      level.id === updatedAllocationLevel.id ? updatedAllocationLevel : level
     );
     await updateSettings({ allocationLevels: updatedAllocationLevels });
   };
@@ -450,10 +314,11 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({
   const addAllocationLevel = async (
     newAllocationLevel: Omit<AllocationLevel, 'id'>
   ) => {
+    if (!settings) return;
     const id = `custom-${Date.now()}`;
     const allocationLevel: AllocationLevel = { ...newAllocationLevel, id };
     const updatedAllocationLevels = [
-      ...currentSettings.allocationLevels,
+      ...settings.allocationLevels,
       allocationLevel,
     ];
     await updateSettings({ allocationLevels: updatedAllocationLevels });
@@ -461,7 +326,8 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({
 
   // Remove allocation level
   const removeAllocationLevel = async (id: string) => {
-    const updatedAllocationLevels = currentSettings.allocationLevels.filter(
+    if (!settings) return;
+    const updatedAllocationLevels = settings.allocationLevels.filter(
       (level) => level.id !== id
     );
     const updates: Partial<UserSettings> = {
@@ -469,7 +335,7 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({
     };
 
     // Reset default if we're removing it
-    if (currentSettings.defaultAllocationLevel === id) {
+    if (settings.defaultAllocationLevel === id) {
       updates.defaultAllocationLevel =
         updatedAllocationLevels[0]?.id || 'conservative';
     }
@@ -479,7 +345,8 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({
 
   // Update specific stop loss level
   const updateStopLossLevel = async (updatedStopLossLevel: StopLossLevel) => {
-    const updatedStopLossLevels = currentSettings.stopLossLevels.map((level) =>
+    if (!settings) return;
+    const updatedStopLossLevels = settings.stopLossLevels.map((level) =>
       level.id === updatedStopLossLevel.id ? updatedStopLossLevel : level
     );
     await updateSettings({ stopLossLevels: updatedStopLossLevels });
@@ -489,18 +356,17 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({
   const addStopLossLevel = async (
     newStopLossLevel: Omit<StopLossLevel, 'id'>
   ) => {
+    if (!settings) return;
     const id = `custom-${Date.now()}`;
     const stopLossLevel: StopLossLevel = { ...newStopLossLevel, id };
-    const updatedStopLossLevels = [
-      ...currentSettings.stopLossLevels,
-      stopLossLevel,
-    ];
+    const updatedStopLossLevels = [...settings.stopLossLevels, stopLossLevel];
     await updateSettings({ stopLossLevels: updatedStopLossLevels });
   };
 
   // Remove stop loss level
   const removeStopLossLevel = async (id: string) => {
-    const updatedStopLossLevels = currentSettings.stopLossLevels.filter(
+    if (!settings) return;
+    const updatedStopLossLevels = settings.stopLossLevels.filter(
       (level) => level.id !== id
     );
     const updates: Partial<UserSettings> = {
@@ -508,7 +374,7 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({
     };
 
     // Reset default if we're removing it
-    if (currentSettings.defaultStopLossLevel === id) {
+    if (settings.defaultStopLossLevel === id) {
       updates.defaultStopLossLevel = updatedStopLossLevels[0]?.id || 'normal';
     }
 
@@ -527,28 +393,28 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({
 
   // Get current risk level object
   const getCurrentRiskLevel = (): RiskLevel | undefined => {
-    return currentSettings.riskLevels.find(
-      (level) => level.id === currentSettings.defaultRiskLevel
+    return settings?.riskLevels.find(
+      (level) => level.id === settings.defaultRiskLevel
     );
   };
 
   // Get current allocation level object
   const getCurrentAllocationLevel = (): AllocationLevel | undefined => {
-    return currentSettings.allocationLevels.find(
-      (level) => level.id === currentSettings.defaultAllocationLevel
+    return settings?.allocationLevels.find(
+      (level) => level.id === settings.defaultAllocationLevel
     );
   };
 
   // Get current stop loss level object
   const getCurrentStopLossLevel = (): StopLossLevel | undefined => {
-    return currentSettings.stopLossLevels.find(
-      (level) => level.id === currentSettings.defaultStopLossLevel
+    return settings?.stopLossLevels.find(
+      (level) => level.id === settings.defaultStopLossLevel
     );
   };
 
   // Export settings as JSON
   const exportSettings = (): string => {
-    return JSON.stringify(currentSettings, null, 2);
+    return JSON.stringify(settings || {}, null, 2);
   };
 
   // Import settings from JSON
@@ -560,10 +426,7 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({
         // Remove version field as it's handled by backend
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { version, ...importedSettings } = imported;
-        await updatePreferencesMutation.mutateAsync({
-          ...DEFAULT_SETTINGS,
-          ...importedSettings,
-        });
+        await updatePreferencesMutation.mutateAsync(importedSettings);
         return true;
       }
       return false;
@@ -573,8 +436,21 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({
     }
   };
 
+  // Refetch preferences when authentication status changes
+  useEffect(() => {
+    if (isAuthenticated && !settings) {
+      refetchSettings();
+    }
+  }, [isAuthenticated, settings, refetchSettings]);
+
+  // If user is authenticated but settings haven't loaded yet, show loading
+  // If user is not authenticated, provide empty settings object
+  const contextSettings = isAuthenticated
+    ? settings || ({} as UserSettings)
+    : ({} as UserSettings);
+
   const value: SettingsContextType = {
-    settings: currentSettings,
+    settings: contextSettings,
     isLoading,
     error: settingsError,
     hasActiveBrokerSession,
