@@ -301,12 +301,12 @@ const EnhancedHeader: React.FC<EnhancedHeaderProps> = ({
                             }`}
                           >
                             <div className="absolute inset-0 bg-white/10 rounded-full"></div>
-                            <span className="relative">
+                            <span className="relative ">
                               {getCapitalLevel(settings.accountBalance).level}
                             </span>
                           </div>
                         </div>
-                        <div className="text-emerald-300/70 text-xs font-medium tracking-wide uppercase">
+                        <div className="text-emerald-300/70 text-xs font-medium tracking-wide">
                           Trading Capital
                         </div>
                       </div>
