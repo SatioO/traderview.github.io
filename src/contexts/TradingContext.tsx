@@ -9,6 +9,7 @@ import type { InstrumentQuote } from '../services/tradingApiService';
 
 // Trading Instrument Interface
 export interface TradingInstrument {
+  _id?: string; // MongoDB ObjectId - available for saved instruments
   tradingsymbol: string;
   exchange: string;
   name: string;

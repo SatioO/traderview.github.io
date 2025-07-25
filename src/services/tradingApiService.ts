@@ -102,6 +102,33 @@ export interface InstrumentQuotesResponse {
   requestId: string;
 }
 
+// Recent Search Interfaces
+export interface RecentSearchItem {
+  searchedAt: string;
+  instrument: TradingInstrument;
+}
+
+export interface RecentSearchesResponse {
+  success: boolean;
+  count: number;
+  recentSearches: RecentSearchItem[];
+  message: string;
+  timestamp: string;
+  requestId: string;
+}
+
+export interface AddRecentSearchResponse {
+  success: boolean;
+  recentSearch: {
+    tradingsymbol: string;
+    exchange: string;
+    searchedAt: string;
+  };
+  message: string;
+  timestamp: string;
+  requestId: string;
+}
+
 class TradingApiService {
   private baseUrl: string = '/instruments';
 
@@ -139,6 +166,11 @@ class TradingApiService {
     const response = await this.makeRequest<InstrumentSearchResponse>(
       `${this.baseUrl}/search?q=${encodeURIComponent(query)}`
     );
+
+    // Debug: Log the first instrument to see structure
+    if (response.instruments && response.instruments.length > 0) {
+      console.log('Sample search result:', response.instruments[0]);
+    }
 
     return response.instruments || [];
   }
@@ -468,6 +500,38 @@ class TradingApiService {
     } catch (error) {
       console.error('Error fetching single instrument quote:', error);
       throw error;
+    }
+  }
+
+  // Get user's recent searches
+  async getRecentSearches(): Promise<RecentSearchItem[]> {
+    try {
+      const response = await this.makeRequest<RecentSearchesResponse>(
+        `${this.baseUrl}/recent-searches`
+      );
+
+      return response.recentSearches || [];
+    } catch (error) {
+      console.error('Error fetching recent searches:', error);
+      // Return empty array instead of throwing to gracefully degrade
+      return [];
+    }
+  }
+
+  // Add instrument to recent searches
+  async addToRecentSearches(tradingsymbol: string, exchange: string): Promise<void> {
+    try {
+      await this.makeRequest<AddRecentSearchResponse>(
+        `${this.baseUrl}/recent-search`,
+        {
+          method: 'POST',
+          body: JSON.stringify({ tradingsymbol, exchange }),
+        }
+      );
+    } catch (error) {
+      console.error('Error adding to recent searches:', error);
+      // Don't throw error to avoid disrupting the main flow
+      // Recent searches is a nice-to-have feature
     }
   }
 }
