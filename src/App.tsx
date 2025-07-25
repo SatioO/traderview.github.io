@@ -8,7 +8,7 @@ import {
 import { SettingsProvider, useSettings } from './contexts/SettingsContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { TradingProvider } from './contexts/TradingContext';
-// import { LiveDataProvider } from './contexts/LiveDataProvider';
+import { LiveDataProvider } from './contexts/LiveDataProvider';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import { getUnprotectedRoutes, getProtectedRoutes, ROUTES } from './routes';
 import LoadingScreen from './components/LoadingScreen';
@@ -95,11 +95,11 @@ function App() {
     <BrowserRouter basename={basename}>
       <AuthProvider>
         <SettingsProvider>
-          <TradingProvider>
-            {/* <LiveDataProvider> */}
-            <AppContent />
-            {/* </LiveDataProvider> */}
-          </TradingProvider>
+          <LiveDataProvider>
+            <TradingProvider>
+              <AppContent />
+            </TradingProvider>
+          </LiveDataProvider>
         </SettingsProvider>
       </AuthProvider>
     </BrowserRouter>

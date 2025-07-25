@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useContext } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useTrading } from '../../contexts/TradingContext';
 import { tradingApiService } from '../../services/tradingApiService';
 import type { TradingInstrument } from '../../contexts/TradingContext';
+import { LiveDataContext } from '../../contexts/LiveDataContext';
 
 interface InstrumentSearchProps {
   className?: string;
@@ -26,11 +27,13 @@ const InstrumentSearch: React.FC<InstrumentSearchProps> = ({
     clearInstrument,
   } = useTrading();
 
+  const liveDataContext = useContext(LiveDataContext);
   const [inputValue, setInputValue] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const previousInstrumentToken = useRef<number | null>(null);
 
   // Debounced search
   const [debouncedQuery, setDebouncedQuery] = useState('');
@@ -82,6 +85,10 @@ const InstrumentSearch: React.FC<InstrumentSearchProps> = ({
 
   // Handle instrument selection
   const handleInstrumentSelect = useCallback((instrument: TradingInstrument) => {
+    if (previousInstrumentToken.current && previousInstrumentToken.current !== instrument.instrument_token) {
+      liveDataContext?.unsubscribe([previousInstrumentToken.current]);
+    }
+    
     selectInstrument(instrument);
     setInputValue(`${instrument.tradingsymbol} (${instrument.exchange})`);
     setShowDropdown(false);
@@ -90,17 +97,27 @@ const InstrumentSearch: React.FC<InstrumentSearchProps> = ({
     if (onInstrumentSelect) {
       onInstrumentSelect(instrument);
     }
-  }, [selectInstrument, onInstrumentSelect]);
+
+    if (liveDataContext?.subscribe) {
+      liveDataContext.subscribe([instrument.instrument_token], 'ltp');
+      previousInstrumentToken.current = instrument.instrument_token;
+    }
+
+  }, [selectInstrument, onInstrumentSelect, liveDataContext]);
 
   // Handle clear
   const handleClear = useCallback(() => {
+    if (previousInstrumentToken.current) {
+      liveDataContext?.unsubscribe([previousInstrumentToken.current]);
+      previousInstrumentToken.current = null;
+    }
     setInputValue('');
     setSearchQuery('');
     clearInstrument();
     setShowDropdown(false);
     setSelectedIndex(-1);
     inputRef.current?.focus();
-  }, [setSearchQuery, clearInstrument]);
+  }, [setSearchQuery, clearInstrument, liveDataContext]);
 
   // Keyboard navigation
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {

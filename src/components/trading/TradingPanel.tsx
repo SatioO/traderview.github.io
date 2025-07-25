@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useTrading } from '../../contexts/TradingContext';
 import { brokerApiService } from '../../services/brokerApiService';
 import TradingOrderForm from './TradingOrderForm';
+import { LiveDataContext } from '../../contexts/LiveDataContext';
 
 interface TradingPanelProps {
   className?: string;
@@ -30,6 +31,17 @@ const TradingPanel: React.FC<TradingPanelProps> = ({
   onOrderError,
 }) => {
   const { state } = useTrading();
+  const liveDataContext = useContext(LiveDataContext);
+  const [livePrice, setLivePrice] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (state.selectedInstrument && liveDataContext?.ticks) {
+      const tick = liveDataContext.ticks[state.selectedInstrument.instrument_token];
+      if (tick && tick.last_price) {
+        setLivePrice(tick.last_price);
+      }
+    }
+  }, [liveDataContext?.ticks, state.selectedInstrument]);
 
   // Check if user has an active broker session
   const { data: activeSession, isLoading: isCheckingSession } = useQuery({
@@ -157,9 +169,17 @@ const TradingPanel: React.FC<TradingPanelProps> = ({
 
             {entryPrice && (
               <div className="p-3 bg-gradient-to-br from-slate-800/50 to-slate-700/30 rounded-lg border border-slate-600/30">
-                <div className="text-xs text-slate-400 mb-1">Entry Price</div>
+                <div className="flex justify-between items-center text-xs text-slate-400 mb-1">
+                  <span>Entry Price</span>
+                  {livePrice && (
+                    <div className="flex items-center space-x-1 text-cyan-400">
+                      <div className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse"></div>
+                      <span>Live</span>
+                    </div>
+                  )}
+                </div>
                 <div className="font-semibold text-white text-sm">
-                  ₹{entryPrice.toFixed(2)}
+                  ₹{livePrice ? livePrice.toFixed(2) : entryPrice.toFixed(2)}
                 </div>
               </div>
             )}
@@ -224,7 +244,7 @@ const TradingPanel: React.FC<TradingPanelProps> = ({
         <div className="p-4">
           <TradingOrderForm
             calculatedPositionSize={calculatedPositionSize}
-            entryPrice={entryPrice}
+            entryPrice={livePrice || entryPrice}
             stopLossPrice={stopLossPrice}
             onOrderPlaced={onOrderPlaced}
             onOrderError={onOrderError}

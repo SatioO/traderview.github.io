@@ -21,6 +21,7 @@ import { FloatingOrderNotification } from '../../components/OrderPlacement/Float
 import { useTradingSettings } from '../../hooks/useTradingSettings';
 import { useSettings } from '../../contexts/SettingsContext';
 import { useTrading } from '../../contexts/TradingContext';
+import { useLiveData } from '../../hooks/useLiveData';
 import Modal from '../../components/ui/Modal';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
@@ -99,7 +100,25 @@ const TradingCalculator: React.FC = () => {
   const {
     state: { selectedInstrument, isLoadingQuote },
     currentPrice,
+    priceChange,
+    priceChangePercent,
   } = useTrading();
+
+  // Live data connection status
+  const { isConnected: isLiveDataConnected, connectionError, ticks } = useLiveData();
+
+  // Debug: Log when ticks change
+  useEffect(() => {
+    if (selectedInstrument) {
+      const tick = ticks[selectedInstrument.instrument_token];
+      console.log('TradingCalculator: Ticks updated for instrument:', {
+        symbol: selectedInstrument.tradingsymbol,
+        token: selectedInstrument.instrument_token,
+        tick: tick ? { last_price: tick.last_price, timestamp: tick.timestamp } : null,
+        currentPrice
+      });
+    }
+  }, [ticks, selectedInstrument, currentPrice]);
 
   // Order placement management
   const {
@@ -747,6 +766,82 @@ const TradingCalculator: React.FC = () => {
                         </div>
                       )}
                     </div>
+                    
+                    {/* Live Price Display */}
+                    {selectedInstrument && currentPrice && (
+                      <div className={`mt-2 flex items-center justify-between px-3 py-2 bg-gradient-to-r rounded-lg border ${
+                        isLiveDataConnected 
+                          ? 'from-blue-500/10 to-cyan-500/10 border-blue-500/20' 
+                          : 'from-orange-500/10 to-yellow-500/10 border-orange-500/20'
+                      }`}>
+                        <div className="flex items-center space-x-2">
+                          <div className={`w-2 h-2 rounded-full ${
+                            isLiveDataConnected 
+                              ? 'bg-green-400 animate-pulse' 
+                              : 'bg-orange-400 animate-bounce'
+                          }`}></div>
+                          <span className={`text-xs font-medium ${
+                            isLiveDataConnected ? 'text-blue-300' : 'text-orange-300'
+                          }`}>
+                            {selectedInstrument && ticks[selectedInstrument.instrument_token] 
+                              ? 'LIVE' 
+                              : isLiveDataConnected 
+                                ? 'LIVE(WAITING)' 
+                                : 'CACHED'
+                            }
+                          </span>
+                          <span className="text-xs text-slate-400">{selectedInstrument.tradingsymbol}</span>
+                          <span className="text-xs text-slate-500">({Object.keys(ticks).length})</span>
+                          {connectionError && (
+                            <span className="text-xs text-red-400" title={connectionError}>⚠</span>
+                          )}
+                        </div>
+                        <div className="flex items-center space-x-3">
+                          <span className="text-sm font-bold text-white">
+                            ₹{selectedInstrument && ticks[selectedInstrument.instrument_token] 
+                              ? ticks[selectedInstrument.instrument_token].last_price.toFixed(2)
+                              : currentPrice?.toFixed(2) || '0.00'
+                            }
+                          </span>
+                          
+                          {/* Price Change Indicator */}
+                          {selectedInstrument && (() => {
+                            const tick = ticks[selectedInstrument.instrument_token];
+                            const liveChange = tick?.change;
+                            const livePercent = tick?.ohlc?.close 
+                              ? ((tick.last_price - tick.ohlc.close) / tick.ohlc.close) * 100 
+                              : null;
+                            
+                            const changeToShow = liveChange !== undefined ? liveChange : priceChange;
+                            const percentToShow = livePercent !== null ? livePercent : priceChangePercent;
+                            
+                            return (changeToShow !== null || percentToShow !== null) && (
+                              <div className="flex items-center space-x-1">
+                                {changeToShow !== null && (
+                                  <span className={`text-xs font-medium ${
+                                    changeToShow >= 0 ? 'text-green-400' : 'text-red-400'
+                                  }`}>
+                                    {changeToShow >= 0 ? '+' : ''}₹{changeToShow.toFixed(2)}
+                                  </span>
+                                )}
+                                {percentToShow !== null && (
+                                  <span className={`text-xs font-medium ${
+                                    percentToShow >= 0 ? 'text-green-400' : 'text-red-400'
+                                  }`}>
+                                    ({percentToShow >= 0 ? '+' : ''}{percentToShow.toFixed(2)}%)
+                                  </span>
+                                )}
+                              </div>
+                            );
+                          })()}
+                          
+                          {/* Loading indicator */}
+                          {isLoadingQuote && (
+                            <div className="w-4 h-4 border-2 border-blue-400/30 border-t-blue-400 rounded-full animate-spin"></div>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
                   <div className="relative">
                     <label className="flex items-center justify-between text-sm font-medium text-red-300 mb-2">

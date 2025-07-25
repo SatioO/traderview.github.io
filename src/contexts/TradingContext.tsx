@@ -3,9 +3,11 @@ import React, {
   useContext,
   useReducer,
   useCallback,
+  useEffect,
   type ReactNode,
 } from 'react';
 import type { InstrumentQuote } from '../services/tradingApiService';
+import { useLiveData } from '../hooks/useLiveData';
 
 // Trading Instrument Interface
 export interface TradingInstrument {
@@ -262,6 +264,7 @@ export const TradingProvider: React.FC<TradingProviderProps> = ({
   children,
 }) => {
   const [state, dispatch] = useReducer(tradingReducer, initialState);
+  const { subscribe, unsubscribe, getLivePrice, getTickData, isConnected, ticks } = useLiveData();
 
   // Helper functions
   const setSearchQuery = useCallback((query: string) => {
@@ -327,6 +330,30 @@ export const TradingProvider: React.FC<TradingProviderProps> = ({
     dispatch({ type: 'RESET_ORDER' });
   }, []);
 
+  // Subscribe to live data when instrument is selected
+  useEffect(() => {
+    if (state.selectedInstrument && isConnected) {
+      const instrumentToken = state.selectedInstrument.instrument_token;
+      console.log('TradingContext: Subscribing to live data for instrument:', {
+        symbol: state.selectedInstrument.tradingsymbol,
+        token: instrumentToken,
+        isConnected
+      });
+      subscribe([instrumentToken], 'quote'); // Use 'quote' mode for price and basic data
+      
+      return () => {
+        console.log('TradingContext: Unsubscribing from live data for instrument:', instrumentToken);
+        unsubscribe([instrumentToken]);
+      };
+    } else {
+      console.log('TradingContext: Not subscribing because:', {
+        hasInstrument: !!state.selectedInstrument,
+        isConnected,
+        instrumentToken: state.selectedInstrument?.instrument_token
+      });
+    }
+  }, [state.selectedInstrument, isConnected, subscribe, unsubscribe]);
+
   // Computed properties
   const isOrderReady = Boolean(
     state.selectedInstrument &&
@@ -340,14 +367,50 @@ export const TradingProvider: React.FC<TradingProviderProps> = ({
     state.orderStatus !== 'placing' &&
     state.orderStatus !== 'validating';
 
-  // Current price from quote
-  const currentPrice = state.selectedInstrumentQuote?.last_price || null;
+  // Current price from live data (fallback to quote if live data not available)
+  const currentPrice = React.useMemo(() => {
+    if (state.selectedInstrument) {
+      const livePrice = getLivePrice(state.selectedInstrument.instrument_token);
+      console.log('TradingContext: Price calculation:', {
+        symbol: state.selectedInstrument.tradingsymbol,
+        token: state.selectedInstrument.instrument_token,
+        livePrice,
+        quoteprice: state.selectedInstrumentQuote?.last_price,
+        ticksCount: Object.keys(ticks).length
+      });
+      if (livePrice !== null) {
+        return livePrice;
+      }
+    }
+    // Fallback to quote data
+    return state.selectedInstrumentQuote?.last_price || null;
+  }, [state.selectedInstrument, getLivePrice, state.selectedInstrumentQuote, ticks]);
 
-  // Price change calculation
-  const priceChange = state.selectedInstrumentQuote?.net_change || null;
+  // Price change calculation from live data
+  const priceChange = React.useMemo(() => {
+    if (state.selectedInstrument) {
+      const tickData = getTickData(state.selectedInstrument.instrument_token);
+      if (tickData?.change !== undefined) {
+        return tickData.change;
+      }
+    }
+    // Fallback to quote data
+    return state.selectedInstrumentQuote?.net_change || null;
+  }, [state.selectedInstrument, getTickData, state.selectedInstrumentQuote, ticks]);
 
-  // Price change percentage calculation
+  // Price change percentage calculation from live data
   const priceChangePercent = React.useMemo(() => {
+    if (state.selectedInstrument) {
+      const tickData = getTickData(state.selectedInstrument.instrument_token);
+      if (tickData?.ohlc?.close && tickData.last_price) {
+        const previousClose = tickData.ohlc.close;
+        if (previousClose !== 0) {
+          return ((tickData.last_price - previousClose) / previousClose) * 100;
+        }
+      }
+    }
+    
+    // Fallback to quote data calculation
     if (
       !state.selectedInstrumentQuote ||
       !state.selectedInstrumentQuote.ohlc?.close
@@ -361,7 +424,7 @@ export const TradingProvider: React.FC<TradingProviderProps> = ({
     if (previousClose === 0) return null;
 
     return ((last_price - previousClose) / previousClose) * 100;
-  }, [state.selectedInstrumentQuote]);
+  }, [state.selectedInstrument, getTickData, state.selectedInstrumentQuote, ticks]);
 
   const value: TradingContextType = {
     state,

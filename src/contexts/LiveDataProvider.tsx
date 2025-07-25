@@ -1,15 +1,16 @@
-import React, { useEffect, useState, useCallback, type ReactNode } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { useAuth } from './AuthContext';
-import { useSettings } from './SettingsContext';
-import liveDataManager from '../services/LiveDataManager';
-import type {
-  InstrumentTick,
-  OrderUpdate,
-  BrokerConnectionStatus,
-} from '../adapters/ports/BrokerDataAdapter';
-import brokerApiService from '../services/brokerApiService';
-import { LiveDataContext, type LiveDataContextType } from './LiveDataContext';
+// src/contexts/LiveDataProvider.tsx
+import React, {
+  useState,
+  useCallback,
+  useEffect,
+  type ReactNode,
+  useContext,
+} from 'react';
+import { LiveDataContext } from './LiveDataContext';
+import type { Tick } from '../types/broker';
+import WebSocketService from '../services/WebSocketService';
+import AuthContext from './AuthContext';
+import authService from '../services/authService';
 
 interface LiveDataProviderProps {
   children: ReactNode;
@@ -18,214 +19,105 @@ interface LiveDataProviderProps {
 export const LiveDataProvider: React.FC<LiveDataProviderProps> = ({
   children,
 }) => {
-  const { isAuthenticated } = useAuth();
-  const { hasActiveBrokerSession } = useSettings();
-
+  const [ticks, setTicks] = useState<Record<number, Tick>>({});
   const [isConnected, setIsConnected] = useState(false);
-  const [connectionStatus, setConnectionStatus] =
-    useState<BrokerConnectionStatus | null>(null);
-  const [isInitializing, setIsInitializing] = useState(false);
-  const [initializationError, setInitializationError] = useState<string | null>(
-    null
-  );
+  const [connectionError, setConnectionError] = useState<string | null>(null);
+  const { isAuthenticated } = useContext(AuthContext)!;
 
-  // Get active broker session to determine which broker to connect to
-  const { data: activeSession, isLoading: isLoadingSession } = useQuery({
-    queryKey: ['broker', 'active-session'],
-    queryFn: () => brokerApiService.getActiveSession(),
-    enabled: isAuthenticated && hasActiveBrokerSession,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    retry: 1,
-  });
-
-  // Initialize live data manager when user is authenticated and has active broker session
   useEffect(() => {
-    let mounted = true;
-
-    const initializeLiveData = async () => {
-      if (
-        !isAuthenticated ||
-        !hasActiveBrokerSession ||
-        !activeSession?.hasActiveSession
-      ) {
-        return;
-      }
-
-      if (!activeSession.activeSession?.broker) {
-        console.warn('Active session missing broker details');
-        return;
-      }
-
-      setIsInitializing(true);
-      setInitializationError(null);
-
-      try {
-        await liveDataManager.initialize({
-          brokerName: activeSession.activeSession.broker,
-          apiKey: import.meta.env.VITE_KITE_API_KEY || '',
-          debug: import.meta.env.DEV,
-          autoReconnect: true,
-          maxReconnectAttempts: 5,
+    if (isAuthenticated) {
+      const token = authService.getStoredToken();
+      if (token) {
+        WebSocketService.connect(token, (message) => {
+          switch (message.type) {
+            case 'ticks':
+              console.log('Ticks received:', message.data);
+              setTicks((prevTicks) => {
+                const newTicks = { ...prevTicks };
+                (message.data as Tick[]).forEach((tick) => {
+                  newTicks[tick.instrument_token] = tick;
+                });
+                return newTicks;
+              });
+              break;
+            case 'info':
+              console.log('WebSocket Info:', message.message);
+              if (message.message?.includes('established')) {
+                setIsConnected(true);
+                setConnectionError(null);
+              } else if (message.message?.includes('closed')) {
+                setIsConnected(false);
+              }
+              break;
+            case 'error':
+              console.error('WebSocket Error:', message.message);
+              setConnectionError(
+                message.message || 'An unknown error occurred.'
+              );
+              setIsConnected(false);
+              break;
+            case 'order_update':
+              console.log('Order update received:', message.data);
+              // Handle order updates if necessary
+              break;
+            default:
+              break;
+          }
         });
-
-        if (mounted) {
-          setIsConnected(liveDataManager.isConnected());
-          setConnectionStatus(liveDataManager.getConnectionStatus());
-          console.log(
-            `Live data connection established for ${activeSession.activeSession.broker}`
-          );
-        }
-      } catch (error) {
-        if (mounted) {
-          const errorMessage =
-            error instanceof Error
-              ? error.message
-              : 'Failed to initialize live data';
-          setInitializationError(errorMessage);
-          console.error('Failed to initialize live data manager:', error);
-        }
-      } finally {
-        if (mounted) {
-          setIsInitializing(false);
-        }
       }
-    };
-
-    initializeLiveData();
+    } else {
+      WebSocketService.disconnect();
+      setIsConnected(false);
+      setTicks({});
+    }
 
     return () => {
-      mounted = false;
+      WebSocketService.disconnect();
     };
-  }, [isAuthenticated, hasActiveBrokerSession, activeSession]);
+  }, [isAuthenticated]);
 
-  // Set up connection status monitoring
-  useEffect(() => {
-    if (!isAuthenticated || !hasActiveBrokerSession) {
-      return;
-    }
+  // Helper function to get live price for an instrument
+  const getLivePrice = useCallback((instrumentToken: number): number | null => {
+    const tick = ticks[instrumentToken];
+    console.log('LiveDataProvider: getLivePrice called:', {
+      instrumentToken,
+      tick: tick ? { last_price: tick.last_price, timestamp: tick.timestamp } : null,
+      allTicks: Object.keys(ticks)
+    });
+    return tick?.last_price || null;
+  }, [ticks]);
 
-    const unsubscribeFromConnectionStatus = liveDataManager.onConnectionStatus(
-      (status) => {
-        setIsConnected(status.isConnected);
-        setConnectionStatus(status);
+  // Helper function to get full tick data for an instrument
+  const getTickData = useCallback((instrumentToken: number): Tick | null => {
+    return ticks[instrumentToken] || null;
+  }, [ticks]);
 
-        if (status.error) {
-          console.warn('Live data connection error:', status.error);
-        }
-      }
-    );
-
-    // Update initial connection status
-    setIsConnected(liveDataManager.isConnected());
-    setConnectionStatus(liveDataManager.getConnectionStatus());
-
-    return unsubscribeFromConnectionStatus;
-  }, [isAuthenticated, hasActiveBrokerSession]);
-
-  // Cleanup when user logs out or loses broker session
-  useEffect(() => {
-    if (!isAuthenticated || !hasActiveBrokerSession) {
-      const cleanup = async () => {
-        try {
-          await liveDataManager.cleanup();
-          setIsConnected(false);
-          setConnectionStatus(null);
-          setInitializationError(null);
-        } catch (error) {
-          console.error('Error cleaning up live data manager:', error);
-        }
-      };
-
-      cleanup();
-    }
-  }, [isAuthenticated, hasActiveBrokerSession]);
-
-  // Subscription management functions
-  const subscribeToInstrument = useCallback(
-    async (
-      token: number,
-      symbol: string,
-      mode: 'ltp' | 'quote' | 'full' = 'ltp'
-    ) => {
-      if (!isConnected) {
-        throw new Error('Not connected to live data stream');
-      }
-      return liveDataManager.subscribeToInstrument(token, symbol, mode);
-    },
-    [isConnected]
-  );
-
-  const unsubscribeFromInstrument = useCallback(async (token: number) => {
-    return liveDataManager.unsubscribeFromInstrument(token);
-  }, []);
-
-  const getLatestTick = useCallback((token: number) => {
-    return liveDataManager.getLatestTick(token);
-  }, []);
-
-  const getAllLatestTicks = useCallback(() => {
-    return liveDataManager.getAllLatestTicks();
-  }, []);
-
-  const getActiveSubscriptions = useCallback(() => {
-    return liveDataManager.getActiveSubscriptions();
-  }, []);
-
-  const onTick = useCallback((callback: (ticks: InstrumentTick[]) => void) => {
-    return liveDataManager.onTick(callback);
-  }, []);
-
-  const onOrderUpdate = useCallback(
-    (callback: (order: OrderUpdate) => void) => {
-      return liveDataManager.onOrderUpdate(callback);
+  const subscribe = useCallback(
+    (tokens: number[], mode: 'ltp' | 'quote' | 'full' = 'full') => {
+      WebSocketService.subscribe(tokens, mode);
     },
     []
   );
 
-  const reconnect = useCallback(async () => {
-    setIsInitializing(true);
-    setInitializationError(null);
-
-    try {
-      await liveDataManager.reconnect();
-      setIsConnected(liveDataManager.isConnected());
-      setConnectionStatus(liveDataManager.getConnectionStatus());
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : 'Reconnection failed';
-      setInitializationError(errorMessage);
-      throw error;
-    } finally {
-      setIsInitializing(false);
-    }
+  const unsubscribe = useCallback((tokens: number[]) => {
+    WebSocketService.unsubscribe(tokens);
   }, []);
-
-  const cleanup = useCallback(async () => {
-    await liveDataManager.cleanup();
-    setIsConnected(false);
-    setConnectionStatus(null);
-    setInitializationError(null);
-  }, []);
-
-  const value: LiveDataContextType = {
-    isConnected,
-    connectionStatus,
-    isInitializing: isInitializing || isLoadingSession,
-    initializationError,
-    subscribeToInstrument,
-    unsubscribeFromInstrument,
-    getLatestTick,
-    getAllLatestTicks,
-    getActiveSubscriptions,
-    onTick,
-    onOrderUpdate,
-    reconnect,
-    cleanup,
-  };
 
   return (
-    <LiveDataContext.Provider value={value}>
+    <LiveDataContext.Provider
+      value={{ 
+        ticks, 
+        subscribe, 
+        unsubscribe, 
+        isConnected, 
+        connectionError,
+        getLivePrice,
+        getTickData
+      }}
+    >
       {children}
     </LiveDataContext.Provider>
   );
 };
+
+export default LiveDataProvider;

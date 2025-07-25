@@ -1,36 +1,16 @@
+// src/contexts/LiveDataContext.tsx
 import { createContext } from 'react';
-import { type LiveDataSubscription } from '../services/LiveDataManager';
-import type {
-  InstrumentTick,
-  OrderUpdate,
-  BrokerConnectionStatus,
-} from '../adapters/ports/BrokerDataAdapter';
+import type { Tick } from '../types/broker';
 
 export interface LiveDataContextType {
-  // Connection status
+  ticks: Record<number, Tick>;
+  subscribe: (tokens: number[], mode?: 'ltp' | 'quote' | 'full') => void;
+  unsubscribe: (tokens: number[]) => void;
   isConnected: boolean;
-  connectionStatus: BrokerConnectionStatus | null;
-  isInitializing: boolean;
-  initializationError: string | null;
-
-  // Subscription management
-  subscribeToInstrument: (
-    token: number,
-    symbol: string,
-    mode?: 'ltp' | 'quote' | 'full'
-  ) => Promise<string>;
-  unsubscribeFromInstrument: (token: number) => Promise<void>;
-  getLatestTick: (token: number) => InstrumentTick | null;
-  getAllLatestTicks: () => Map<number, InstrumentTick>;
-  getActiveSubscriptions: () => LiveDataSubscription[];
-
-  // Event handlers
-  onTick: (callback: (ticks: InstrumentTick[]) => void) => () => void;
-  onOrderUpdate: (callback: (order: OrderUpdate) => void) => () => void;
-
-  // Manual controls
-  reconnect: () => Promise<void>;
-  cleanup: () => Promise<void>;
+  connectionError: string | null;
+  // Helper functions
+  getLivePrice: (instrumentToken: number) => number | null;
+  getTickData: (instrumentToken: number) => Tick | null;
 }
 
 export const LiveDataContext = createContext<LiveDataContextType | undefined>(
