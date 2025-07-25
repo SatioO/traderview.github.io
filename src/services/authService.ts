@@ -1,4 +1,5 @@
 import { analyticsService } from './analyticsService';
+import httpClient from './httpClient';
 
 export interface LoginRequest {
   email: string;
@@ -24,18 +25,6 @@ export interface AuthResponse {
   };
 }
 
-export interface RefreshTokenResponse {
-  message: string;
-  accessToken: string;
-  refreshToken: string;
-  user: {
-    id: string;
-    firstName: string;
-    lastName: string;
-    email: string;
-  };
-}
-
 export interface AuthError {
   message: string;
   code?: string;
@@ -55,195 +44,75 @@ export interface UserProfile {
   createdAt: string;
 }
 
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api';
+interface ActiveSessionsResponse {
+  activeSessions: Array<{
+    id: string;
+    deviceInfo: {
+      userAgent: string;
+      ipAddress: string;
+      deviceId?: string;
+    };
+    createdAt: string;
+    lastUsedAt: string;
+    isCurrent: boolean;
+  }>;
+  totalCount: number;
+}
 
 // Token storage keys
 const ACCESS_TOKEN_KEY = 'accessToken';
 const REFRESH_TOKEN_KEY = 'refreshToken';
 const USER_KEY = 'user';
 
-// Create axios-like instance with interceptors for token management
-class ApiClient {
-  public baseURL: string;
-  private isRefreshing = false;
-  private refreshPromise: Promise<string> | null = null;
-
-  constructor(baseURL: string) {
-    this.baseURL = baseURL;
-  }
-
-  private async makeRequest<T>(
-    endpoint: string,
-    options: RequestInit = {}
-  ): Promise<T> {
-    const url = `${this.baseURL}${endpoint}`;
-
-    // Add access token to headers if available
-    const accessToken = this.getStoredAccessToken();
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-      ...((options.headers as Record<string, string>) || {}),
-    };
-
-    if (accessToken && !endpoint.includes('/auth/refresh-token')) {
-      headers['Authorization'] = `Bearer ${accessToken}`;
-    }
-
-    try {
-      const response = await fetch(url, {
-        ...options,
-        headers,
-      });
-
-      // Handle 401 with automatic token refresh
-      if (
-        response.status === 401 &&
-        !endpoint.includes('/auth/refresh-token')
-      ) {
-        const errorData = await response.clone().json();
-
-        if (errorData.code === 'ACCESS_TOKEN_EXPIRED') {
-          // Try to refresh token
-          const newAccessToken = await this.refreshAccessToken();
-
-          // Retry original request with new token
-          const retryHeaders = {
-            ...headers,
-            Authorization: `Bearer ${newAccessToken}`,
-          };
-
-          const retryResponse = await fetch(url, {
-            ...options,
-            headers: retryHeaders,
-          });
-
-          if (!retryResponse.ok) {
-            const retryError = await retryResponse.json();
-            throw new Error(
-              retryError.message || 'Request failed after token refresh'
-            );
-          }
-
-          return retryResponse.json();
-        } else {
-          // Other 401 errors (invalid token, etc.) - force logout
-          this.clearAuthData();
-          // Force redirect to login for expired sessions
-          if (
-            errorData.code === 'INVALID_REFRESH_TOKEN' ||
-            errorData.code === 'SESSION_EXPIRED' ||
-            errorData.message?.includes('Session expired')
-          ) {
-            console.log('Session expired, redirecting to login...');
-            window.location.href = '/login';
-          }
-          throw new Error(errorData.message || 'Authentication failed');
-        }
-      }
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(
-          error.message || `Request failed with status ${response.status}`
-        );
-      }
-
-      return response.json();
-    } catch (error) {
-      if (error instanceof Error) {
-        throw error;
-      }
-      throw new Error('Network error');
-    }
-  }
-
-  private async refreshAccessToken(): Promise<string> {
-    // Prevent multiple simultaneous refresh attempts
-    if (this.isRefreshing && this.refreshPromise) {
-      return this.refreshPromise;
-    }
-
-    this.isRefreshing = true;
-    this.refreshPromise = this.performTokenRefresh();
-
-    try {
-      const newAccessToken = await this.refreshPromise;
-      this.isRefreshing = false;
-      this.refreshPromise = null;
-      return newAccessToken;
-    } catch (error) {
-      this.isRefreshing = false;
-      this.refreshPromise = null;
-      throw error;
-    }
-  }
-
-  private async performTokenRefresh(): Promise<string> {
-    const refreshToken = this.getStoredRefreshToken();
-
-    if (!refreshToken) {
-      this.clearAuthData();
-      throw new Error('No refresh token available');
-    }
-
-    try {
-      const response = await fetch(`${this.baseURL}/auth/refresh-token`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ refreshToken }),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-
-        // Handle specific refresh token errors
-        if (
-          error.code === 'INVALID_REFRESH_TOKEN' ||
-          error.code === 'SECURITY_BREACH' ||
-          error.code === 'MISSING_REFRESH_TOKEN' ||
-          error.code === 'SESSION_EXPIRED'
-        ) {
-          this.clearAuthData();
-          // Force redirect to login when refresh tokens are invalid
-          console.log('Refresh token invalid, redirecting to login...');
-          window.location.href = '/login';
-        }
-
-        throw new Error(error.message || 'Token refresh failed');
-      }
-
-      const tokenResponse: RefreshTokenResponse = await response.json();
-
-      // Store new tokens
-      this.storeAuthData(
-        tokenResponse.accessToken,
-        tokenResponse.refreshToken,
-        tokenResponse.user
-      );
-
-      return tokenResponse.accessToken;
-    } catch (error) {
-      this.clearAuthData();
-      throw error;
-    }
-  }
-
-  // Auth methods
+class AuthService {
   async login(credentials: LoginRequest): Promise<AuthResponse> {
-    return this.makeRequest<AuthResponse>('/user/login', {
-      method: 'POST',
-      body: JSON.stringify(credentials),
+    const response = await httpClient.post<AuthResponse>('/user/login', credentials);
+    const authData = response.data;
+    
+    // Store auth data
+    this.storeAuthData(authData.accessToken, authData.refreshToken, authData.user);
+
+    // Set user context in analytics
+    analyticsService.setUser({
+      userId: authData.user.id,
+      username: `${authData.user.firstName} ${authData.user.lastName}`,
+      email: authData.user.email,
+      displayName: `${authData.user.firstName} ${authData.user.lastName}`,
     });
+
+    // Track login event
+    analyticsService.trackEvent('login_success', {
+      method: 'email',
+      userId: authData.user.id,
+      email: authData.user.email,
+      name: `${authData.user.firstName} ${authData.user.lastName}`,
+    });
+
+    return authData;
   }
 
   async signup(userData: SignupRequest): Promise<AuthResponse> {
-    return this.makeRequest<AuthResponse>('/user/signup', {
-      method: 'POST',
-      body: JSON.stringify(userData),
+    const response = await httpClient.post<AuthResponse>('/user/signup', userData);
+    const authData = response.data;
+
+    // Store auth data
+    this.storeAuthData(authData.accessToken, authData.refreshToken, authData.user);
+
+    // Set user context in analytics
+    analyticsService.setUser({
+      userId: authData.user.id,
+      email: authData.user.email,
+      displayName: `${authData.user.firstName} ${authData.user.lastName}`,
     });
+
+    // Track signup event
+    analyticsService.trackEvent('signup_success', {
+      method: 'email',
+      userId: authData.user.id,
+      email: authData.user.email,
+    });
+
+    return authData;
   }
 
   async logout(): Promise<void> {
@@ -251,69 +120,55 @@ class ApiClient {
 
     try {
       if (refreshToken) {
-        await this.makeRequest('/auth/logout', {
-          method: 'POST',
-          body: JSON.stringify({ refreshToken }),
-        });
+        await httpClient.post('/auth/logout', { refreshToken });
       }
     } catch (error) {
       console.error('Logout API call failed:', error);
     } finally {
       this.clearAuthData();
+      httpClient.logout(); // Clear tokens from httpClient as well
     }
   }
 
   async logoutAll(): Promise<void> {
     try {
-      await this.makeRequest('/auth/logout', {
-        method: 'POST',
-        body: JSON.stringify({ logoutAll: true }),
-      });
+      await httpClient.post('/auth/logout', { logoutAll: true });
     } catch (error) {
       console.error('Logout all API call failed:', error);
     } finally {
       this.clearAuthData();
+      httpClient.logout(); // Clear tokens from httpClient as well
     }
   }
 
   async getUserProfile(): Promise<UserProfile> {
-    return this.makeRequest<UserProfile>('/user/profile');
+    const response = await httpClient.get<UserProfile>('/user/profile');
+    return response.data;
   }
 
   async verifyToken(): Promise<{ valid: boolean; user?: UserProfile }> {
     try {
-      return await this.makeRequest<{ valid: boolean; user: UserProfile }>(
-        '/auth/verify-token'
-      );
+      const response = await httpClient.get<{ valid: boolean; user: UserProfile }>('/auth/verify-token');
+      return response.data;
     } catch {
       return { valid: false };
     }
   }
 
-  async getActiveSessions(): Promise<{
-    activeSessions: Array<{
-      id: string;
-      deviceInfo: {
-        userAgent: string;
-        ipAddress: string;
-        deviceId?: string;
-      };
-      createdAt: string;
-      lastUsedAt: string;
-      isCurrent: boolean;
-    }>;
-    totalCount: number;
-  }> {
-    return this.makeRequest('/auth/active-sessions');
+  async getActiveSessions(): Promise<ActiveSessionsResponse> {
+    const response = await httpClient.get<ActiveSessionsResponse>('/auth/active-sessions');
+    return response.data;
   }
 
   async revokeSession(sessionId: string): Promise<void> {
-    await this.makeRequest(`/auth/revoke-session/${sessionId}`, {
-      method: 'DELETE',
-    });
+    await httpClient.delete(`/auth/revoke-session/${sessionId}`);
   }
 
-  // Token management
+  // Token management methods
+  getStoredToken(): string | null {
+    return localStorage.getItem(ACCESS_TOKEN_KEY);
+  }
+
   getStoredAccessToken(): string | null {
     return localStorage.getItem(ACCESS_TOKEN_KEY);
   }
@@ -343,127 +198,14 @@ class ApiClient {
     localStorage.removeItem(USER_KEY);
   }
 
-  // Check if user is authenticated
   isAuthenticated(): boolean {
-    const accessToken = this.getStoredAccessToken();
-    const refreshToken = this.getStoredRefreshToken();
-    const user = this.getStoredUser();
-
-    return !!(accessToken && refreshToken && user);
-  }
-
-  // Legacy methods for backward compatibility
-  getStoredToken(): string | null {
-    return this.getStoredAccessToken();
+    return httpClient.isAuthenticated();
   }
 }
 
-// Create singleton instance
-const apiClient = new ApiClient(API_BASE_URL);
+// Create and export singleton instance
+const authService = new AuthService();
 
-// Export legacy interface for backward compatibility
-const authService = {
-  async login(credentials: LoginRequest): Promise<AuthResponse> {
-    const response = await apiClient.login(credentials);
-    apiClient.storeAuthData(
-      response.accessToken,
-      response.refreshToken,
-      response.user
-    );
-
-    // Set user context in analytics first
-    analyticsService.setUser({
-      userId: response.user.id,
-      username: response.user.firstName + ' ' + response.user.lastName,
-      email: response.user.email,
-      displayName: `${response.user.firstName} ${response.user.lastName}`,
-    });
-
-    // Then, track the login event with user details
-    analyticsService.trackEvent('login_success', {
-      method: 'email',
-      userId: response.user.id,
-      email: response.user.email,
-      name: response.user.firstName + ' ' + response.user.lastName,
-    });
-
-    return response;
-  },
-
-  async signup(userData: SignupRequest): Promise<AuthResponse> {
-    const response = await apiClient.signup(userData);
-    apiClient.storeAuthData(
-      response.accessToken,
-      response.refreshToken,
-      response.user
-    );
-
-    // Set user context in analytics first
-    analyticsService.setUser({
-      userId: response.user.id,
-      email: response.user.email,
-      displayName: `${response.user.firstName} ${response.user.lastName}`,
-    });
-
-    // Then, track the signup event with user details
-    analyticsService.trackEvent('signup_success', {
-      method: 'email',
-      userId: response.user.id,
-      email: response.user.email,
-    });
-
-    return response;
-  },
-
-  async logout(): Promise<void> {
-    await apiClient.logout();
-  },
-
-  async logoutAll(): Promise<void> {
-    await apiClient.logoutAll();
-  },
-
-  async getUserProfile(): Promise<UserProfile> {
-    return apiClient.getUserProfile();
-  },
-
-  async verifyToken(): Promise<{ valid: boolean; user?: UserProfile }> {
-    return apiClient.verifyToken();
-  },
-
-  async getActiveSessions() {
-    return apiClient.getActiveSessions();
-  },
-
-  async revokeSession(sessionId: string): Promise<void> {
-    return apiClient.revokeSession(sessionId);
-  },
-
-  getStoredToken(): string | null {
-    return apiClient.getStoredAccessToken();
-  },
-
-  getStoredUser(): AuthResponse['user'] | null {
-    return apiClient.getStoredUser();
-  },
-
-  storeAuthData(): void {
-    // For backward compatibility, assume this is access token only
-    // In practice, this should be updated to use the new method
-    console.warn(
-      'authService.storeAuthData is deprecated. Use the new format with refresh tokens.'
-    );
-  },
-
-  clearAuthData(): void {
-    apiClient.clearAuthData();
-  },
-
-  isAuthenticated(): boolean {
-    return apiClient.isAuthenticated();
-  },
-};
-
-// Export both the new API client and legacy service
-export { apiClient };
+// Export both the instance and the class for backward compatibility
+export { authService as apiClient }; // For backward compatibility
 export default authService;

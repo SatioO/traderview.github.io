@@ -1,4 +1,4 @@
-import { apiClient } from './authService';
+import httpClient from './httpClient';
 import type {
   UserSettings,
   RiskLevel,
@@ -98,92 +98,63 @@ export const transformFrontendToBackend = (
 class PreferencesService {
   private baseUrl: string = '/user/preferences';
 
-  private async makeRequest<T>(
-    endpoint: string,
-    options?: RequestInit
-  ): Promise<T> {
-    const response = await fetch(
-      `${apiClient.baseURL || 'http://localhost:3000/api'}${endpoint}`,
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${apiClient.getStoredAccessToken()}`,
-          ...((options?.headers as Record<string, string>) || {}),
-        },
-        ...options,
-      }
-    );
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(
-        error.message || `Request failed with status ${response.status}`
-      );
+  private async makeRequest<T>(endpoint: string, method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' = 'GET', data?: any): Promise<T> {
+    switch (method) {
+      case 'GET':
+        const getResponse = await httpClient.get<T>(endpoint);
+        return getResponse.data;
+      case 'POST':
+        const postResponse = await httpClient.post<T>(endpoint, data);
+        return postResponse.data;
+      case 'PUT':
+        const putResponse = await httpClient.put<T>(endpoint, data);
+        return putResponse.data;
+      case 'PATCH':
+        const patchResponse = await httpClient.patch<T>(endpoint, data);
+        return patchResponse.data;
+      case 'DELETE':
+        const deleteResponse = await httpClient.delete<T>(endpoint);
+        return deleteResponse.data;
+      default:
+        throw new Error(`Unsupported HTTP method: ${method}`);
     }
-
-    return response.json();
   }
 
   // Get user preferences with default values
   async getPreferences(): Promise<UserSettings> {
-    const response = await this.makeRequest<PreferencesResponse>(this.baseUrl);
+    const response = await this.makeRequest<PreferencesResponse>(this.baseUrl, 'GET');
     return transformBackendToFrontend(response.preferences);
   }
 
   // Full update of preferences (PUT)
   async updatePreferences(settings: Partial<UserSettings>): Promise<UserSettings> {
     const backendData = transformFrontendToBackend(settings);
-    const response = await this.makeRequest<PreferencesResponse>(
-      this.baseUrl,
-      {
-        method: 'PUT',
-        body: JSON.stringify(backendData),
-      }
-    );
+    const response = await this.makeRequest<PreferencesResponse>(this.baseUrl, 'PUT', backendData);
     return transformBackendToFrontend(response.preferences);
   }
 
   // Partial update of preferences (PATCH)
   async updatePartialPreferences(settings: Partial<UserSettings>): Promise<UserSettings> {
     const backendData = transformFrontendToBackend(settings);
-    const response = await this.makeRequest<PreferencesResponse>(
-      this.baseUrl,
-      {
-        method: 'PATCH',
-        body: JSON.stringify(backendData),
-      }
-    );
+    const response = await this.makeRequest<PreferencesResponse>(this.baseUrl, 'PATCH', backendData);
     return transformBackendToFrontend(response.preferences);
   }
 
   // Reset preferences to default
   async resetPreferences(): Promise<UserSettings> {
-    const response = await this.makeRequest<PreferencesResponse>(
-      this.baseUrl,
-      {
-        method: 'DELETE',
-      }
-    );
+    const response = await this.makeRequest<PreferencesResponse>(this.baseUrl, 'DELETE');
     return transformBackendToFrontend(response.preferences);
   }
 
   // Get specific preference field
   async getPreferenceField<T = any>(fieldName: string): Promise<T> {
-    const response = await this.makeRequest<FieldResponse<T>>(
-      `${this.baseUrl}/field/${fieldName}`
-    );
+    const response = await this.makeRequest<FieldResponse<T>>(`${this.baseUrl}/field/${fieldName}`, 'GET');
     return response.value;
   }
 
   // Update specific preference field
   async updatePreferenceField<T = any>(fieldName: string, value: T): Promise<T> {
-    const response = await this.makeRequest<FieldResponse<T>>(
-      `${this.baseUrl}/field/${fieldName}`,
-      {
-        method: 'PUT',
-        body: JSON.stringify({ value }),
-      }
-    );
+    const response = await this.makeRequest<FieldResponse<T>>(`${this.baseUrl}/field/${fieldName}`, 'PUT', { value });
     return response.value;
   }
 

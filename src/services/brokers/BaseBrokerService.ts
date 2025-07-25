@@ -80,6 +80,7 @@ export abstract class BaseBrokerService implements BrokerAuthProvider {
   }
 
   protected async makeBackendRequest(endpoint: string, data: Record<string, unknown>): Promise<BrokerAuthResponse> {
+    // For now, use fetch directly to avoid complexity - this can be migrated later
     const response = await fetch(`${this.apiBaseUrl}/auth/${this.name}/${endpoint}`, {
       method: 'POST',
       headers: {

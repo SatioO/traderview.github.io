@@ -112,7 +112,10 @@ const EnhancedHeader: React.FC<EnhancedHeaderProps> = ({
     return `${settings.currencySymbol}${amount.toLocaleString('en-IN')}`;
   };
 
-  const formatCurrencyShort = (amount: number): string => {
+  const formatCurrencyShort = (amount: number | undefined): string => {
+    if (amount === undefined || amount === null) {
+      return '₹0';
+    }
     if (amount >= 10000000) {
       return `${(amount / 10000000).toFixed(1)}Cr`;
     } else if (amount >= 100000) {

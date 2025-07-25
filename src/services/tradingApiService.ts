@@ -1,5 +1,5 @@
 import type { TradingInstrument, OrderData } from '../contexts/TradingContext';
-import { apiClient } from './authService';
+import httpClient from './httpClient';
 
 // API Response Types
 interface InstrumentSearchResponse {
@@ -132,30 +132,26 @@ export interface AddRecentSearchResponse {
 class TradingApiService {
   private baseUrl: string = '/instruments';
 
-  private async makeRequest<T>(
-    endpoint: string,
-    options?: RequestInit
-  ): Promise<T> {
-    const response = await fetch(
-      `${apiClient.baseURL || 'http://localhost:3000/api'}${endpoint}`,
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${apiClient.getStoredAccessToken()}`,
-          ...((options?.headers as Record<string, string>) || {}),
-        },
-        ...options,
-      }
-    );
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(
-        error.message || `Request failed with status ${response.status}`
-      );
+  private async makeRequest<T>(endpoint: string, method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' = 'GET', data?: any): Promise<T> {
+    switch (method) {
+      case 'GET':
+        const getResponse = await httpClient.get<T>(endpoint);
+        return getResponse.data;
+      case 'POST':
+        const postResponse = await httpClient.post<T>(endpoint, data);
+        return postResponse.data;
+      case 'PUT':
+        const putResponse = await httpClient.put<T>(endpoint, data);
+        return putResponse.data;
+      case 'PATCH':
+        const patchResponse = await httpClient.patch<T>(endpoint, data);
+        return patchResponse.data;
+      case 'DELETE':
+        const deleteResponse = await httpClient.delete<T>(endpoint);
+        return deleteResponse.data;
+      default:
+        throw new Error(`Unsupported HTTP method: ${method}`);
     }
-
-    return response.json();
   }
 
   private baseURL =
@@ -164,7 +160,8 @@ class TradingApiService {
   // Search for instruments
   async searchInstruments(query: string): Promise<TradingInstrument[]> {
     const response = await this.makeRequest<InstrumentSearchResponse>(
-      `${this.baseUrl}/search?q=${encodeURIComponent(query)}`
+      `${this.baseUrl}/search?q=${encodeURIComponent(query)}`,
+      'GET'
     );
 
     // Debug: Log the first instrument to see structure
@@ -469,10 +466,8 @@ class TradingApiService {
     try {
       const response = await this.makeRequest<InstrumentQuotesResponse>(
         `${this.baseUrl}/quotes`,
-        {
-          method: 'POST',
-          body: JSON.stringify({ instruments }),
-        }
+        'POST',
+        { instruments }
       );
 
       return response;
@@ -523,10 +518,8 @@ class TradingApiService {
     try {
       await this.makeRequest<AddRecentSearchResponse>(
         `${this.baseUrl}/recent-search`,
-        {
-          method: 'POST',
-          body: JSON.stringify({ tradingsymbol, exchange }),
-        }
+        'POST',
+        { tradingsymbol, exchange }
       );
     } catch (error) {
       console.error('Error adding to recent searches:', error);
