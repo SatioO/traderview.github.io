@@ -61,9 +61,6 @@ const TradingCalculator: React.FC = () => {
   const [calculations, setCalculations] = useState<Calculations | null>(null);
   const [warnings, setWarnings] = useState<string[]>([]);
   const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
-  const [stopLossMode, setStopLossMode] = useState<'price' | 'percentage'>(
-    'price'
-  );
   const [stopLossPercentage, setStopLossPercentage] = useState<number>(3);
   // Settings context for capital management
   const {
@@ -72,6 +69,12 @@ const TradingCalculator: React.FC = () => {
     hasActiveBrokerSession,
     isLoading: isLoadingSettings,
   } = useSettings();
+
+  const stopLossMode = settingsContext.stopLossMode || 'price';
+
+  const handleStopLossModeChange = (mode: 'price' | 'percentage') => {
+    updateSettings({ stopLossMode: mode });
+  };
 
   const [entryPriceMode, setEntryPriceMode] = useState<'lmt' | 'mkt'>(
     hasActiveBrokerSession ? 'mkt' : 'lmt'
@@ -826,7 +829,7 @@ const TradingCalculator: React.FC = () => {
                           <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex bg-black/60 rounded-lg p-1 border border-red-500/30">
                             <button
                               type="button"
-                              onClick={() => setStopLossMode('price')}
+                              onClick={() => handleStopLossModeChange('price')}
                               className={`px-2 py-1 text-xs font-medium rounded-md transition-all duration-200 ${
                                 stopLossMode === 'price'
                                   ? 'bg-red-500/30 text-red-300 border border-red-400/50'
@@ -837,7 +840,7 @@ const TradingCalculator: React.FC = () => {
                             </button>
                             <button
                               type="button"
-                              onClick={() => setStopLossMode('percentage')}
+                              onClick={() => handleStopLossModeChange('percentage')}
                               className={`px-2 py-1 text-xs font-medium rounded-md transition-all duration-200 ${
                                 // @ts-expect-error - TypeScript incorrectly flags this as impossible comparison
                                 stopLossMode === 'percentage'
@@ -884,7 +887,7 @@ const TradingCalculator: React.FC = () => {
                           <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex bg-black/60 rounded-lg p-1 border border-red-500/30">
                             <button
                               type="button"
-                              onClick={() => setStopLossMode('price')}
+                              onClick={() => handleStopLossModeChange('price')}
                               className={`px-2 py-1 text-xs font-medium rounded-md transition-all duration-200 ${
                                 // @ts-expect-error - TypeScript incorrectly flags this as impossible comparison
                                 stopLossMode === 'price'
@@ -896,7 +899,7 @@ const TradingCalculator: React.FC = () => {
                             </button>
                             <button
                               type="button"
-                              onClick={() => setStopLossMode('percentage')}
+                              onClick={() => handleStopLossModeChange('percentage')}
                               className={`px-2 py-1 text-xs font-medium rounded-md transition-all duration-200 ${
                                 stopLossMode === 'percentage'
                                   ? 'bg-red-500/30 text-red-300 border border-red-400/50'

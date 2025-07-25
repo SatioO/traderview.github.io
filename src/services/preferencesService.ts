@@ -29,6 +29,7 @@ export interface BackendPreferences {
   defaultRiskLevel: string;
   marketHealth: string;
   defaultModeTab: string; // Maps to activeTab in frontend
+  defaultStopLossMode: 'price' | 'percentage';
   defaultStopLossLevel: string;
   defaultStopLossPercentage: number;
   hasActiveBrokerSession: boolean;
@@ -59,6 +60,7 @@ export const transformBackendToFrontend = (
   defaultAllocationLevel: backendPrefs.defaultAllocationLevel,
   stopLossLevels: backendPrefs.stopLossLevels,
   defaultStopLossLevel: backendPrefs.defaultStopLossLevel,
+  stopLossMode: backendPrefs.defaultStopLossMode || 'price',
   activeTab: backendPrefs.defaultModeTab as any, // Maps defaultModeTab to activeTab
   darkMode: backendPrefs.darkMode,
   defaultBrokerageCost: backendPrefs.defaultBrokerageCost,
@@ -79,6 +81,11 @@ export const transformFrontendToBackend = (
   if ('activeTab' in frontendSettings) {
     backendUpdate.defaultModeTab = frontendSettings.activeTab;
     delete backendUpdate.activeTab;
+  }
+
+  if ('stopLossMode' in frontendSettings) {
+    backendUpdate.defaultStopLossMode = frontendSettings.stopLossMode;
+    delete backendUpdate.stopLossMode;
   }
   
   // Remove frontend-specific fields that don't exist in backend

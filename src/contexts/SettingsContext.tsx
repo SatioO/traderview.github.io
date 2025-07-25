@@ -70,6 +70,7 @@ export interface UserSettings {
   // Stop Loss Management
   stopLossLevels: StopLossLevel[];
   defaultStopLossLevel: string;
+  stopLossMode: 'price' | 'percentage';
 
   // UI Preferences
   activeTab: TabType;
