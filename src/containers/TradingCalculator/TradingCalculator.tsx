@@ -1309,7 +1309,7 @@ const TradingCalculator: React.FC = () => {
               )}
 
               {/* Animated Profit Command Center */}
-              <div className="mb-6">
+              <div className="mb-0">
                 {/* Gaming-style Profit Dashboard */}
                 <div className="relative bg-gradient-to-br from-black/40 to-gray-900/40 backdrop-blur-xl rounded-2xl p-6 border border-cyan-500/30 overflow-hidden">
                   {/* Animated Background Grid */}
@@ -1318,7 +1318,7 @@ const TradingCalculator: React.FC = () => {
                   </div>
 
                   {/* Interactive Profit Cards Grid */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
                     {targets.map((target, index) => {
                       const colors = [
                         'from-green-400 to-emerald-600',
