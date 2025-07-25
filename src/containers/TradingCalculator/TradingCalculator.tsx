@@ -94,7 +94,7 @@ const TradingCalculator: React.FC = () => {
 
   // Trading context for instrument quotes and price data
   const {
-    state: { selectedInstrument, isLoadingQuote, quoteError },
+    state: { selectedInstrument, isLoadingQuote },
     currentPrice,
   } = useTrading();
 
@@ -699,7 +699,7 @@ const TradingCalculator: React.FC = () => {
                         step="0.1"
                         placeholder={
                           entryPriceMode === 'mkt'
-                            ? 'Market price'
+                            ? '0.00'
                             : isLoadingQuote
                             ? 'Loading price...'
                             : '0.00'
@@ -744,17 +744,6 @@ const TradingCalculator: React.FC = () => {
                         </div>
                       )}
                     </div>
-                    {/* Quote Error Display */}
-                    {quoteError && selectedInstrument && (
-                      <div className="mt-2 p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
-                        <div className="flex items-center space-x-2">
-                          <AlertTriangle className="w-4 h-4 text-red-400" />
-                          <span className="text-xs text-red-300">
-                            Failed to fetch live price
-                          </span>
-                        </div>
-                      </div>
-                    )}
                   </div>
                   <div className="relative">
                     <label className="flex items-center justify-between text-sm font-medium text-red-300 mb-2">

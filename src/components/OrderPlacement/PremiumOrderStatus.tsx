@@ -118,7 +118,7 @@ export const PremiumOrderStatus: React.FC<PremiumOrderStatusProps> = ({
                     Symbol
                   </div>
                   <div className="text-green-100 font-semibold text-sm">
-                    {orderResponse.orderData.tradingsymbol}
+                    {orderResponse.order.tradingsymbol}
                   </div>
                 </div>
                 <div>
@@ -126,7 +126,7 @@ export const PremiumOrderStatus: React.FC<PremiumOrderStatusProps> = ({
                     Quantity
                   </div>
                   <div className="text-green-100 font-semibold text-sm">
-                    {orderResponse.orderData.quantity.toLocaleString()}
+                    {orderResponse.order.quantity.toLocaleString()}
                   </div>
                 </div>
                 <div>
@@ -134,7 +134,7 @@ export const PremiumOrderStatus: React.FC<PremiumOrderStatusProps> = ({
                     Type
                   </div>
                   <div className="text-green-100 font-semibold text-sm">
-                    {orderResponse.orderData.order_type}
+                    {orderResponse.order.order_type}
                   </div>
                 </div>
                 <div>
@@ -143,7 +143,7 @@ export const PremiumOrderStatus: React.FC<PremiumOrderStatusProps> = ({
                   </div>
                   <div className="text-green-100 font-semibold text-sm flex items-center space-x-1">
                     <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
-                    <span>{orderResponse.orderData.status}</span>
+                    <span>{orderResponse.order.status}</span>
                   </div>
                 </div>
               </div>

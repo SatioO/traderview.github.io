@@ -136,11 +136,14 @@ const EnhancedHeader: React.FC<EnhancedHeaderProps> = ({
     user: { firstName?: string; lastName?: string; email?: string } | null
   ): string => {
     if (!user) return 'Trader';
-    return (
-      `${user.firstName || ''} ${user.lastName || ''}`.trim() ||
-      user.email ||
-      'Trader'
-    );
+
+    const capitalize = (s?: string) =>
+      s ? s.charAt(0).toUpperCase() + s.slice(1) : '';
+
+    const firstName = capitalize(user.firstName);
+    const lastName = capitalize(user.lastName);
+
+    return `${firstName} ${lastName}`.trim() || user.email || 'Trader';
   };
 
   // Preset amounts for quick selection
@@ -216,7 +219,6 @@ const EnhancedHeader: React.FC<EnhancedHeaderProps> = ({
       color: 'from-red-500 to-orange-500',
     };
   };
-
 
   return (
     <>
@@ -315,7 +317,7 @@ const EnhancedHeader: React.FC<EnhancedHeaderProps> = ({
                         <div className="absolute inset-0 bg-emerald-400/20 rounded-lg blur-sm opacity-0 group-hover:opacity-100 transition-all duration-300"></div>
 
                         {/* Simple Icon Container */}
-                        <div className="relative p-2 rounded-lg bg-emerald-500/10 border border-emerald-400/20 opacity-0 group-hover:opacity-100 transition-all duration-300 backdrop-blur-sm">
+                        <div className="relative p-2 rounded-lg bg-emerald-500/10 border border-emerald-400/20 group-hover:opacity-100 transition-all duration-300 backdrop-blur-sm">
                           <Edit className="w-4 h-4 text-emerald-300 group-hover:text-emerald-200 transition-all duration-300 transform group-hover:scale-110" />
                         </div>
 
@@ -355,6 +357,19 @@ const EnhancedHeader: React.FC<EnhancedHeaderProps> = ({
                   </button>
                 </div>
 
+                {/* Floating Settings Button */}
+                <button
+                  onClick={handleSettingsClick}
+                  className="relative flex items-center justify-center w-16 h-16 rounded-full transition-all duration-500 hover:scale-125 transform-gpu group"
+                >
+                  {/* Floating Pulse on Hover */}
+                  {/* <div className="absolute inset-0 bg-gray-400/20 rounded-full animate-pulse opacity-0 group-hover:opacity-60 transition-opacity duration-300"></div> */}
+                  <div className="absolute inset-0 bg-gray-400/10 rounded-full animate-ping opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+
+                  {/* Icon with Drop Shadow */}
+                  <Settings className="relative w-6 h-6 text-gray-300 group-hover:text-white transition-all duration-300 " />
+                </button>
+
                 {/* Floating User Avatar Menu */}
                 <div className="relative z-30" ref={userMenuRef}>
                   <button
@@ -366,40 +381,49 @@ const EnhancedHeader: React.FC<EnhancedHeaderProps> = ({
                       {/* Multi-layered Background Effects */}
                       <div className="absolute inset-0 bg-gradient-to-br from-purple-500/40 to-cyan-500/40 rounded-full blur-lg animate-pulse opacity-60 group-hover:opacity-90 transition-all duration-700"></div>
                       <div className="absolute inset-0 bg-gradient-to-br from-pink-400/20 to-blue-400/20 rounded-full blur-xl opacity-0 group-hover:opacity-70 transition-all duration-1000 animate-ping"></div>
-                      
+
                       {/* Enhanced Avatar with Improved Gradient */}
                       <div className="relative w-11 h-11 bg-gradient-to-br from-purple-600 via-rose-500 to-cyan-600 rounded-full flex items-center justify-center text-white font-bold text-sm border-2 border-white/40 group-hover:border-white/70 transition-all duration-500 shadow-2xl transform group-hover:scale-110 group-hover:rotate-3">
                         {/* Inner Glow Effect */}
                         <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-transparent rounded-full opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
-                        
+
                         {/* Avatar Content */}
                         <span className="relative z-10 transform group-hover:scale-105 transition-all duration-300">
                           {getUserInitials(user)}
                         </span>
-                        
+
                         {/* Shimmer Effect */}
                         <div className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-700">
                           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent rounded-full transform -skew-x-12 animate-pulse"></div>
                         </div>
                       </div>
-                      
+
                       {/* Enhanced Floating Online Indicator */}
                       <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full border-2 border-white/60 animate-pulse shadow-xl group-hover:scale-125 transition-all duration-300">
                         <div className="absolute inset-0 bg-green-300/50 rounded-full animate-ping"></div>
                         <div className="absolute inset-0.5 bg-white/20 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300"></div>
                       </div>
-                      
+
                       {/* Floating Particles Around Avatar */}
-                      <div className="absolute -top-1 -left-1 w-2 h-2 bg-purple-400/80 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-800 animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                      <div className="absolute -top-1 -right-1 w-1.5 h-1.5 bg-cyan-400/80 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-600 animate-ping" style={{ animationDelay: '0.5s' }}></div>
-                      <div className="absolute -bottom-1 -left-1 w-1 h-1 bg-pink-400/80 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-700 animate-pulse" style={{ animationDelay: '0.8s' }}></div>
+                      <div
+                        className="absolute -top-1 -left-1 w-2 h-2 bg-purple-400/80 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-800 animate-bounce"
+                        style={{ animationDelay: '0.2s' }}
+                      ></div>
+                      <div
+                        className="absolute -top-1 -right-1 w-1.5 h-1.5 bg-cyan-400/80 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-600 animate-ping"
+                        style={{ animationDelay: '0.5s' }}
+                      ></div>
+                      <div
+                        className="absolute -bottom-1 -left-1 w-1 h-1 bg-pink-400/80 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-700 animate-pulse"
+                        style={{ animationDelay: '0.8s' }}
+                      ></div>
                     </div>
 
                     {/* Enhanced Floating User Info */}
                     <div className="hidden md:block text-left relative group/userinfo">
                       {/* Subtle Background Glow */}
                       <div className="absolute inset-0 bg-white/5 rounded-lg blur-sm opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
-                      
+
                       <div className="relative p-1">
                         <div className="text-sm font-medium text-white/90 group-hover:text-white drop-shadow-sm transition-all duration-500 transform group-hover:scale-105">
                           {getUserDisplayName(user)}
@@ -415,14 +439,16 @@ const EnhancedHeader: React.FC<EnhancedHeaderProps> = ({
                       {/* Enhanced Background Effects */}
                       <div className="absolute inset-0 bg-white/15 rounded-full blur-sm opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
                       <div className="absolute inset-0 bg-gradient-to-r from-purple-400/10 to-cyan-400/10 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300"></div>
-                      
+
                       {/* Enhanced Arrow with Smooth Transitions */}
                       <ChevronDown
                         className={`relative w-4 h-4 text-white/70 group-hover:text-white transition-all duration-700 ease-out drop-shadow-lg transform ${
-                          showUserMenu ? 'rotate-180 scale-125 text-cyan-300' : 'group-hover:scale-110'
+                          showUserMenu
+                            ? 'rotate-180 scale-125 text-cyan-300'
+                            : 'group-hover:scale-110'
                         }`}
                       />
-                      
+
                       {/* Subtle Pulse Effect When Menu is Open */}
                       {showUserMenu && (
                         <div className="absolute inset-0 bg-cyan-400/20 rounded-full animate-ping"></div>
@@ -452,34 +478,43 @@ const EnhancedHeader: React.FC<EnhancedHeaderProps> = ({
                                 {/* Enhanced Background Effects */}
                                 <div className="absolute inset-0 bg-gradient-to-br from-purple-500/40 to-cyan-500/40 rounded-full blur-lg animate-pulse opacity-60 group-hover:opacity-90 transition-all duration-700"></div>
                                 <div className="absolute inset-0 bg-gradient-to-br from-pink-400/25 to-blue-400/25 rounded-full blur-xl opacity-0 group-hover:opacity-80 transition-all duration-1000"></div>
-                                
+
                                 {/* Enhanced Avatar with Premium Gradient */}
                                 <div className="relative w-14 h-14 bg-gradient-to-br from-purple-600 via-rose-500 to-cyan-600 rounded-full flex items-center justify-center text-white font-bold text-lg border-2 border-white/40 shadow-2xl transform group-hover:scale-105 transition-all duration-500">
                                   {/* Multi-layer Inner Effects */}
                                   <div className="absolute inset-0 bg-gradient-to-br from-white/25 via-transparent to-transparent rounded-full opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
                                   <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent rounded-full opacity-0 group-hover:opacity-100 transition-all duration-700"></div>
-                                  
+
                                   {/* Avatar Content */}
                                   <span className="relative z-10 transform group-hover:scale-110 transition-all duration-300 drop-shadow-lg">
                                     {getUserInitials(user)}
                                   </span>
-                                  
+
                                   {/* Premium Shimmer */}
                                   <div className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-800">
                                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent rounded-full transform -rotate-45 animate-pulse"></div>
                                   </div>
                                 </div>
-                                
+
                                 {/* Enhanced Online Indicator */}
                                 <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full border-2 border-white/60 animate-pulse shadow-xl group-hover:scale-125 transition-all duration-300">
                                   <div className="absolute inset-0 bg-green-300/60 rounded-full animate-ping"></div>
                                   <div className="absolute inset-0.5 bg-white/30 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300"></div>
                                 </div>
-                                
+
                                 {/* Floating Micro Particles */}
-                                <div className="absolute -top-2 -left-2 w-2 h-2 bg-purple-400/80 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-800 animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                                <div className="absolute -top-1 -right-2 w-1.5 h-1.5 bg-cyan-400/80 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-600 animate-ping" style={{ animationDelay: '0.4s' }}></div>
-                                <div className="absolute -bottom-2 -left-1 w-1 h-1 bg-pink-400/80 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-700 animate-pulse" style={{ animationDelay: '0.7s' }}></div>
+                                <div
+                                  className="absolute -top-2 -left-2 w-2 h-2 bg-purple-400/80 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-800 animate-bounce"
+                                  style={{ animationDelay: '0.1s' }}
+                                ></div>
+                                <div
+                                  className="absolute -top-1 -right-2 w-1.5 h-1.5 bg-cyan-400/80 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-600 animate-ping"
+                                  style={{ animationDelay: '0.4s' }}
+                                ></div>
+                                <div
+                                  className="absolute -bottom-2 -left-1 w-1 h-1 bg-pink-400/80 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-700 animate-pulse"
+                                  style={{ animationDelay: '0.7s' }}
+                                ></div>
                               </div>
                               <div className="flex-1 min-w-0">
                                 <div className="font-semibold text-white drop-shadow-sm truncate">

@@ -6,6 +6,7 @@ import {
   X,
   RefreshCw,
   Zap,
+  Clock,
 } from 'lucide-react';
 import type {
   PlaceOrderResponse,
@@ -35,21 +36,18 @@ export const FloatingOrderNotification: React.FC<
 
   // Auto-dismiss timer
   useEffect(() => {
-    const dismissTimer = setTimeout(
-      () => {
-        handleClose();
-      },
-      type === 'success' ? 1000 : 2000 // Success: 1s, Error: 2s
-    );
+    const dismissTimer = setTimeout(() => {
+      handleClose();
+    }, 5000);
 
     return () => clearTimeout(dismissTimer);
-  }, [type]);
+  }, []);
 
   const handleClose = () => {
     setIsExiting(true);
     setTimeout(() => {
       onClose();
-    }, 300); // Match exit animation duration
+    }, 300);
   };
 
   const copyOrderId = async () => {
@@ -78,7 +76,7 @@ export const FloatingOrderNotification: React.FC<
   if (type === 'success' && orderResponse) {
     return (
       <div
-        className={`fixed bottom-4 right-4 z-50 transition-all duration-300 ease-out ${
+        className={`fixed bottom-6 right-6 z-50 transition-all duration-500 ease-out ${
           isVisible && !isExiting
             ? 'translate-x-0 translate-y-0 opacity-100 scale-100'
             : isExiting
@@ -86,96 +84,82 @@ export const FloatingOrderNotification: React.FC<
             : 'translate-x-full opacity-0 scale-95'
         }`}
       >
-        <div className="bg-gradient-to-br from-green-500/95 via-emerald-500/90 to-green-600/95 backdrop-blur-xl border border-green-400/50 rounded-2xl p-4 shadow-2xl shadow-green-500/20 min-w-[320px] max-w-[380px]">
-          {/* Animated particles */}
-          <div className="absolute inset-0 overflow-hidden rounded-2xl">
-            <div className="absolute top-2 right-2 w-2 h-2 bg-green-200 rounded-full animate-ping opacity-60" />
-            <div className="absolute top-4 left-3 w-1 h-1 bg-green-300 rounded-full animate-pulse delay-300 opacity-40" />
-            <div className="absolute bottom-3 right-6 w-1.5 h-1.5 bg-green-200 rounded-full animate-bounce delay-500 opacity-50" />
-          </div>
-
-          {/* Main content */}
-          <div className="relative z-10">
-            {/* Header */}
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center space-x-2">
-                <div className="relative">
-                  <CheckCircle2 className="w-5 h-5 text-green-100 animate-bounce" />
-                  <div className="absolute inset-0 w-5 h-5 bg-green-200/30 rounded-full animate-ping" />
+        {/* Clean, Minimal Success Notification */}
+        <div className="bg-gradient-to-br from-gray-900/95 via-slate-800/90 to-gray-900/95 backdrop-blur-2xl border border-emerald-500/20 rounded-2xl shadow-2xl shadow-emerald-500/10 w-[380px] relative overflow-hidden">
+          
+          {/* Success Header */}
+          <div className="p-5">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center space-x-3">
+                <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg">
+                  <CheckCircle2 className="w-7 h-7 text-white" />
                 </div>
                 <div>
-                  <div className="text-green-50 font-bold text-sm tracking-wide">
-                    ORDER FILLED
-                  </div>
-                  <div className="text-green-100/80 text-xs">
-                    Trade executed successfully
-                  </div>
+                  <h2 className="text-xl font-bold text-white mb-1">Order Placed Successfully</h2>
+                  <p className="text-slate-400 text-sm">
+                    Your <span className="text-emerald-400 font-semibold">{orderResponse.order?.tradingsymbol || 'order'}</span> has been submitted to the exchange
+                  </p>
                 </div>
               </div>
-
               <button
                 onClick={handleClose}
-                className="p-1 hover:bg-green-400/20 rounded-lg transition-all duration-200 text-green-100/70 hover:text-green-50"
+                className="p-2 hover:bg-white/5 rounded-lg transition-all duration-200 text-slate-400 hover:text-white"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
-
-            {/* Compact order details */}
-            <div className="bg-black/20 border border-green-400/20 rounded-xl p-2.5 mb-3">
+            
+            {/* Order Details */}
+            <div className="pt-4 border-t border-slate-600/20 space-y-3">
+              {/* Order Reference */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
-                  <div>
-                    <div className="text-green-50 font-semibold text-sm">
-                      {orderResponse.orderData.tradingsymbol}
-                    </div>
-                    <div className="text-green-100/70 text-xs">
-                      {orderResponse.orderData.quantity} •{' '}
-                      {orderResponse.orderData.order_type}
-                    </div>
-                  </div>
+                  <span className="text-slate-400 text-sm font-medium">Reference:</span>
+                  <code className="text-emerald-400 font-mono text-sm bg-emerald-500/5 px-2 py-1 rounded border border-emerald-500/20">
+                    {orderResponse.orderId?.slice(-8) || 'N/A'}
+                  </code>
+                  {copied && (
+                    <span className="text-emerald-400 text-xs font-medium animate-in fade-in duration-300">
+                      ✓ Copied
+                    </span>
+                  )}
                 </div>
-                <div className="flex items-center space-x-1">
-                  <div className="w-2 h-2 bg-green-300 rounded-full animate-pulse" />
-                  <span className="text-green-100 text-xs font-medium">
-                    {orderResponse.orderData.status}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Order ID with copy */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <span className="text-green-100/70 text-xs">ID:</span>
-                <span className="text-green-50 font-mono text-xs bg-green-400/20 px-2 py-0.5 rounded">
-                  #{orderResponse.orderId.slice(-8)}
-                </span>
-              </div>
-
-              <div className="flex items-center space-x-2">
-                {copied && (
-                  <span className="text-green-100 text-xs animate-in fade-in duration-200">
-                    Copied!
-                  </span>
-                )}
+                
                 <button
                   onClick={copyOrderId}
-                  className="p-1 hover:bg-green-400/20 rounded transition-all duration-200 text-green-100/70 hover:text-green-50"
-                  title="Copy Order ID"
+                  className="flex items-center space-x-1.5 px-2.5 py-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 rounded-lg text-xs font-medium text-emerald-400 hover:text-emerald-300 transition-all duration-200"
                 >
                   <Copy className="w-3 h-3" />
+                  <span>Copy</span>
                 </button>
+              </div>
+              
+              {/* Quick Info */}
+              <div className="flex items-center justify-between text-sm">
+                <div className="flex items-center space-x-2">
+                  <span className="text-slate-400">Type:</span>
+                  <span className="text-white font-medium">{orderResponse.order?.order_type || 'Market'}</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <span className="text-slate-400">Qty:</span>
+                  <span className="text-white font-medium">{orderResponse.order?.quantity?.toLocaleString() || '0'}</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <span className="text-slate-400">Side:</span>
+                  <span className={`font-medium ${
+                    orderResponse.order?.transaction_type === 'BUY' ? 'text-emerald-400' : 'text-red-400'
+                  }`}>{orderResponse.order?.transaction_type || 'Buy'}</span>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Progress bar for auto-dismiss */}
-          <div className="absolute bottom-0 left-0 right-0 h-1 bg-green-400/20 rounded-b-2xl overflow-hidden">
+          {/* Progress Bar */}
+          <div className="absolute bottom-0 left-0 right-0 h-1 bg-slate-800/40 rounded-b-2xl overflow-hidden">
             <div
-              className="h-full bg-green-300 rounded-b-2xl animate-[shrink_3s_linear_forwards]"
+              className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400"
               style={{
-                animation: 'shrink 3s linear forwards',
+                animation: `shrink 5000ms linear forwards`,
               }}
             />
           </div>
@@ -183,12 +167,8 @@ export const FloatingOrderNotification: React.FC<
 
         <style>{`
           @keyframes shrink {
-            from {
-              width: 100%;
-            }
-            to {
-              width: 0%;
-            }
+            from { width: 100%; }
+            to { width: 0%; }
           }
         `}</style>
       </div>
@@ -203,7 +183,7 @@ export const FloatingOrderNotification: React.FC<
 
     return (
       <div
-        className={`fixed bottom-4 right-4 z-50 transition-all duration-300 ease-out ${
+        className={`fixed bottom-6 right-6 z-50 transition-all duration-500 ease-out ${
           isVisible && !isExiting
             ? 'translate-x-0 translate-y-0 opacity-100 scale-100'
             : isExiting
@@ -211,137 +191,104 @@ export const FloatingOrderNotification: React.FC<
             : 'translate-x-full opacity-0 scale-95'
         }`}
       >
-        <div
-          className={`backdrop-blur-xl border rounded-2xl p-4 shadow-2xl min-w-[320px] max-w-[380px] ${
-            isWarning
-              ? 'bg-gradient-to-br from-yellow-500/95 via-amber-500/90 to-yellow-600/95 border-yellow-400/50 shadow-yellow-500/20'
-              : 'bg-gradient-to-br from-red-500/95 via-rose-500/90 to-red-600/95 border-red-400/50 shadow-red-500/20'
-          }`}
-        >
-          {/* Animated particles */}
-          <div className="absolute inset-0 overflow-hidden rounded-2xl">
-            <div
-              className={`absolute top-2 right-2 w-2 h-2 rounded-full animate-pulse opacity-60 ${
-                isWarning ? 'bg-yellow-200' : 'bg-red-200'
-              }`}
-            />
-            <div
-              className={`absolute bottom-3 left-3 w-1.5 h-1.5 rounded-full animate-bounce delay-300 opacity-50 ${
-                isWarning ? 'bg-amber-200' : 'bg-rose-200'
-              }`}
-            />
-          </div>
-
-          {/* Main content */}
-          <div className="relative z-10">
-            {/* Header */}
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center space-x-2">
-                <div className="relative">
-                  <AlertCircle
-                    className={`w-5 h-5 animate-pulse ${
-                      isWarning ? 'text-yellow-100' : 'text-red-100'
-                    }`}
-                  />
+        {/* Clean, Minimal Error Notification */}
+        <div className={`bg-gradient-to-br from-gray-900/95 via-slate-800/90 to-gray-900/95 backdrop-blur-2xl border rounded-2xl shadow-2xl w-[380px] relative overflow-hidden ${
+          isWarning 
+            ? 'border-yellow-400/20 shadow-yellow-500/10' 
+            : 'border-red-400/20 shadow-red-500/10'
+        }`}>
+          
+          {/* Error Header */}
+          <div className="p-5">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center space-x-3">
+                <div className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-lg ${
+                  isWarning 
+                    ? 'bg-gradient-to-br from-yellow-500 to-yellow-600' 
+                    : 'bg-gradient-to-br from-red-500 to-red-600'
+                }`}>
+                  <AlertCircle className="w-7 h-7 text-white" />
                 </div>
                 <div>
-                  <div
-                    className={`font-bold text-sm tracking-wide ${
-                      isWarning ? 'text-yellow-50' : 'text-red-50'
-                    }`}
-                  >
-                    ORDER {isWarning ? 'BLOCKED' : 'REJECTED'}
-                  </div>
-                  <div
-                    className={`text-xs ${
-                      isWarning ? 'text-yellow-100/80' : 'text-red-100/80'
-                    }`}
-                  >
-                    {isWarning ? 'Action required' : 'Execution failed'}
-                  </div>
+                  <h2 className="text-xl font-bold text-white mb-1">
+                    {isWarning ? 'Order Blocked' : 'Order Failed'}
+                  </h2>
+                  <p className="text-slate-400 text-sm">
+                    {error.message}
+                  </p>
                 </div>
               </div>
-
               <button
                 onClick={handleClose}
-                className={`p-1 rounded-lg transition-all duration-200 ${
-                  isWarning
-                    ? 'hover:bg-yellow-400/20 text-yellow-100/70 hover:text-yellow-50'
-                    : 'hover:bg-red-400/20 text-red-100/70 hover:text-red-50'
-                }`}
+                className="p-2 hover:bg-white/5 rounded-lg transition-all duration-200 text-slate-400 hover:text-white"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
-
-            {/* Error message */}
-            <div
-              className={`border rounded-xl p-2.5 mb-3 ${
-                isWarning
-                  ? 'bg-yellow-500/20 border-yellow-400/30'
-                  : 'bg-red-500/20 border-red-400/30'
-              }`}
-            >
-              <div
-                className={`text-sm font-medium ${
-                  isWarning ? 'text-yellow-50' : 'text-red-50'
-                }`}
-              >
-                {error.message}
+            
+            {/* Error Code and Actions */}
+            <div className="flex items-center justify-between pt-4 border-t border-slate-600/20">
+              <div className="flex items-center space-x-3">
+                {error.code && (
+                  <code className={`text-xs font-mono px-2 py-1 rounded border ${
+                    isWarning 
+                      ? 'bg-yellow-500/10 border-yellow-500/20 text-yellow-300' 
+                      : 'bg-red-500/10 border-red-500/20 text-red-300'
+                  }`}>
+                    {error.code}
+                  </code>
+                )}
               </div>
-              {error.code && (
-                <div
-                  className={`text-xs font-mono mt-1 ${
-                    isWarning ? 'text-yellow-100/70' : 'text-red-100/70'
-                  }`}
-                >
-                  {error.code}
-                </div>
-              )}
-            </div>
-
-            {/* Quick fix suggestion */}
-            {error.code === 'INSUFFICIENT_FUNDS' && (
-              <div
-                className={`flex items-center space-x-2 text-xs mb-3 ${
-                  isWarning ? 'text-yellow-100/80' : 'text-red-100/80'
-                }`}
-              >
-                <Zap className="w-3 h-3" />
-                <span>Add funds or reduce quantity</span>
-              </div>
-            )}
-
-            {/* Action button */}
-            {isRetryable && onRetry && (
-              <div className="flex justify-end">
+              
+              {isRetryable && onRetry && (
                 <button
                   onClick={onRetry}
-                  className={`px-3 py-1.5 rounded-lg font-medium text-xs transition-all duration-200 flex items-center space-x-1 ${
+                  className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 border ${
                     isWarning
-                      ? 'bg-yellow-400/30 hover:bg-yellow-400/40 text-yellow-50 border border-yellow-300/30'
-                      : 'bg-red-400/30 hover:bg-red-400/40 text-red-50 border border-red-300/30'
+                      ? 'bg-yellow-500/10 hover:bg-yellow-500/20 border-yellow-500/20 text-yellow-400'
+                      : 'bg-red-500/10 hover:bg-red-500/20 border-red-500/20 text-red-400'
                   }`}
                 >
                   <RefreshCw className="w-3 h-3" />
-                  <span>Retry</span>
+                  <span>Try Again</span>
                 </button>
+              )}
+            </div>
+
+            {/* Quick Help for Common Errors */}
+            {error.code === 'INSUFFICIENT_FUNDS' && (
+              <div className="mt-4 p-3 bg-blue-500/5 border border-blue-500/15 rounded-lg">
+                <div className="flex items-start space-x-2">
+                  <Zap className="w-4 h-4 text-blue-400 mt-0.5" />
+                  <div>
+                    <h5 className="text-xs font-bold text-blue-300 mb-1">Quick Solutions</h5>
+                    <p className="text-xs text-slate-300">Add funds to your account or reduce quantity</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {error.code === 'MARKET_CLOSED' && (
+              <div className="mt-4 p-3 bg-blue-500/5 border border-blue-500/15 rounded-lg">
+                <div className="flex items-start space-x-2">
+                  <Clock className="w-4 h-4 text-blue-400 mt-0.5" />
+                  <div>
+                    <h5 className="text-xs font-bold text-blue-300 mb-1">Market Closed</h5>
+                    <p className="text-xs text-slate-300">Market opens at 9:15 AM on weekdays</p>
+                  </div>
+                </div>
               </div>
             )}
           </div>
 
-          {/* Progress bar for auto-dismiss */}
-          <div
-            className={`absolute bottom-0 left-0 right-0 h-1 rounded-b-2xl overflow-hidden ${
-              isWarning ? 'bg-yellow-400/20' : 'bg-red-400/20'
-            }`}
-          >
+          {/* Progress Bar */}
+          <div className="absolute bottom-0 left-0 right-0 h-1 bg-slate-800/40 rounded-b-2xl overflow-hidden">
             <div
-              className={`h-full rounded-b-2xl animate-[shrink_5s_linear_forwards] ${
-                isWarning ? 'bg-yellow-300' : 'bg-red-300'
+              className={`h-full ${
+                isWarning ? 'bg-gradient-to-r from-yellow-500 to-yellow-400' : 'bg-gradient-to-r from-red-500 to-red-400'
               }`}
               style={{
-                animation: 'shrink 5s linear forwards',
+                animation: `shrink 6000ms linear forwards`,
               }}
             />
           </div>
@@ -349,12 +296,8 @@ export const FloatingOrderNotification: React.FC<
 
         <style>{`
           @keyframes shrink {
-            from {
-              width: 100%;
-            }
-            to {
-              width: 0%;
-            }
+            from { width: 100%; }
+            to { width: 0%; }
           }
         `}</style>
       </div>

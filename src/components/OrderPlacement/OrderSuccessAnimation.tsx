@@ -55,7 +55,7 @@ export const OrderSuccessAnimation: React.FC<OrderSuccessAnimationProps> = ({
             Order Placed Successfully!
           </h3>
           <p className="text-gray-300 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-200">
-            Your {orderResponse.orderData.order_type.toLowerCase()} order has been submitted to the exchange
+            Your {orderResponse.order.order_type.toLowerCase()} order has been submitted to the exchange
           </p>
         </div>
       </div>
@@ -91,27 +91,27 @@ export const OrderSuccessAnimation: React.FC<OrderSuccessAnimationProps> = ({
             <div>
               <div className="text-gray-400">Symbol</div>
               <div className="text-white font-medium">
-                {orderResponse.orderData.tradingsymbol}
+                {orderResponse.order.tradingsymbol}
               </div>
             </div>
             <div>
               <div className="text-gray-400">Quantity</div>
               <div className="text-white font-medium">
-                {orderResponse.orderData.quantity.toLocaleString()}
+                {orderResponse.order.quantity.toLocaleString()}
               </div>
             </div>
-            {orderResponse.orderData.price && (
+            {orderResponse.order.price && (
               <div>
                 <div className="text-gray-400">Price</div>
                 <div className="text-white font-medium">
-                  {formatCurrency(orderResponse.orderData.price)}
+                  {formatCurrency(orderResponse.order.price)}
                 </div>
               </div>
             )}
             <div>
               <div className="text-gray-400">Status</div>
               <div className="text-green-400 font-medium">
-                {orderResponse.orderData.status}
+                {orderResponse.order.status}
               </div>
             </div>
           </div>

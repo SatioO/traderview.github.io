@@ -93,25 +93,25 @@ export const CompactOrderStatus: React.FC<CompactOrderStatusProps> = ({
               <div>
                 <div className="text-green-300">Symbol</div>
                 <div className="text-green-100 font-medium">
-                  {orderResponse.orderData.tradingsymbol}
+                  {orderResponse.order.tradingsymbol}
                 </div>
               </div>
               <div>
                 <div className="text-green-300">Quantity</div>
                 <div className="text-green-100 font-medium">
-                  {orderResponse.orderData.quantity}
+                  {orderResponse.order.quantity}
                 </div>
               </div>
               <div>
                 <div className="text-green-300">Type</div>
                 <div className="text-green-100 font-medium">
-                  {orderResponse.orderData.order_type}
+                  {orderResponse.order.order_type}
                 </div>
               </div>
               <div>
                 <div className="text-green-300">Status</div>
                 <div className="text-green-100 font-medium">
-                  {orderResponse.orderData.status}
+                  {orderResponse.order.status}
                 </div>
               </div>
             </div>

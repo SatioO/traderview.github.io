@@ -43,7 +43,7 @@ export interface PlaceOrderResponse {
   success: boolean;
   message: string;
   orderId: string;
-  orderData: OrderData;
+  order: OrderData;
   timestamp: string;
   requestId: string;
 }
