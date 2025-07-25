@@ -451,9 +451,9 @@ const InstrumentAutocomplete: React.FC<InstrumentAutocompleteProps> = ({
             placeholder={
               selectedInstrument
                 ? 'Change instrument...'
-                : 'Search (e.g., infy, reliance)'
+                : 'Search (e.g., INFY, RELIANCE)'
             }
-            className={`w-full px-4 py-4 pr-12 bg-black/30 border rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 transition-all duration-200 uppercase tracking-wider text-md ${
+            className={`w-full px-4 py-4 pr-12 bg-black/30 border rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 transition-all duration-200 tracking-wider text-md ${
               selectedInstrument
                 ? 'border-purple-400/50 focus:ring-purple-500/50 focus:border-purple-500/50 bg-purple-500/5'
                 : 'border-purple-500/30 focus:ring-purple-500/50 focus:border-purple-500/50'
