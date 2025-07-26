@@ -149,7 +149,7 @@ const PortfolioSnapshot: React.FC = () => {
       {/* Beautiful Portfolio Stats Grid - Smaller but detailed */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {/* Total Portfolio Value - Ocean Wealth Theme */}
-        <div className="group relative overflow-hidden rounded-3xl transition-all duration-700 cursor-pointer">
+        <div className="group relative overflow-hidden rounded-3xl transition-all duration-700 hover:scale-[1.02] cursor-pointer">
           {/* Unified Purple Gradient - Same as % Invested */}
           <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 via-violet-600/15 to-indigo-900/40 backdrop-blur-2xl"></div>
           <div className="absolute inset-0 bg-gradient-to-tl from-transparent via-purple-400/8 to-violet-500/12 opacity-70"></div>
@@ -160,7 +160,7 @@ const PortfolioSnapshot: React.FC = () => {
 
           {/* Content Layer */}
           <div className="relative z-10 p-6">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between">
               {/* Animated Treasure Chest Icon */}
               <div className="relative">
                 <div className="w-12 h-12 bg-gradient-to-br from-cyan-400/20 to-blue-500/30 rounded-xl flex items-center justify-center backdrop-blur-sm border border-cyan-400/40 group-hover:scale-110 transition-transform duration-300">
@@ -186,82 +186,11 @@ const PortfolioSnapshot: React.FC = () => {
                 </div>
               </div>
             </div>
-
-            {/* Performance Indicator */}
-            <div className="mt-4">
-              <div className="flex items-center justify-between mb-3">
-                <div
-                  className={`flex items-center space-x-2 ${
-                    dayChange >= 0 ? 'text-cyan-400' : 'text-red-400'
-                  }`}
-                >
-                  <div className="relative">
-                    {dayChange >= 0 ? (
-                      <ArrowUp className="w-4 h-4 group-hover:animate-bounce" />
-                    ) : (
-                      <ArrowDown className="w-4 h-4 group-hover:animate-bounce" />
-                    )}
-                  </div>
-                  <span className="text-sm font-bold">
-                    {formatCurrency(Math.abs(dayChange))}
-                  </span>
-                </div>
-                <div
-                  className={`text-sm font-bold text-cyan-400 px-3 py-1 bg-cyan-500/20 rounded-full border border-cyan-400/30 ${
-                    dayChange >= 0 ? 'text-cyan-400' : 'text-red-400'
-                  }`}
-                >
-                  {Math.abs(dayChangePercent).toFixed(2)}%
-                </div>
-              </div>
-
-              {/* Portfolio Growth Visualization */}
-              <div className="space-y-2">
-                {/* Main Value Growth Bar */}
-                <div className="h-3 bg-slate-800/50 rounded-full overflow-hidden relative">
-                  <div
-                    className={`h-full rounded-full transition-all duration-2000 relative ${
-                      dayChange >= 0
-                        ? 'bg-gradient-to-r from-cyan-500 via-blue-400 to-cyan-300'
-                        : 'bg-gradient-to-r from-red-500 via-orange-400 to-red-300'
-                    }`}
-                    style={{
-                      width: animationTriggered
-                        ? `${Math.min(Math.abs(dayChangePercent) * 20, 100)}%`
-                        : '0%',
-                    }}
-                  >
-                    {/* Energy Flow Effect */}
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent animate-pulse"></div>
-                    {/* Value Markers */}
-                    <div className="absolute right-1 top-0 bottom-0 flex items-center">
-                      <div
-                        className={`w-2 h-2 rounded-full animate-pulse ${
-                          dayChange >= 0 ? 'bg-cyan-300' : 'bg-red-300'
-                        }`}
-                      ></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Wealth Summary */}
-              <div className="mt-2 flex justify-between text-xs">
-                <span className="text-cyan-300/80">Daily Growth</span>
-                <span
-                  className={`font-bold ${
-                    dayChange >= 0 ? 'text-cyan-300' : 'text-red-300'
-                  }`}
-                >
-                  {dayChange >= 0 ? 'Gaining' : 'Adjusting'}
-                </span>
-              </div>
-            </div>
           </div>
         </div>
 
         {/* Total P&L - Aurora Success Theme */}
-        <div className="group relative overflow-hidden rounded-3xl transition-all duration-700 cursor-pointer">
+        <div className="group relative overflow-hidden rounded-3xl transition-all duration-700 hover:scale-[1.02] cursor-pointer">
           {/* Unified Purple Gradient - Same as % Invested */}
           <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 via-violet-600/15 to-indigo-900/40 backdrop-blur-2xl"></div>
           <div className="absolute inset-0 bg-gradient-to-tl from-transparent via-purple-400/8 to-violet-500/12 opacity-70"></div>
@@ -272,7 +201,7 @@ const PortfolioSnapshot: React.FC = () => {
 
           {/* Content with Rocket Metaphor */}
           <div className="relative z-10 p-6 h-full flex flex-col">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between ">
               {/* Rocket Launch Icon Container */}
               <div className="relative">
                 <div className="w-12 h-12 bg-gradient-to-br from-emerald-400/20 to-green-500/30 rounded-xl flex items-center justify-center backdrop-blur-sm border border-emerald-400/40 group-hover:scale-110 transition-transform duration-300">
@@ -302,53 +231,6 @@ const PortfolioSnapshot: React.FC = () => {
                 </div>
               </div>
             </div>
-
-            {/* Performance Metrics with Growth Visualization */}
-            <div className="flex-1 flex flex-col">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center space-x-2 text-emerald-400">
-                  <div className="relative">
-                    <ArrowUp className="w-4 h-4 group-hover:animate-bounce group-hover:-translate-y-1 transition-transform duration-300" />
-                    {/* Success Aura */}
-                    <div className="absolute inset-0 bg-emerald-400/30 rounded-full blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                  </div>
-                  <span className="text-sm font-bold">Growth</span>
-                </div>
-                <div className="text-sm font-bold text-emerald-400 px-3 py-1 bg-emerald-500/20 rounded-full border border-emerald-400/30">
-                  +{totalPnLPercent.toFixed(2)}%
-                </div>
-              </div>
-
-              {/* Profit Performance Visualization with proper spacing */}
-              <div className="mt-auto">
-                <div className="space-y-2 mb-3">
-                  {/* Main Profit Growth Bar */}
-                  <div className="h-3 bg-slate-800/50 rounded-full overflow-hidden relative">
-                    <div
-                      className="h-full rounded-full bg-gradient-to-r from-emerald-500 via-green-400 to-emerald-300 transition-all duration-2000 relative"
-                      style={{
-                        width: animationTriggered
-                          ? `${Math.min(totalPnLPercent * 5, 100)}%`
-                          : '0%',
-                      }}
-                    >
-                      {/* Energy Flow Effect */}
-                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent animate-pulse"></div>
-                      {/* Success Markers */}
-                      <div className="absolute right-1 top-0 bottom-0 flex items-center">
-                        <div className="w-2 h-2 bg-emerald-300 rounded-full animate-pulse"></div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Success Summary */}
-                <div className="flex justify-between text-xs">
-                  <span className="text-emerald-300/80">Performance</span>
-                  <span className="text-emerald-300 font-bold">Excellent</span>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
 
@@ -364,7 +246,7 @@ const PortfolioSnapshot: React.FC = () => {
 
           {/* Fortress Content */}
           <div className="relative z-10 p-6">
-            <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center justify-between">
               {/* Security Shield Icon */}
               <div className="relative">
                 <div className="w-12 h-12 bg-gradient-to-br from-amber-400/20 to-orange-500/25 rounded-xl flex items-center justify-center backdrop-blur-sm border border-amber-400/40 group-hover:scale-110 transition-transform duration-300">
@@ -390,44 +272,6 @@ const PortfolioSnapshot: React.FC = () => {
                 </div>
               </div>
             </div>
-
-            {/* Security Status Panel */}
-            <div className="flex-1 flex flex-col">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center space-x-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400 group-hover:animate-pulse" />
-                  <span className="text-sm font-bold text-emerald-400">
-                    Fortress Mode
-                  </span>
-                </div>
-                <div className="px-3 py-1 bg-emerald-500/20 rounded-full border border-emerald-400/30 text-xs font-bold text-emerald-300">
-                  PROTECTED
-                </div>
-              </div>
-
-              {/* Security Protection Visualization with proper spacing */}
-              <div className="mt-auto">
-                <div className="space-y-2 mb-3">
-                  {/* Main Security Level Bar */}
-                  <div className="h-3 bg-slate-800/50 rounded-full overflow-hidden relative">
-                    <div className="h-full rounded-full bg-gradient-to-r from-emerald-500 via-amber-400 to-emerald-500 w-full transition-all duration-2000 relative">
-                      {/* Security Sweep Animation */}
-                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent animate-pulse"></div>
-                      {/* Protection Markers */}
-                      <div className="absolute right-1 top-0 bottom-0 flex items-center">
-                        <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Security Summary */}
-                <div className="flex justify-between text-xs">
-                  <span className="text-amber-300/80">Security Level</span>
-                  <span className="text-emerald-300 font-bold">Maximum</span>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
 
@@ -443,7 +287,7 @@ const PortfolioSnapshot: React.FC = () => {
 
           {/* Strategic Content */}
           <div className="relative z-10 p-6">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between">
               {/* Strategic Allocation Icon */}
               <div className="relative">
                 <div className="w-12 h-12 bg-gradient-to-br from-purple-400/20 to-violet-500/30 rounded-xl flex items-center justify-center backdrop-blur-sm border border-purple-400/40 group-hover:scale-110 transition-transform duration-300">
@@ -467,54 +311,6 @@ const PortfolioSnapshot: React.FC = () => {
                 <div className="text-2xl font-black text-purple-400 drop-shadow-lg group-hover:scale-110 transition-transform duration-300">
                   {portfolioInvestedPercent}%
                 </div>
-              </div>
-            </div>
-
-            {/* Strategic Allocation Visualization */}
-            <div className="relative">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center space-x-2">
-                  <Target className="w-4 h-4 text-purple-400 group-hover:animate-pulse" />
-                  <span className="text-sm font-bold text-purple-400">
-                    Strategic Allocation
-                  </span>
-                </div>
-                <div className="px-3 py-1 bg-purple-500/20 rounded-full border border-purple-400/30 text-xs font-bold text-purple-300">
-                  OPTIMIZED
-                </div>
-              </div>
-
-              {/* Multi-Layered Progress Visualization */}
-              <div className="space-y-2">
-                {/* Main Allocation Bar */}
-                <div className="h-3 bg-slate-800/50 rounded-full overflow-hidden relative">
-                  <div
-                    className="h-full rounded-full bg-gradient-to-r from-purple-500 via-violet-400 to-purple-300 transition-all duration-2000 relative"
-                    style={{
-                      width: animationTriggered
-                        ? `${portfolioInvestedPercent}%`
-                        : '0%',
-                    }}
-                  >
-                    {/* Energy Flow Effect */}
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent animate-pulse"></div>
-                    {/* Strategic Markers */}
-                    <div className="absolute right-1 top-0 bottom-0 flex items-center">
-                      <div className="w-2 h-2 bg-violet-300 rounded-full animate-pulse"></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Strategy Summary */}
-              <div className="mt-3 flex justify-between text-xs">
-                <span className="text-purple-300/80">
-                  Deployed: {formatCurrency(totalInvested)}
-                </span>
-                <span className="text-slate-400/80">
-                  Available:{' '}
-                  {formatCurrency(totalPortfolioValue - totalInvested)}
-                </span>
               </div>
             </div>
           </div>
