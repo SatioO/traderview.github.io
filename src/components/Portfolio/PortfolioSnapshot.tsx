@@ -7,10 +7,8 @@ import {
   Shield,
   Clock,
   ArrowUp,
-  ArrowDown,
   Layers,
   Globe,
-  CheckCircle2,
   Wallet,
   Sparkles,
 } from 'lucide-react';
@@ -73,17 +71,10 @@ const PortfolioSnapshot: React.FC = () => {
   const [focusedRowIndex, setFocusedRowIndex] = useState<number>(-1);
   const [selectedRowIndex, setSelectedRowIndex] = useState<number>(-1);
   const [hoveredRowIndex, setHoveredRowIndex] = useState<number>(-1);
-  const {
-    totalInvested,
-    openRisk,
-    totalPortfolioValue,
-    dayChange,
-    dayChangePercent,
-    positions,
-  } = staticPortfolioData;
+  const { totalInvested, openRisk, totalPortfolioValue, positions } =
+    staticPortfolioData;
 
   const totalPnL = totalPortfolioValue - totalInvested;
-  const totalPnLPercent = (totalPnL / totalInvested) * 100;
   const portfolioInvestedPercent = Math.round(
     (totalInvested / totalPortfolioValue) * 100
   );
@@ -148,9 +139,9 @@ const PortfolioSnapshot: React.FC = () => {
     <div className="space-y-8">
       {/* Beautiful Portfolio Stats Grid - Smaller but detailed */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        {/* Total Portfolio Value - Ocean Wealth Theme */}
+        {/* Total Portfolio Value - Enhanced Design */}
         <div className="group relative overflow-hidden rounded-3xl transition-all duration-700 hover:scale-[1.02] cursor-pointer">
-          {/* Unified Purple Gradient - Same as % Invested */}
+          {/* Unified Purple Gradient */}
           <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 via-violet-600/15 to-indigo-900/40 backdrop-blur-2xl"></div>
           <div className="absolute inset-0 bg-gradient-to-tl from-transparent via-purple-400/8 to-violet-500/12 opacity-70"></div>
 
@@ -159,39 +150,51 @@ const PortfolioSnapshot: React.FC = () => {
           <div className="absolute inset-0 rounded-3xl border border-blue-400/35 group-hover:shadow-2xl group-hover:shadow-cyan-500/35 transition-all duration-500"></div>
 
           {/* Content Layer */}
-          <div className="relative z-10 p-6">
-            <div className="flex items-center justify-between">
-              {/* Animated Treasure Chest Icon */}
-              <div className="relative">
-                <div className="w-12 h-12 bg-gradient-to-br from-cyan-400/20 to-blue-500/30 rounded-xl flex items-center justify-center backdrop-blur-sm border border-cyan-400/40 group-hover:scale-110 transition-transform duration-300">
-                  <Wallet className="w-6 h-6 text-cyan-300 group-hover:text-cyan-200 transition-colors duration-300" />
-                  {/* Sparkle effect */}
-                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-cyan-400 rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-ping transition-opacity duration-300"></div>
+          <div className="relative z-10 p-5">
+            {/* Header: Icon + Badge + Title | Value */}
+            <div className="flex items-start justify-between mb-4">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-cyan-400/20 to-blue-500/30 rounded-lg flex items-center justify-center backdrop-blur-sm border border-cyan-400/40">
+                  <Wallet className="w-5 h-5 text-cyan-300" />
+                </div>
+                <div>
+                  <div className="text-xs font-bold bg-gradient-to-r from-cyan-300 to-blue-300 bg-clip-text text-transparent tracking-wider">
+                    PORTFOLIO VALUE
+                  </div>
                 </div>
               </div>
-
-              {/* Value Display with Count-up Animation */}
-              <div
-                className={`text-right transition-all duration-1000 ${
-                  animationTriggered
-                    ? 'opacity-100 transform translate-y-0'
-                    : 'opacity-0 transform translate-y-4'
-                }`}
-              >
-                <div className="text-xs font-bold bg-gradient-to-r from-cyan-300 to-blue-300 bg-clip-text text-transparent mb-2 tracking-wider">
-                  PORTFOLIO VALUE
-                </div>
-                <div className="text-2xl font-black text-white drop-shadow-lg group-hover:scale-105 transition-transform duration-300">
+              <div className="text-right">
+                <div className="text-2xl font-black text-white">
                   {formatCurrency(totalPortfolioValue)}
                 </div>
               </div>
             </div>
+
+            {/* Progress Bar */}
+            <div className="mb-3">
+              <div className="h-2 bg-slate-800/50 rounded-full overflow-hidden relative">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-cyan-500 via-blue-400 to-cyan-300 transition-all duration-2000 relative"
+                  style={{
+                    width: animationTriggered ? '85%' : '0%',
+                  }}
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent animate-pulse"></div>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="flex justify-between text-xs">
+              <span className="text-cyan-300/70">Portfolio Health</span>
+              <span className="text-cyan-300 font-medium">Excellent</span>
+            </div>
           </div>
         </div>
 
-        {/* Total P&L - Aurora Success Theme */}
+        {/* Total P&L - Enhanced Design */}
         <div className="group relative overflow-hidden rounded-3xl transition-all duration-700 hover:scale-[1.02] cursor-pointer">
-          {/* Unified Purple Gradient - Same as % Invested */}
+          {/* Unified Purple Gradient */}
           <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 via-violet-600/15 to-indigo-900/40 backdrop-blur-2xl"></div>
           <div className="absolute inset-0 bg-gradient-to-tl from-transparent via-purple-400/8 to-violet-500/12 opacity-70"></div>
 
@@ -199,44 +202,57 @@ const PortfolioSnapshot: React.FC = () => {
           <div className="absolute inset-0 rounded-3xl border-2 border-emerald-400/45 group-hover:border-emerald-300/75 transition-all duration-500"></div>
           <div className="absolute inset-0 rounded-3xl border border-green-400/35 group-hover:shadow-2xl group-hover:shadow-emerald-500/35 transition-all duration-500"></div>
 
-          {/* Content with Rocket Metaphor */}
-          <div className="relative z-10 p-6 h-full flex flex-col">
-            <div className="flex items-center justify-between ">
-              {/* Rocket Launch Icon Container */}
-              <div className="relative">
-                <div className="w-12 h-12 bg-gradient-to-br from-emerald-400/20 to-green-500/30 rounded-xl flex items-center justify-center backdrop-blur-sm border border-emerald-400/40 group-hover:scale-110 transition-transform duration-300">
-                  <TrendingUp className="w-6 h-6 text-emerald-300 group-hover:text-emerald-200 transition-colors duration-300 group-hover:rotate-12" />
-                  {/* Rocket Thrust Effect */}
-                  <div className="absolute -bottom-2 -right-1 w-2 h-2 bg-emerald-400 rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-pulse transition-opacity duration-300"></div>
-                  <div
-                    className="absolute -bottom-3 -right-2 w-1 h-1 bg-green-400 rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-pulse transition-opacity duration-300"
-                    style={{ animationDelay: '0.2s' }}
-                  ></div>
+          {/* Content Layer */}
+          <div className="relative z-10 p-5">
+            {/* Header: Icon + Badge + Title | Value */}
+            <div className="flex items-start justify-between mb-4">
+              <div className="flex items-center space-x-4">
+                <div className="w-10 h-10 bg-gradient-to-br from-emerald-400/20 to-green-500/30 rounded-lg flex items-center justify-center backdrop-blur-sm border border-emerald-400/40">
+                  <TrendingUp className="w-4 h-4 text-emerald-300" />
+                </div>
+                <div>
+                  <div className="text-xs font-bold bg-gradient-to-r from-emerald-300 to-green-300 bg-clip-text text-transparent tracking-wider">
+                    TOTAL P&L
+                  </div>
                 </div>
               </div>
+              <div className="text-right">
+                <div className="text-2xl font-black text-emerald-400">
+                  {formatCurrency(totalPnL)}
+                </div>
+              </div>
+            </div>
 
-              {/* Profit Display with Growth Effect */}
-              <div
-                className={`text-right transition-all duration-1000 delay-200 ${
-                  animationTriggered
-                    ? 'opacity-100 transform translate-y-0'
-                    : 'opacity-0 transform translate-y-4'
-                }`}
-              >
-                <div className="text-xs font-bold bg-gradient-to-r from-emerald-300 to-green-300 bg-clip-text text-transparent mb-2 tracking-wider">
-                  TOTAL P&L
-                </div>
-                <div className="text-2xl font-black text-emerald-400 drop-shadow-lg group-hover:scale-110 transition-transform duration-300">
-                  +{formatCurrency(totalPnL)}
+            {/* Progress Bar */}
+            <div className="mb-3">
+              <div className="h-2 bg-slate-800/50 rounded-full overflow-hidden relative">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-emerald-500 via-green-400 to-emerald-300 transition-all duration-2000 relative"
+                  style={{
+                    width: animationTriggered
+                      ? `${Math.min(
+                          (totalPnL / totalInvested) * 100 * 5,
+                          100
+                        )}%`
+                      : '0%',
+                  }}
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent animate-pulse"></div>
                 </div>
               </div>
+            </div>
+
+            {/* Footer */}
+            <div className="flex justify-between text-xs">
+              <span className="text-emerald-300/70">Performance</span>
+              <span className="text-emerald-300 font-medium">Excellent</span>
             </div>
           </div>
         </div>
 
-        {/* Open Risk - Fortress Security Theme */}
+        {/* Open Risk - Enhanced Design */}
         <div className="group relative overflow-hidden rounded-3xl transition-all duration-700 hover:scale-[1.02] cursor-pointer">
-          {/* Unified Purple Gradient Background */}
+          {/* Unified Purple Gradient */}
           <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 via-violet-600/15 to-indigo-900/40 backdrop-blur-2xl"></div>
           <div className="absolute inset-0 bg-gradient-to-tl from-transparent via-purple-400/8 to-violet-500/12 opacity-70"></div>
 
@@ -244,40 +260,54 @@ const PortfolioSnapshot: React.FC = () => {
           <div className="absolute inset-0 rounded-3xl border-2 border-amber-400/45 group-hover:border-amber-300/75 transition-all duration-500"></div>
           <div className="absolute inset-0 rounded-3xl border border-orange-400/35 group-hover:shadow-2xl group-hover:shadow-amber-500/35 transition-all duration-500"></div>
 
-          {/* Fortress Content */}
-          <div className="relative z-10 p-6">
-            <div className="flex items-center justify-between">
-              {/* Security Shield Icon */}
-              <div className="relative">
-                <div className="w-12 h-12 bg-gradient-to-br from-amber-400/20 to-orange-500/25 rounded-xl flex items-center justify-center backdrop-blur-sm border border-amber-400/40 group-hover:scale-110 transition-transform duration-300">
-                  <Shield className="w-6 h-6 text-amber-300 group-hover:text-amber-200 transition-colors duration-300" />
-                  {/* Security Pulse */}
-                  <div className="absolute inset-0 rounded-xl border border-amber-400/30 group-hover:animate-ping transition-opacity duration-300"></div>
+          {/* Content Layer */}
+          <div className="relative z-10 p-5">
+            {/* Header: Icon + Badge + Title | Value */}
+            <div className="flex items-start justify-between mb-4">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-amber-400/20 to-orange-500/25 rounded-lg flex items-center justify-center backdrop-blur-sm border border-amber-400/40">
+                  <Shield className="w-5 h-5 text-amber-300" />
+                </div>
+                <div>
+                  <div className="text-xs font-bold bg-gradient-to-r from-amber-300 to-orange-300 bg-clip-text text-transparent tracking-wider">
+                    OPEN RISK
+                  </div>
                 </div>
               </div>
-
-              {/* Risk Level Display */}
-              <div
-                className={`text-right transition-all duration-1000 delay-300 ${
-                  animationTriggered
-                    ? 'opacity-100 transform translate-y-0'
-                    : 'opacity-0 transform translate-y-4'
-                }`}
-              >
-                <div className="text-xs font-bold bg-gradient-to-r from-amber-300 to-orange-300 bg-clip-text text-transparent mb-2 tracking-wider">
-                  OPEN RISK
-                </div>
-                <div className="text-2xl font-black text-white drop-shadow-lg group-hover:scale-105 transition-transform duration-300 relative">
+              <div className="text-right">
+                <div className="text-2xl font-black text-white">
                   {openRisk}%
                 </div>
               </div>
             </div>
+
+            {/* Progress Bar */}
+            <div className="mb-3">
+              <div className="h-2 bg-slate-800/50 rounded-full overflow-hidden relative">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-emerald-500 via-amber-400 to-emerald-500 w-full transition-all duration-2000 relative"
+                  style={{
+                    width: animationTriggered
+                      ? `${portfolioInvestedPercent}%`
+                      : '0%',
+                  }}
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent animate-pulse"></div>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="flex justify-between text-xs">
+              <span className="text-amber-300/70">Risk Level</span>
+              <span className="text-emerald-300 font-medium">Minimal</span>
+            </div>
           </div>
         </div>
 
-        {/* % Invested - Strategic Allocation Theme */}
+        {/* % Invested - Enhanced Design */}
         <div className="group relative overflow-hidden rounded-3xl transition-all duration-700 hover:scale-[1.02] cursor-pointer">
-          {/* Sophisticated Layered Background */}
+          {/* Unified Purple Gradient */}
           <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 via-violet-600/15 to-indigo-900/40 backdrop-blur-2xl"></div>
           <div className="absolute inset-0 bg-gradient-to-tl from-transparent via-purple-400/8 to-violet-500/12 opacity-70"></div>
 
@@ -285,63 +315,55 @@ const PortfolioSnapshot: React.FC = () => {
           <div className="absolute inset-0 rounded-3xl border-2 border-purple-400/45 group-hover:border-purple-300/75 transition-all duration-500"></div>
           <div className="absolute inset-0 rounded-3xl border border-violet-500/35 group-hover:shadow-2xl group-hover:shadow-purple-500/35 transition-all duration-500"></div>
 
-          {/* Strategic Content */}
-          <div className="relative z-10 p-6">
-            <div className="flex items-center justify-between">
-              {/* Strategic Allocation Icon */}
-              <div className="relative">
-                <div className="w-12 h-12 bg-gradient-to-br from-purple-400/20 to-violet-500/30 rounded-xl flex items-center justify-center backdrop-blur-sm border border-purple-400/40 group-hover:scale-110 transition-transform duration-300">
-                  <PieChart className="w-6 h-6 text-purple-300 group-hover:text-purple-200 transition-colors duration-300 group-hover:rotate-45" />
-                  {/* Strategic Pulse */}
-                  <div className="absolute inset-0 rounded-xl bg-purple-400/20 opacity-0 group-hover:opacity-100 group-hover:animate-pulse transition-opacity duration-300"></div>
+          {/* Content Layer */}
+          <div className="relative z-10 p-5">
+            {/* Header: Icon + Badge + Title | Value */}
+            <div className="flex items-start justify-between mb-4">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-purple-400/20 to-violet-500/30 rounded-lg flex items-center justify-center backdrop-blur-sm border border-purple-400/40">
+                  <PieChart className="w-5 h-5 text-purple-300" />
+                </div>
+                <div>
+                  <div className="text-xs font-bold bg-gradient-to-r from-purple-300 to-violet-300 bg-clip-text text-transparent tracking-wider">
+                    % INVESTED
+                  </div>
                 </div>
               </div>
-
-              {/* Allocation Display */}
-              <div
-                className={`text-right transition-all duration-1000 delay-400 ${
-                  animationTriggered
-                    ? 'opacity-100 transform translate-y-0'
-                    : 'opacity-0 transform translate-y-4'
-                }`}
-              >
-                <div className="text-xs font-bold bg-gradient-to-r from-purple-300 to-violet-300 bg-clip-text text-transparent mb-2 tracking-wider">
-                  % INVESTED
-                </div>
-                <div className="text-2xl font-black text-purple-400 drop-shadow-lg group-hover:scale-110 transition-transform duration-300">
+              <div className="text-right">
+                <div className="text-2xl font-black text-purple-400">
                   {portfolioInvestedPercent}%
                 </div>
               </div>
             </div>
+
+            {/* Progress Bar */}
+            <div className="mb-3">
+              <div className="h-2 bg-slate-800/50 rounded-full overflow-hidden relative">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-purple-500 via-violet-400 to-purple-300 transition-all duration-2000 relative"
+                  style={{
+                    width: animationTriggered
+                      ? `${portfolioInvestedPercent}%`
+                      : '0%',
+                  }}
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent animate-pulse"></div>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="flex justify-between text-xs">
+              <span className="text-purple-300/70">
+                Deployed: {formatCurrency(totalInvested)}
+              </span>
+              <span className="text-slate-400/70">
+                Available: {formatCurrency(totalPortfolioValue - totalInvested)}
+              </span>
+            </div>
           </div>
         </div>
       </div>
-
-      {/* Risk Distribution Bar */}
-      {/* <div className="mb-8">
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="text-base font-bold text-slate-300 flex items-center space-x-2">
-            <BarChart3 className="w-5 h-5 text-cyan-400" />
-            <span>Risk Distribution</span>
-          </h3>
-          <div className="text-sm text-slate-400">Total: {formatCurrency(totalInvested)}</div>
-        </div>
-        <div className="relative h-12 bg-slate-800/50 rounded-xl overflow-hidden border border-slate-600/30">
-          <div className="absolute inset-0 bg-gradient-to-r from-slate-700/20 to-slate-600/20"></div>
-          <div 
-            className="absolute left-0 top-0 h-full bg-gradient-to-r from-emerald-500/80 to-cyan-500/80 transition-all duration-1500 delay-300 flex items-center justify-center"
-            style={{ width: animationTriggered ? `${openRisk === 0 ? 25 : openRisk}%` : '0%' }}
-          >
-            <span className="text-white text-sm font-bold">0% Open Risk</span>
-          </div>
-          <div 
-            className="absolute right-0 top-0 h-full bg-gradient-to-r from-purple-500/60 to-purple-600/60 transition-all duration-1500 delay-500 flex items-center justify-center"
-            style={{ width: animationTriggered ? `${100 - (openRisk === 0 ? 25 : openRisk)}%` : '0%' }}
-          >
-            <span className="text-white text-sm font-bold">{100 - portfolioInvestedPercent}% Available</span>
-          </div>
-        </div>
-      </div> */}
 
       {/* Active Positions - Transparent Glass Design */}
       <div className="backdrop-blur-xl rounded-2xl border border-slate-700/30 overflow-hidden relative">
