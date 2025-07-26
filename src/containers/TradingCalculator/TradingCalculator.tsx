@@ -41,6 +41,7 @@ import MarketOutlookSection from './components/MarketOutlookSection';
 import TradingModeSelector from './components/TradingModeSelector';
 import RiskLevelSelector from './components/RiskLevelSelector';
 import AllocationLevelSelector from './components/AllocationLevelSelector';
+import PortfolioSnapshot from '../../components/Portfolio/PortfolioSnapshot';
 
 const TradingCalculator: React.FC = () => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -1435,6 +1436,15 @@ const TradingCalculator: React.FC = () => {
                     </div>
                   </div>
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* Portfolio Snapshot Panel - Right Side */}
+          {hasActiveBrokerSession && (
+            <div className="lg:col-span-2">
+              <div className="bg-black/40 backdrop-blur-xl rounded-3xl p-6 shadow-2xl border border-cyan-500/30 sticky top-8 hover:border-cyan-400/50 transition-all duration-500 hover:shadow-cyan-500/20 hover:shadow-2xl">
+                <PortfolioSnapshot />
               </div>
             </div>
           )}
