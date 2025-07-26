@@ -243,14 +243,6 @@ const PortfolioSnapshot: React.FC = () => {
                     </div>
                   </div>
                 </div>
-
-                {/* Portfolio Health Indicator */}
-                <div className="h-1 bg-slate-700/30 rounded-full overflow-hidden">
-                  <div
-                    className="h-full rounded-full bg-gradient-to-r from-cyan-500 to-blue-400 transition-all duration-2000"
-                    style={{ width: animationTriggered ? '85%' : '0%' }}
-                  ></div>
-                </div>
               </div>
 
               {/* Wealth Summary */}
@@ -348,14 +340,6 @@ const PortfolioSnapshot: React.FC = () => {
                       </div>
                     </div>
                   </div>
-
-                  {/* Performance Excellence Indicator */}
-                  <div className="h-1 bg-slate-700/30 rounded-full overflow-hidden">
-                    <div
-                      className="h-full rounded-full bg-gradient-to-r from-green-500 to-emerald-400 transition-all duration-2000"
-                      style={{ width: animationTriggered ? '95%' : '0%' }}
-                    ></div>
-                  </div>
                 </div>
 
                 {/* Success Summary */}
@@ -434,11 +418,6 @@ const PortfolioSnapshot: React.FC = () => {
                         <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
                       </div>
                     </div>
-                  </div>
-
-                  {/* Defense Strength Indicator */}
-                  <div className="h-1 bg-slate-700/30 rounded-full overflow-hidden">
-                    <div className="h-full rounded-full bg-gradient-to-r from-amber-500 to-emerald-400 w-full transition-all duration-2000"></div>
                   </div>
                 </div>
 
@@ -524,18 +503,6 @@ const PortfolioSnapshot: React.FC = () => {
                       <div className="w-2 h-2 bg-violet-300 rounded-full animate-pulse"></div>
                     </div>
                   </div>
-                </div>
-
-                {/* Available Capital Indicator */}
-                <div className="h-1 bg-slate-700/30 rounded-full overflow-hidden">
-                  <div
-                    className="h-full rounded-full bg-gradient-to-r from-slate-500 to-slate-400 transition-all duration-2000"
-                    style={{
-                      width: animationTriggered
-                        ? `${100 - portfolioInvestedPercent}%`
-                        : '0%',
-                    }}
-                  ></div>
                 </div>
               </div>
 
