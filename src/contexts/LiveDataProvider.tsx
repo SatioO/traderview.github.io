@@ -41,8 +41,9 @@ export const LiveDataProvider: React.FC<LiveDataProviderProps> = ({
               });
               break;
             case 'info':
-              console.log('WebSocket Info:', message.message);
-              if (message.message?.includes('established')) {
+              console.log('WebSocket Info:', message.data);
+              if (message.data?.includes('established')) {
+                console.log('WebSocket connection established....');
                 setIsConnected(true);
                 setConnectionError(null);
               } else if (message.message?.includes('closed')) {
@@ -50,10 +51,8 @@ export const LiveDataProvider: React.FC<LiveDataProviderProps> = ({
               }
               break;
             case 'error':
-              console.error('WebSocket Error:', message.message);
-              setConnectionError(
-                message.message || 'An unknown error occurred.'
-              );
+              console.error('WebSocket Error:', message.data);
+              setConnectionError(message.data || 'An unknown error occurred.');
               setIsConnected(false);
               break;
             case 'order_update':
@@ -77,20 +76,28 @@ export const LiveDataProvider: React.FC<LiveDataProviderProps> = ({
   }, [isAuthenticated]);
 
   // Helper function to get live price for an instrument
-  const getLivePrice = useCallback((instrumentToken: number): number | null => {
-    const tick = ticks[instrumentToken];
-    console.log('LiveDataProvider: getLivePrice called:', {
-      instrumentToken,
-      tick: tick ? { last_price: tick.last_price, timestamp: tick.timestamp } : null,
-      allTicks: Object.keys(ticks)
-    });
-    return tick?.last_price || null;
-  }, [ticks]);
+  const getLivePrice = useCallback(
+    (instrumentToken: number): number | null => {
+      const tick = ticks[instrumentToken];
+      console.log('LiveDataProvider: getLivePrice called:', {
+        instrumentToken,
+        tick: tick
+          ? { last_price: tick.last_price, timestamp: tick.timestamp }
+          : null,
+        allTicks: Object.keys(ticks),
+      });
+      return tick?.last_price || null;
+    },
+    [ticks]
+  );
 
   // Helper function to get full tick data for an instrument
-  const getTickData = useCallback((instrumentToken: number): Tick | null => {
-    return ticks[instrumentToken] || null;
-  }, [ticks]);
+  const getTickData = useCallback(
+    (instrumentToken: number): Tick | null => {
+      return ticks[instrumentToken] || null;
+    },
+    [ticks]
+  );
 
   const subscribe = useCallback(
     (tokens: number[], mode: 'ltp' | 'quote' | 'full' = 'full') => {
@@ -105,14 +112,14 @@ export const LiveDataProvider: React.FC<LiveDataProviderProps> = ({
 
   return (
     <LiveDataContext.Provider
-      value={{ 
-        ticks, 
-        subscribe, 
-        unsubscribe, 
-        isConnected, 
+      value={{
+        ticks,
+        subscribe,
+        unsubscribe,
+        isConnected,
         connectionError,
         getLivePrice,
-        getTickData
+        getTickData,
       }}
     >
       {children}

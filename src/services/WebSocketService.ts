@@ -32,7 +32,10 @@ class WebSocketService {
     this.ws.onopen = () => {
       console.log('WebSocket connection established.');
       this.reconnectAttempts = 0;
-      onMessage({ type: 'info', data: 'WebSocket connection established.' });
+      onMessage({
+        type: 'info',
+        data: 'WebSocket connection established.',
+      });
     };
 
     this.ws.onmessage = (event) => {
@@ -77,7 +80,10 @@ class WebSocketService {
       console.log('WebSocketService: Sending message:', message);
       this.ws.send(JSON.stringify(message));
     } else {
-      console.error('WebSocket is not connected. Ready state:', this.ws?.readyState);
+      console.error(
+        'WebSocket is not connected. Ready state:',
+        this.ws?.readyState
+      );
     }
   }
 
