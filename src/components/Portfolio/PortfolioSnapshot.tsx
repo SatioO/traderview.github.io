@@ -3,14 +3,10 @@ import {
   TrendingUp,
   Activity,
   PieChart,
-  Target,
   Shield,
-  Clock,
   ArrowUp,
   Layers,
-  Globe,
   Wallet,
-  Sparkles,
 } from 'lucide-react';
 
 // Static portfolio data matching the reference image
@@ -137,6 +133,37 @@ const PortfolioSnapshot: React.FC = () => {
 
   return (
     <div className="space-y-8">
+      {/* Clean Portfolio Header - No Duplication */}
+      <div className="flex items-center justify-between mb-6">
+        {/* Left: Simple Title */}
+        <div className="flex items-center space-x-3">
+          <div className="w-8 h-8 bg-gradient-to-br from-purple-500/20 to-violet-600/20 rounded-lg flex items-center justify-center border border-purple-400/30">
+            <Layers className="w-4 h-4 text-purple-300" />
+          </div>
+          <h1 className="text-xl font-bold text-white">Portfolio Overview</h1>
+        </div>
+
+        {/* Right: Market Status & Connection Only */}
+        <div className="flex items-center space-x-6">
+          {/* Market Status */}
+          <div className="flex items-center space-x-2">
+            <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
+            <span className="text-sm font-semibold text-emerald-400">
+              NSE OPEN
+            </span>
+            <span className="text-xs text-slate-400 font-mono">
+              {new Date().toLocaleTimeString()}
+            </span>
+          </div>
+
+          {/* Connection Status */}
+          <div className="flex items-center space-x-2 text-xs text-slate-400">
+            <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full"></div>
+            <span>Live Data</span>
+          </div>
+        </div>
+      </div>
+
       {/* Beautiful Portfolio Stats Grid - Smaller but detailed */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {/* Total Portfolio Value - Enhanced Design */}
@@ -365,51 +392,42 @@ const PortfolioSnapshot: React.FC = () => {
         </div>
       </div>
 
-      {/* Active Positions - Transparent Glass Design */}
-      <div className="backdrop-blur-xl rounded-2xl border border-slate-700/30 overflow-hidden relative">
-        {/* Clean Header */}
-        <div className="px-6 py-4 bg-slate-900/20 border-b border-slate-700/20">
+      {/* Active Positions - Streamlined Design */}
+      <div className="backdrop-blur-xl rounded-xl border border-slate-700/30 overflow-hidden bg-slate-900/20">
+        {/* Compact Header */}
+        <div className="px-4 py-3 bg-slate-900/20 border-b border-slate-700/20">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className="p-2 bg-slate-800/40 rounded-xl border border-slate-600/30">
-                <Layers className="w-5 h-5 text-slate-300" />
-              </div>
-              <div>
-                <h2 className="text-xl font-bold text-white">
-                  Active Positions
-                </h2>
-                <p className="text-slate-400 text-sm">
-                  {positions.length} open positions
-                </p>
-              </div>
+              <Activity className="w-4 h-4 text-slate-400" />
+              <h2 className="text-lg font-semibold text-white">
+                Active Positions
+              </h2>
+              <span className="text-xs text-slate-500">
+                ({positions.length})
+              </span>
             </div>
-            <div className="px-4 py-2 bg-emerald-500/20 border border-emerald-400/30 rounded-full">
-              <span className="text-sm font-semibold text-emerald-300">
+            <div className="flex items-center space-x-2">
+              <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full"></div>
+              <span className="text-xs font-medium text-emerald-400">
                 All Protected
               </span>
             </div>
           </div>
         </div>
 
-        {/* Optimized Table Header with Perfect Column Widths */}
-        <div className="px-6 py-3 bg-slate-900/10 border-b border-slate-700/20">
+        {/* Streamlined Table Header */}
+        <div className="px-4 py-2 bg-slate-900/10 border-b border-slate-700/20">
           <div
-            className="grid gap-4 text-xs font-semibold text-slate-400 uppercase tracking-wider"
-            style={{
-              gridTemplateColumns: '2fr 1fr 1fr 1.2fr 0.8fr 1.2fr 1.5fr 1.5fr',
-            }}
+            className="grid gap-3 text-xs font-medium text-slate-500 uppercase tracking-wide"
+            style={{ gridTemplateColumns: '2fr 1fr 1fr 1.5fr 0.8fr 1fr 1.5fr' }}
           >
-            <div className="flex items-center space-x-2">
-              <Activity className="w-3 h-3" />
-              <span>Ticker</span>
-            </div>
+            <div>Symbol</div>
             <div>Status</div>
             <div>Days</div>
-            <div>Trade Mgt</div>
-            <div className="text-center">Risk</div>
-            <div className="text-center">Size %</div>
+            <div>Management</div>
+            <div className="text-center">Size</div>
             <div>Group</div>
-            <div className="text-right">P&L %</div>
+            <div className="text-right">Return</div>
           </div>
         </div>
 
@@ -443,7 +461,7 @@ const PortfolioSnapshot: React.FC = () => {
                 <div
                   key={`${position.ticker}-${index}`}
                   className={`
-                    px-6 py-4 transition-all duration-300 cursor-pointer relative
+                    px-4 py-3 transition-all duration-300 cursor-pointer relative
                     ${
                       animationTriggered
                         ? 'opacity-100 transform translate-y-0'
@@ -477,133 +495,97 @@ const PortfolioSnapshot: React.FC = () => {
                   )}
 
                   <div
-                    className="grid gap-4 items-center"
+                    className="grid gap-3 items-center"
                     style={{
-                      gridTemplateColumns:
-                        '2fr 1fr 1fr 1.2fr 0.8fr 1.2fr 1.5fr 1.5fr',
+                      gridTemplateColumns: '2fr 1fr 1fr 1.5fr 0.8fr 1fr 1.5fr',
                     }}
                   >
-                    {/* Enhanced Ticker with Tooltip */}
-                    <div className="flex items-center space-x-3 min-w-0">
+                    {/* Compact Symbol */}
+                    <div className="flex items-center space-x-2 min-w-0">
                       <div
-                        className={`w-2 h-2 rounded-full transition-colors duration-300 ${
+                        className={`w-1.5 h-1.5 rounded-full ${
                           position.status === 'Open'
-                            ? 'bg-cyan-400 animate-pulse'
+                            ? 'bg-emerald-400'
                             : 'bg-slate-500'
                         }`}
                       ></div>
-                      <div className="flex-1 min-w-0">
-                        <div
-                          className="font-bold text-white text-sm truncate cursor-help"
-                          title={position.ticker}
-                        >
+                      <div className="min-w-0">
+                        <div className="font-semibold text-white text-sm truncate">
                           {position.ticker}
                         </div>
-                        <div className="text-xs text-slate-400 font-mono">
-                          ₹{position.currentPrice?.toFixed(2) || '—'}
+                        <div className="text-xs text-slate-500 font-mono">
+                          ₹{position.currentPrice?.toFixed(2)}
                         </div>
                       </div>
                     </div>
 
-                    {/* Compact Status with Animation */}
+                    {/* Simple Status */}
                     <div>
-                      <div
-                        className={`
-                          inline-flex items-center space-x-1 px-2 py-1 rounded-full text-xs font-medium transition-all duration-200
-                          ${
-                            position.status === 'Open'
-                              ? 'bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30'
-                              : 'bg-red-500/20 text-red-300 hover:bg-red-500/30'
-                          }
-                        `}
+                      <span
+                        className={`text-xs font-medium px-2 py-1 rounded ${
+                          position.status === 'Open'
+                            ? 'bg-emerald-500/15 text-emerald-400'
+                            : 'bg-red-500/15 text-red-400'
+                        }`}
                       >
-                        <div
-                          className={`w-1.5 h-1.5 rounded-full transition-colors duration-200 ${
-                            position.status === 'Open'
-                              ? 'bg-emerald-400'
-                              : 'bg-red-400'
-                          }`}
-                        ></div>
-                        <span>{position.status}</span>
-                      </div>
+                        {position.status}
+                      </span>
                     </div>
 
-                    {/* Compact Days Held */}
-                    <div className="flex items-center space-x-1">
-                      <Clock className="w-3 h-3 text-slate-400" />
-                      <span className="text-slate-300 font-medium text-sm whitespace-nowrap">
+                    {/* Clean Days */}
+                    <div>
+                      <span className="text-sm text-slate-300 font-medium">
                         {position.daysHeld}d
                       </span>
                     </div>
 
-                    {/* Enhanced Trade Management */}
+                    {/* Simplified Management */}
                     <div>
-                      <div
-                        className="inline-flex items-center space-x-1 px-2 py-1 bg-emerald-500/15 rounded-full text-xs font-medium text-emerald-400 hover:bg-emerald-500/25 transition-colors duration-200 cursor-help"
-                        title="Stop Loss moved to Breakeven"
-                      >
-                        <Shield className="w-3 h-3" />
-                        <span className="truncate">
-                          {position.tradeManagement}
-                        </span>
-                      </div>
+                      <span className="text-xs bg-emerald-500/15 text-emerald-400 px-2 py-1 rounded font-medium">
+                        {position.tradeManagement}
+                      </span>
                     </div>
 
-                    {/* Centered Open Risk */}
+                    {/* Size with Mini Bar */}
                     <div className="text-center">
-                      <div className="text-sm font-semibold text-slate-300">
-                        {position.openRisk}%
-                      </div>
-                    </div>
-
-                    {/* Enhanced Size % with Better Progress Bar */}
-                    <div className="text-center">
-                      <div className="text-sm font-bold text-orange-400 mb-1">
+                      <div className="text-sm font-semibold text-orange-400 mb-1">
                         {position.sizePercent}%
                       </div>
-                      <div className="w-full bg-slate-700/30 rounded-full h-1.5 overflow-hidden">
+                      <div className="w-full bg-slate-700/30 rounded-full h-1 overflow-hidden">
                         <div
-                          className="bg-gradient-to-r from-orange-500 to-orange-400 h-full rounded-full transition-all duration-1000 relative"
+                          className="bg-orange-400 h-full rounded-full transition-all duration-1000"
                           style={{
                             width: animationTriggered
                               ? `${Math.min(position.sizePercent * 10, 100)}%`
                               : '0%',
-                            transitionDelay: `${800 + index * 200}ms`,
                           }}
-                        >
-                          {/* Shimmer effect */}
-                          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-pulse"></div>
-                        </div>
+                        ></div>
                       </div>
                     </div>
 
-                    {/* Enhanced Group with Better Layout */}
+                    {/* Compact Group */}
                     <div className="min-w-0">
-                      <div
-                        className="text-xs font-medium text-slate-300 mb-1 truncate cursor-help"
-                        title={position.group}
-                      >
+                      <div className="text-xs text-slate-400 truncate font-medium">
                         {position.group}
                       </div>
-                      <div
-                        className={`inline-flex items-center space-x-1 px-2 py-0.5 rounded-full text-xs font-medium transition-colors duration-200 ${getLocationBadge(
+                      <span
+                        className={`text-xs px-1.5 py-0.5 rounded ${getLocationBadge(
                           position.location
-                        )} hover:opacity-80`}
+                        )}`}
                       >
-                        <Target className="w-2 h-2 flex-shrink-0" />
-                        <span className="truncate">{position.location}</span>
-                      </div>
+                        {position.location}
+                      </span>
                     </div>
 
-                    {/* Enhanced P&L with Better Typography */}
+                    {/* Clean P&L */}
                     <div className="text-right">
-                      <div className="text-lg font-bold text-emerald-400 flex items-center justify-end space-x-1 mb-1">
-                        <ArrowUp className="w-4 h-4 flex-shrink-0" />
-                        <span className="tabular-nums">
+                      <div className="flex items-center justify-end space-x-1">
+                        <ArrowUp className="w-3 h-3 text-emerald-400" />
+                        <span className="text-sm font-bold text-emerald-400">
                           {position.pnlPercent.toFixed(2)}%
                         </span>
                       </div>
-                      <div className="text-xs text-emerald-300 font-mono">
+                      <div className="text-xs text-slate-500 font-mono">
                         +
                         {formatCurrency(
                           ((position.currentPrice || 0) -
@@ -619,30 +601,21 @@ const PortfolioSnapshot: React.FC = () => {
           </div>
         </div>
 
-        {/* Clean Footer */}
-        <div className="px-6 py-4 bg-slate-900/10 border-t border-slate-700/20">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-6">
-              <div className="flex items-center space-x-2">
-                <Sparkles className="w-4 h-4 text-cyan-400" />
-                <span className="text-slate-300 font-medium text-sm">
-                  Portfolio Health: Excellent
-                </span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Globe className="w-4 h-4 text-purple-400" />
-                <span className="text-slate-300 font-medium text-sm">
-                  {positions.length} Active Positions
-                </span>
-              </div>
+        {/* Compact Footer */}
+        <div className="px-4 py-3 bg-slate-900/10 border-t border-slate-700/20">
+          <div className="flex items-center justify-between text-sm">
+            <div className="flex items-center space-x-4 text-slate-400">
+              <span>{positions.length} positions</span>
+              <span>•</span>
+              <span>All protected</span>
+              <span>•</span>
+              <span>Portfolio health: Excellent</span>
             </div>
-            <div className="text-right">
-              <div className="text-xs text-slate-400 mb-1">
-                Total Unrealized P&L
-              </div>
-              <div className="text-xl font-bold text-emerald-400">
+            <div className="flex items-center space-x-3">
+              <span className="text-slate-500 text-xs">Total P&L:</span>
+              <span className="text-emerald-400 font-bold">
                 +{formatCurrency(totalPnL)}
-              </div>
+              </span>
             </div>
           </div>
         </div>
