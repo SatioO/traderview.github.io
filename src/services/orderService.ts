@@ -1,4 +1,4 @@
-import { apiClient } from './authService';
+import httpClient from './httpClient';
 
 // Order Types
 export type BrokerType = 'kite';
@@ -78,38 +78,42 @@ export interface OrderPlacementStatus {
 class OrderService {
   private baseUrl = '/brokers';
 
-  private async makeRequest<T>(
-    endpoint: string,
-    options?: RequestInit
-  ): Promise<T> {
-    const response = await fetch(
-      `${apiClient.baseURL || 'http://localhost:3000/api'}${endpoint}`,
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${apiClient.getStoredAccessToken()}`,
-          ...((options?.headers as Record<string, string>) || {}),
-        },
-        ...options,
+  private async makeRequest<T>(endpoint: string, method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' = 'GET', data?: any): Promise<T> {
+    try {
+      let response;
+      switch (method) {
+        case 'GET':
+          response = await httpClient.get<T>(endpoint);
+          break;
+        case 'POST':
+          response = await httpClient.post<T>(endpoint, data);
+          break;
+        case 'PUT':
+          response = await httpClient.put<T>(endpoint, data);
+          break;
+        case 'PATCH':
+          response = await httpClient.patch<T>(endpoint, data);
+          break;
+        case 'DELETE':
+          response = await httpClient.delete<T>(endpoint);
+          break;
+        default:
+          throw new Error(`Unsupported HTTP method: ${method}`);
       }
-    );
-
-    const data = await response.json();
-
-    if (!response.ok) {
+      return response.data;
+    } catch (error: any) {
+      // Transform axios errors to OrderError format
+      const errorData = error.response?.data || {};
       throw {
         success: false,
-        message:
-          data.message || `Request failed with status ${response.status}`,
-        error: data.error || 'Unknown error',
-        code: data.code,
-        field: data.field,
-        timestamp: data.timestamp || new Date().toISOString(),
-        requestId: data.requestId || `error_${Date.now()}`,
+        message: errorData.message || error.message || 'Request failed',
+        error: errorData.error || 'Unknown error',
+        code: errorData.code,
+        field: errorData.field,
+        timestamp: errorData.timestamp || new Date().toISOString(),
+        requestId: errorData.requestId || `error_${Date.now()}`,
       } as OrderError;
     }
-
-    return data;
   }
 
   // Place order with comprehensive error handling
@@ -122,10 +126,8 @@ class OrderService {
 
     return this.makeRequest<PlaceOrderResponse>(
       `${this.baseUrl}/${broker}/orders/place`,
-      {
-        method: 'POST',
-        body: JSON.stringify(orderRequest),
-      }
+      'POST',
+      orderRequest
     );
   }
 

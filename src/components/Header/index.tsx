@@ -112,7 +112,10 @@ const EnhancedHeader: React.FC<EnhancedHeaderProps> = ({
     return `${settings.currencySymbol}${amount.toLocaleString('en-IN')}`;
   };
 
-  const formatCurrencyShort = (amount: number): string => {
+  const formatCurrencyShort = (amount: number | undefined): string => {
+    if (amount === undefined || amount === null) {
+      return '₹0';
+    }
     if (amount >= 10000000) {
       return `${(amount / 10000000).toFixed(1)}Cr`;
     } else if (amount >= 100000) {
@@ -388,7 +391,7 @@ const EnhancedHeader: React.FC<EnhancedHeaderProps> = ({
                         <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-transparent rounded-full opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
 
                         {/* Avatar Content */}
-                        <span className="relative z-10 transform group-hover:scale-105 transition-all duration-300">
+                        <span className="relative z-10 transform group-hover:scale-105 transition-all duration-300 font-bold">
                           {getUserInitials(user)}
                         </span>
 
@@ -425,7 +428,7 @@ const EnhancedHeader: React.FC<EnhancedHeaderProps> = ({
                       <div className="absolute inset-0 bg-white/5 rounded-lg blur-sm opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
 
                       <div className="relative p-1">
-                        <div className="text-sm font-medium text-white/90 group-hover:text-white drop-shadow-sm transition-all duration-500 transform group-hover:scale-105">
+                        <div className="text-sm font-bold text-white/90 group-hover:text-white drop-shadow-sm transition-all duration-500 transform group-hover:scale-105">
                           {getUserDisplayName(user)}
                         </div>
                         <div className="text-xs text-white/60 group-hover:text-white/80 transition-all duration-300 transform group-hover:translate-x-1">

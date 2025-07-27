@@ -187,10 +187,19 @@ const InstrumentAutocomplete: React.FC<InstrumentAutocompleteProps> = ({
     [selectInstrument, fetchInstrumentQuote, isAuthenticated]
   );
 
-  // Handle clear button
+  // Handle clear button with animation
   const handleClear = useCallback(
     (e: React.MouseEvent) => {
       e.stopPropagation();
+
+      // Add subtle shake animation to input
+      if (inputRef.current) {
+        inputRef.current.classList.add('animate-pulse');
+        setTimeout(() => {
+          inputRef.current?.classList.remove('animate-pulse');
+        }, 300);
+      }
+
       setInputValue('');
       setSelectedInstrument(null);
       setIsOpen(true);
@@ -201,7 +210,7 @@ const InstrumentAutocomplete: React.FC<InstrumentAutocompleteProps> = ({
       refetchRecentSearches();
       inputRef.current?.focus();
     },
-    [clearInstrument]
+    [clearInstrument, refetchRecentSearches]
   );
 
   // Handle keyboard navigation
@@ -236,10 +245,26 @@ const InstrumentAutocomplete: React.FC<InstrumentAutocompleteProps> = ({
 
         case 'Escape':
           e.preventDefault();
-          setIsOpen(false);
-          setShowRecentSearches(false);
-          setHighlightedIndex(-1);
-          inputRef.current?.blur();
+          if (selectedInstrument) {
+            // Clear selected instrument on Escape
+            handleClear(e as any);
+          } else {
+            setIsOpen(false);
+            setShowRecentSearches(false);
+            setHighlightedIndex(-1);
+            inputRef.current?.blur();
+          }
+          break;
+
+        case 'Backspace':
+          // Clear selected instrument on Ctrl+Backspace or when input is empty
+          if ((e.ctrlKey || e.metaKey) && selectedInstrument) {
+            e.preventDefault();
+            handleClear(e as any);
+          } else if (inputValue === '' && selectedInstrument) {
+            e.preventDefault();
+            handleClear(e as any);
+          }
           break;
       }
     },
@@ -250,6 +275,9 @@ const InstrumentAutocomplete: React.FC<InstrumentAutocompleteProps> = ({
       showRecentSearches,
       highlightedIndex,
       handleSelect,
+      handleClear,
+      selectedInstrument,
+      inputValue,
     ]
   );
 
@@ -383,20 +411,32 @@ const InstrumentAutocomplete: React.FC<InstrumentAutocompleteProps> = ({
   return (
     <div className={`space-y-2 ${className}`} ref={containerRef}>
       <label className="text-sm font-medium text-purple-300 flex items-center">
-        <svg
-          className="w-4 h-4 mr-2"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-          />
-        </svg>
-        Select Instrument
+        {!selectedInstrument && (
+          <svg
+            className="w-4 h-4 mr-2"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+            />
+          </svg>
+        )}
+        {selectedInstrument ? (
+          <>
+            <span className="text-emerald-400">✓ Selected Instrument</span>
+            <span className="text-slate-500 text-xs ml-2">
+              ({selectedInstrument.tradingsymbol} •{' '}
+              {selectedInstrument.exchange})
+            </span>
+          </>
+        ) : (
+          'Select Instrument'
+        )}
       </label>
 
       <div className="relative">
@@ -408,8 +448,16 @@ const InstrumentAutocomplete: React.FC<InstrumentAutocompleteProps> = ({
             onChange={handleInputChange}
             onKeyDown={handleKeyDown}
             onFocus={handleFocus}
-            placeholder="Search (e.g., infy, reliance)"
-            className="w-full px-4 py-4 pr-12 bg-black/30 border border-purple-500/30 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all duration-200 uppercase tracking-wider text-md"
+            placeholder={
+              selectedInstrument
+                ? 'Change instrument...'
+                : 'Search (e.g., INFY, RELIANCE)'
+            }
+            className={`w-full px-4 py-4 pr-12 bg-black/30 border rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 transition-all duration-200 tracking-wider text-md ${
+              selectedInstrument
+                ? 'border-purple-400/50 focus:ring-purple-500/50 focus:border-purple-500/50 bg-purple-500/5'
+                : 'border-purple-500/30 focus:ring-purple-500/50 focus:border-purple-500/50'
+            }`}
             role="combobox"
             aria-expanded={isOpen}
             aria-haspopup="listbox"
@@ -426,15 +474,42 @@ const InstrumentAutocomplete: React.FC<InstrumentAutocompleteProps> = ({
               <div className="w-4 h-4 border-2 border-purple-400/30 border-t-purple-400 rounded-full animate-spin"></div>
             )}
 
-            {/* Clear button */}
-            {inputValue && (
+            {/* Enhanced clear button */}
+            {inputValue && !selectedInstrument && (
               <button
                 onClick={handleClear}
-                className="p-0.5 text-gray-400 hover:text-white transition-colors rounded"
+                className="group/btn relative p-1.5 bg-gray-600/20 hover:bg-red-500/20 border border-gray-500/20 hover:border-red-400/40 rounded-lg transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-red-400/50"
                 type="button"
+                title="Clear input (Esc)"
               >
+                <div className="absolute inset-0 bg-gradient-to-r from-red-500/5 to-red-600/5 rounded-lg opacity-0 group-hover/btn:opacity-100 transition-opacity duration-200" />
                 <svg
-                  className="w-4 h-4"
+                  className="relative w-3.5 h-3.5 text-gray-400 group-hover/btn:text-red-300 transition-colors duration-200"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2.5}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            )}
+
+            {/* Quick action when instrument is selected */}
+            {selectedInstrument && (
+              <button
+                onClick={handleClear}
+                className="group/change relative p-1.5 bg-purple-500/10 hover:bg-purple-500/20 border border-purple-400/20 hover:border-purple-400/40 rounded-lg transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-purple-400/50"
+                type="button"
+                title="Change instrument (Esc)"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-purple-500/5 to-indigo-500/5 rounded-lg opacity-0 group-hover/change:opacity-100 transition-opacity duration-200" />
+                <svg
+                  className="relative w-3.5 h-3.5 text-purple-400 group-hover/change:text-purple-300 transition-colors duration-200"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -443,7 +518,7 @@ const InstrumentAutocomplete: React.FC<InstrumentAutocompleteProps> = ({
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
+                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
                   />
                 </svg>
               </button>

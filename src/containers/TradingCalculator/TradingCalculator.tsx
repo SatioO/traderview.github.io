@@ -26,7 +26,7 @@ import Modal from '../../components/ui/Modal';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import SettingsModal from '../../components/Settings/SettingsModal';
-import EnhancedHeader from '../../components/Header/EnhancedHeader';
+import Header from '../../components/Header';
 import BrokerConnectionPanel from '../../components/broker/BrokerConnectionPanel';
 import InstrumentAutocomplete from '../../components/trading/InstrumentAutocomplete';
 import type {
@@ -42,6 +42,7 @@ import MarketOutlookSection from './components/MarketOutlookSection';
 import TradingModeSelector from './components/TradingModeSelector';
 import RiskLevelSelector from './components/RiskLevelSelector';
 import AllocationLevelSelector from './components/AllocationLevelSelector';
+import PortfolioSnapshot from '../../components/Portfolio/PortfolioSnapshot';
 
 const TradingCalculator: React.FC = () => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -159,15 +160,6 @@ const TradingCalculator: React.FC = () => {
     []
   );
 
-  // Apply dark mode to document when it changes
-  useEffect(() => {
-    if (isDarkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [isDarkMode]);
-
   // Auto-populate entry price when instrument quote is loaded
   useEffect(() => {
     if (currentPrice && selectedInstrument) {
@@ -216,10 +208,6 @@ const TradingCalculator: React.FC = () => {
     },
     []
   );
-
-  // Removed MarketSmith API integration for cleaner UX
-
-  // Removed auto-fetch for MarketSmith data
 
   // Initialize stop loss percentage with user settings
   useEffect(() => {
@@ -618,7 +606,7 @@ const TradingCalculator: React.FC = () => {
       data-theme={isDarkMode ? 'dark' : 'light'}
     >
       {/* Enhanced Header with Market Outlook */}
-      <EnhancedHeader
+      <Header
         isSettingsOpen={isSettingsOpen}
         onSettingsToggle={setIsSettingsOpen}
       />
@@ -935,7 +923,9 @@ const TradingCalculator: React.FC = () => {
                             </button>
                             <button
                               type="button"
-                              onClick={() => handleStopLossModeChange('percentage')}
+                              onClick={() =>
+                                handleStopLossModeChange('percentage')
+                              }
                               className={`px-2 py-1 text-xs font-medium rounded-md transition-all duration-200 ${
                                 // @ts-expect-error - TypeScript incorrectly flags this as impossible comparison
                                 stopLossMode === 'percentage'
@@ -994,7 +984,9 @@ const TradingCalculator: React.FC = () => {
                             </button>
                             <button
                               type="button"
-                              onClick={() => handleStopLossModeChange('percentage')}
+                              onClick={() =>
+                                handleStopLossModeChange('percentage')
+                              }
                               className={`px-2 py-1 text-xs font-medium rounded-md transition-all duration-200 ${
                                 stopLossMode === 'percentage'
                                   ? 'bg-red-500/30 text-red-300 border border-red-400/50'
@@ -1055,6 +1047,7 @@ const TradingCalculator: React.FC = () => {
                           : 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white hover:scale-[1.01] shadow-lg hover:shadow-purple-500/20'
                       }`}
                       disabled={
+                        isLoadingQuote ||
                         !selectedInstrument ||
                         !formData.entryPrice ||
                         !formData.stopLoss ||
@@ -1112,433 +1105,444 @@ const TradingCalculator: React.FC = () => {
           </div>
 
           {/* Gaming Results Arena */}
-          <div className="lg:col-span-2">
-            <div className="bg-black/40 backdrop-blur-xl rounded-3xl p-6 shadow-2xl border border-purple-500/30 hover:border-purple-400/50 transition-all duration-500">
-              {/* Gaming Alert System */}
-              {warnings.length > 0 && (
-                <div className="mb-6 p-4 bg-gradient-to-r from-orange-500/20 to-red-500/20 border border-orange-500/50 rounded-2xl backdrop-blur-sm animate-pulse">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <div className="w-8 h-8 bg-gradient-to-r from-orange-400 to-red-400 rounded-lg flex items-center justify-center">
-                      <span className="text-black font-bold">!</span>
+          {!hasActiveBrokerSession && (
+            <div className="lg:col-span-2">
+              <div className="bg-black/40 backdrop-blur-xl rounded-3xl p-6 shadow-2xl border border-purple-500/30 hover:border-purple-400/50 transition-all duration-500">
+                {/* Gaming Alert System */}
+                {warnings.length > 0 && (
+                  <div className="mb-6 p-4 bg-gradient-to-r from-orange-500/20 to-red-500/20 border border-orange-500/50 rounded-2xl backdrop-blur-sm animate-pulse">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <div className="w-8 h-8 bg-gradient-to-r from-orange-400 to-red-400 rounded-lg flex items-center justify-center">
+                        <span className="text-black font-bold">!</span>
+                      </div>
+                      <div className="font-bold text-orange-300">
+                        🚨 SYSTEM ALERTS
+                      </div>
                     </div>
-                    <div className="font-bold text-orange-300">
-                      🚨 SYSTEM ALERTS
-                    </div>
+                    <ul className="text-orange-200 text-sm space-y-1 ml-10">
+                      {warnings.map((warning, index) => (
+                        <li key={index} className="flex items-center space-x-2">
+                          <span className="text-orange-400">▶</span>
+                          <span>{warning}</span>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
-                  <ul className="text-orange-200 text-sm space-y-1 ml-10">
-                    {warnings.map((warning, index) => (
-                      <li key={index} className="flex items-center space-x-2">
-                        <span className="text-orange-400">▶</span>
-                        <span>{warning}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+                )}
 
-              {/* Enhanced Achievement Dashboard - Coinbase-Style Security Focus */}
-              {calculations && (
-                <div className="mb-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
-                    {/* Position Size Achievement with Progress */}
-                    <div className="group relative bg-gradient-to-br from-black/40 to-gray-900/40 backdrop-blur-xl rounded-2xl p-4 border border-blue-500/20 hover:border-blue-400/50 transition-all duration-700 hover:scale-105 cursor-pointer overflow-hidden">
-                      <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 via-purple-600/10 to-cyan-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+                {/* Enhanced Achievement Dashboard - Coinbase-Style Security Focus */}
+                {calculations && (
+                  <div className="mb-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+                      {/* Position Size Achievement with Progress */}
+                      <div className="group relative bg-gradient-to-br from-black/40 to-gray-900/40 backdrop-blur-xl rounded-2xl p-4 border border-blue-500/20 hover:border-blue-400/50 transition-all duration-700 hover:scale-105 cursor-pointer overflow-hidden">
+                        <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 via-purple-600/10 to-cyan-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
 
-                      {/* Robinhood-style celebration particles */}
-                      <div className="absolute inset-0 overflow-hidden rounded-3xl">
-                        <div className="absolute top-2 left-2 w-1 h-1 bg-blue-400 rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-ping"></div>
-                        <div className="absolute top-4 right-6 w-1 h-1 bg-purple-400 rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-ping delay-100"></div>
-                        <div className="absolute bottom-6 left-8 w-1 h-1 bg-cyan-400 rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-ping delay-200"></div>
-                      </div>
+                        {/* Robinhood-style celebration particles */}
+                        <div className="absolute inset-0 overflow-hidden rounded-3xl">
+                          <div className="absolute top-2 left-2 w-1 h-1 bg-blue-400 rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-ping"></div>
+                          <div className="absolute top-4 right-6 w-1 h-1 bg-purple-400 rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-ping delay-100"></div>
+                          <div className="absolute bottom-6 left-8 w-1 h-1 bg-cyan-400 rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-ping delay-200"></div>
+                        </div>
 
-                      <div className="relative z-10">
-                        <div className="flex items-center justify-between mb-3">
-                          <div className="text-4xl">
-                            <Package className="w-10 h-10 text-blue-400" />
-                          </div>
-                          <div className="bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-blue-500/40 rounded-lg px-2 py-1">
-                            <div className="text-xs text-blue-300 font-bold">
-                              LOCKED
+                        <div className="relative z-10">
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="text-4xl">
+                              <Package className="w-10 h-10 text-blue-400" />
+                            </div>
+                            <div className="bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-blue-500/40 rounded-lg px-2 py-1">
+                              <div className="text-xs text-blue-300 font-bold">
+                                LOCKED
+                              </div>
                             </div>
                           </div>
-                        </div>
 
-                        <div className="mb-3">
-                          <div className="text-xs text-blue-300 mb-1 flex items-center">
-                            <span className="w-1.5 h-1.5 bg-blue-400 rounded-full mr-1"></span>
-                            POSITION SIZE
-                          </div>
-                          <div className="text-2xl font-bold text-white mb-1">
-                            {calculations.positionSize.toLocaleString()}
-                          </div>
-                          <div className="text-xs text-blue-200">
-                            units secured
-                          </div>
-                        </div>
-
-                        {/* Achievement progress bar */}
-                        <div className="relative h-2 bg-gradient-to-r from-gray-800 to-gray-700 rounded-full overflow-hidden">
-                          <div className="absolute inset-y-0 left-0 bg-gradient-to-r from-blue-400 via-purple-400 to-cyan-400 rounded-full w-full transition-all duration-1000 group-hover:shadow-lg group-hover:shadow-blue-500/30"></div>
-                          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-pulse"></div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Investment with Portfolio Allocation */}
-                    <div className="group relative bg-gradient-to-br from-black/40 to-gray-900/40 backdrop-blur-xl rounded-2xl p-4 border border-green-500/20 hover:border-green-400/50 transition-all duration-700 hover:scale-105 cursor-pointer overflow-hidden">
-                      <div className="absolute inset-0 bg-gradient-to-br from-green-600/10 via-emerald-600/10 to-teal-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
-
-                      <div className="absolute inset-0 overflow-hidden rounded-3xl">
-                        <div className="absolute top-3 left-4 w-1 h-1 bg-green-400 rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-ping"></div>
-                        <div className="absolute bottom-4 right-6 w-1 h-1 bg-emerald-400 rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-ping delay-150"></div>
-                      </div>
-
-                      <div className="relative z-10">
-                        <div className="flex items-center justify-between mb-3">
-                          <div className="text-4xl">
-                            <Banknote className="w-10 h-10 text-green-400" />
-                          </div>
-                          <div className="bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/40 rounded-lg px-2 py-1">
-                            <div className="text-xs text-green-300 font-bold">
-                              DEPLOYED
+                          <div className="mb-3">
+                            <div className="text-xs text-blue-300 mb-1 flex items-center">
+                              <span className="w-1.5 h-1.5 bg-blue-400 rounded-full mr-1"></span>
+                              POSITION SIZE
+                            </div>
+                            <div className="text-2xl font-bold text-white mb-1">
+                              {calculations.positionSize.toLocaleString()}
+                            </div>
+                            <div className="text-xs text-blue-200">
+                              units secured
                             </div>
                           </div>
-                        </div>
 
-                        <div className="mb-3">
-                          <div className="text-xs text-green-300 mb-1 flex items-center">
-                            <span className="w-1.5 h-1.5 bg-green-400 rounded-full mr-1"></span>
-                            CAPITAL INVESTMENT
+                          {/* Achievement progress bar */}
+                          <div className="relative h-2 bg-gradient-to-r from-gray-800 to-gray-700 rounded-full overflow-hidden">
+                            <div className="absolute inset-y-0 left-0 bg-gradient-to-r from-blue-400 via-purple-400 to-cyan-400 rounded-full w-full transition-all duration-1000 group-hover:shadow-lg group-hover:shadow-blue-500/30"></div>
+                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-pulse"></div>
                           </div>
-                          <div className="text-2xl font-bold text-white mb-1">
-                            {formatCurrency(calculations.totalInvestment)}
-                          </div>
-                          <div className="text-xs text-green-200">
-                            {calculations.portfolioPercentage.toFixed(1)}% of
-                            portfolio
-                          </div>
-                        </div>
-
-                        {/* Portfolio allocation meter */}
-                        <div className="relative h-2 bg-gradient-to-r from-gray-800 to-gray-700 rounded-full overflow-hidden">
-                          <div
-                            className="absolute inset-y-0 left-0 bg-gradient-to-r from-green-400 via-emerald-400 to-teal-400 rounded-full transition-all duration-1000 group-hover:shadow-lg group-hover:shadow-green-500/30"
-                            style={{
-                              width: `${Math.min(
-                                calculations.portfolioPercentage * 3,
-                                100
-                              )}%`,
-                            }}
-                          ></div>
                         </div>
                       </div>
-                    </div>
 
-                    {/* Risk Analysis with Warning System */}
-                    <div className="group relative bg-gradient-to-br from-black/40 to-gray-900/40 backdrop-blur-xl rounded-2xl p-4 border border-red-500/20 hover:border-red-400/50 transition-all duration-700 hover:scale-105 cursor-pointer overflow-hidden">
-                      <div className="absolute inset-0 bg-gradient-to-br from-red-600/10 via-pink-600/10 to-rose-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+                      {/* Investment with Portfolio Allocation */}
+                      <div className="group relative bg-gradient-to-br from-black/40 to-gray-900/40 backdrop-blur-xl rounded-2xl p-4 border border-green-500/20 hover:border-green-400/50 transition-all duration-700 hover:scale-105 cursor-pointer overflow-hidden">
+                        <div className="absolute inset-0 bg-gradient-to-br from-green-600/10 via-emerald-600/10 to-teal-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
 
-                      <div className="absolute inset-0 overflow-hidden rounded-3xl">
-                        <div className="absolute top-2 right-4 w-1 h-1 bg-red-400 rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-ping"></div>
-                        <div className="absolute bottom-6 left-6 w-1 h-1 bg-pink-400 rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-ping delay-100"></div>
-                      </div>
+                        <div className="absolute inset-0 overflow-hidden rounded-3xl">
+                          <div className="absolute top-3 left-4 w-1 h-1 bg-green-400 rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-ping"></div>
+                          <div className="absolute bottom-4 right-6 w-1 h-1 bg-emerald-400 rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-ping delay-150"></div>
+                        </div>
 
-                      <div className="relative z-10">
-                        <div className="flex items-center justify-between mb-3">
-                          <div className="text-4xl">
-                            <Flame className="w-10 h-10 text-red-400" />
+                        <div className="relative z-10">
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="text-4xl">
+                              <Banknote className="w-10 h-10 text-green-400" />
+                            </div>
+                            <div className="bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/40 rounded-lg px-2 py-1">
+                              <div className="text-xs text-green-300 font-bold">
+                                DEPLOYED
+                              </div>
+                            </div>
                           </div>
-                          <div
-                            className={`border rounded-lg px-2 py-1 ${
-                              calculations.riskPercentage > 2
-                                ? 'bg-gradient-to-r from-red-500/30 to-orange-500/30 border-red-500/50'
-                                : 'bg-gradient-to-r from-yellow-500/20 to-red-500/20 border-yellow-500/40'
-                            }`}
-                          >
+
+                          <div className="mb-3">
+                            <div className="text-xs text-green-300 mb-1 flex items-center">
+                              <span className="w-1.5 h-1.5 bg-green-400 rounded-full mr-1"></span>
+                              CAPITAL INVESTMENT
+                            </div>
+                            <div className="text-2xl font-bold text-white mb-1">
+                              {formatCurrency(calculations.totalInvestment)}
+                            </div>
+                            <div className="text-xs text-green-200">
+                              {calculations.portfolioPercentage.toFixed(1)}% of
+                              portfolio
+                            </div>
+                          </div>
+
+                          {/* Portfolio allocation meter */}
+                          <div className="relative h-2 bg-gradient-to-r from-gray-800 to-gray-700 rounded-full overflow-hidden">
                             <div
-                              className={`text-xs font-bold ${
+                              className="absolute inset-y-0 left-0 bg-gradient-to-r from-green-400 via-emerald-400 to-teal-400 rounded-full transition-all duration-1000 group-hover:shadow-lg group-hover:shadow-green-500/30"
+                              style={{
+                                width: `${Math.min(
+                                  calculations.portfolioPercentage * 3,
+                                  100
+                                )}%`,
+                              }}
+                            ></div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Risk Analysis with Warning System */}
+                      <div className="group relative bg-gradient-to-br from-black/40 to-gray-900/40 backdrop-blur-xl rounded-2xl p-4 border border-red-500/20 hover:border-red-400/50 transition-all duration-700 hover:scale-105 cursor-pointer overflow-hidden">
+                        <div className="absolute inset-0 bg-gradient-to-br from-red-600/10 via-pink-600/10 to-rose-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+
+                        <div className="absolute inset-0 overflow-hidden rounded-3xl">
+                          <div className="absolute top-2 right-4 w-1 h-1 bg-red-400 rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-ping"></div>
+                          <div className="absolute bottom-6 left-6 w-1 h-1 bg-pink-400 rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-ping delay-100"></div>
+                        </div>
+
+                        <div className="relative z-10">
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="text-4xl">
+                              <Flame className="w-10 h-10 text-red-400" />
+                            </div>
+                            <div
+                              className={`border rounded-lg px-2 py-1 ${
                                 calculations.riskPercentage > 2
-                                  ? 'text-red-300'
-                                  : 'text-yellow-300'
+                                  ? 'bg-gradient-to-r from-red-500/30 to-orange-500/30 border-red-500/50'
+                                  : 'bg-gradient-to-r from-yellow-500/20 to-red-500/20 border-yellow-500/40'
                               }`}
                             >
-                              {calculations.riskPercentage > 2
-                                ? 'HIGH'
-                                : 'MODERATE'}
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="mb-3">
-                          <div className="text-xs text-red-300 mb-1 flex items-center">
-                            <span className="w-1.5 h-1.5 bg-red-400 rounded-full mr-1"></span>
-                            RISK EXPOSURE
-                          </div>
-                          <div className="text-2xl font-bold text-white mb-1">
-                            {formatCurrency(calculations.riskAmount)}
-                          </div>
-                          <div className="text-xs text-red-200">
-                            {calculations.riskPercentage.toFixed(2)}% portfolio
-                            impact
-                          </div>
-                        </div>
-
-                        {/* Risk level indicator */}
-                        <div className="relative h-2 bg-gradient-to-r from-gray-800 to-gray-700 rounded-full overflow-hidden">
-                          <div
-                            className="absolute inset-y-0 left-0 bg-gradient-to-r from-red-400 via-pink-400 to-rose-400 rounded-full transition-all duration-1000 group-hover:shadow-lg group-hover:shadow-red-500/30"
-                            style={{
-                              width: `${Math.min(
-                                calculations.riskPercentage * 20,
-                                100
-                              )}%`,
-                            }}
-                          ></div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Breakeven Analysis */}
-                    <div className="group relative bg-gradient-to-br from-black/40 to-gray-900/40 backdrop-blur-xl rounded-2xl p-4 border border-orange-500/20 hover:border-orange-400/50 transition-all duration-700 hover:scale-105 cursor-pointer overflow-hidden">
-                      <div className="absolute inset-0 bg-gradient-to-br from-orange-600/10 via-amber-600/10 to-yellow-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
-
-                      <div className="relative z-10">
-                        <div className="flex items-center justify-between mb-3">
-                          <div className="text-4xl">
-                            <Scale className="w-10 h-10 text-orange-400" />
-                          </div>
-                          <div className="bg-gradient-to-r from-orange-500/20 to-amber-500/20 border border-orange-500/40 rounded-lg px-2 py-1">
-                            <div className="text-xs text-orange-300 font-bold">
-                              BALANCE
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="mb-3">
-                          <div className="text-xs text-orange-300 mb-1 flex items-center">
-                            <span className="w-1.5 h-1.5 bg-orange-400 rounded-full mr-1"></span>
-                            BREAKEVEN PRICE
-                          </div>
-                          <div className="text-2xl font-bold text-white mb-1">
-                            {formatCurrency(calculations.breakEvenPrice)}
-                          </div>
-                          <div className="text-xs text-orange-200">
-                            survival line
-                          </div>
-                        </div>
-
-                        <div className="relative h-2 bg-gradient-to-r from-gray-800 to-gray-700 rounded-full overflow-hidden">
-                          <div className="absolute inset-y-0 left-0 bg-gradient-to-r from-orange-400 via-amber-400 to-yellow-400 rounded-full w-3/4 transition-all duration-1000 group-hover:shadow-lg group-hover:shadow-orange-500/30"></div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Brokerage Cost Analysis */}
-                    <div className="group relative bg-gradient-to-br from-black/40 to-gray-900/40 backdrop-blur-xl rounded-2xl p-4 border border-purple-500/20 hover:border-purple-400/50 transition-all duration-700 hover:scale-105 cursor-pointer overflow-hidden">
-                      <div className="absolute inset-0 bg-gradient-to-br from-purple-600/10 via-indigo-600/10 to-blue-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
-
-                      <div className="relative z-10">
-                        <div className="flex items-center justify-between mb-3">
-                          <div className="text-4xl">
-                            <Receipt className="w-10 h-10 text-purple-400" />
-                          </div>
-                          <div className="bg-gradient-to-r from-purple-500/20 to-indigo-500/20 border border-purple-500/40 rounded-lg px-2 py-1">
-                            <div className="text-xs text-purple-300 font-bold">
-                              AUTO
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="mb-3">
-                          <div className="text-xs text-purple-300 mb-1 flex items-center">
-                            <span className="w-1.5 h-1.5 bg-purple-400 rounded-full mr-1"></span>
-                            BROKERAGE COST
-                          </div>
-                          <div className="text-2xl font-bold text-white mb-1">
-                            {formatCurrency(calculations.brokerageCost)}
-                          </div>
-                          <div className="text-xs text-purple-200">
-                            buy side (auto-calculated)
-                          </div>
-                        </div>
-
-                        <div className="relative h-2 bg-gradient-to-r from-gray-800 to-gray-700 rounded-full overflow-hidden">
-                          <div className="absolute inset-y-0 left-0 bg-gradient-to-r from-purple-400 via-indigo-400 to-blue-400 rounded-full w-1/4 transition-all duration-1000 group-hover:shadow-lg group-hover:shadow-purple-500/30"></div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Risk Per Share Detail */}
-                    <div className="group relative bg-gradient-to-br from-black/40 to-gray-900/40 backdrop-blur-xl rounded-2xl p-4 border border-cyan-500/20 hover:border-cyan-400/50 transition-all duration-700 hover:scale-105 cursor-pointer overflow-hidden">
-                      <div className="absolute inset-0 bg-gradient-to-br from-cyan-600/10 via-teal-600/10 to-blue-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
-
-                      <div className="relative z-10">
-                        <div className="flex items-center justify-between mb-3">
-                          <div className="text-4xl">
-                            <AlertTriangle className="w-10 h-10 text-cyan-400" />
-                          </div>
-                          <div className="bg-gradient-to-r from-cyan-500/20 to-teal-500/20 border border-cyan-500/40 rounded-lg px-2 py-1">
-                            <div className="text-xs text-cyan-300 font-bold">
-                              UNIT
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="mb-3">
-                          <div className="text-xs text-cyan-300 mb-1 flex items-center">
-                            <span className="w-1.5 h-1.5 bg-cyan-400 rounded-full mr-1"></span>
-                            RISK PER SHARE
-                          </div>
-                          <div className="text-2xl font-bold text-white mb-1">
-                            {formatCurrency(calculations.riskPerShare)}
-                          </div>
-                          <div className="text-xs text-cyan-200">
-                            per unit risk
-                          </div>
-                        </div>
-
-                        <div className="relative h-2 bg-gradient-to-r from-gray-800 to-gray-700 rounded-full overflow-hidden">
-                          <div className="absolute inset-y-0 left-0 bg-gradient-to-r from-cyan-400 via-teal-400 to-blue-400 rounded-full w-2/3 transition-all duration-1000 group-hover:shadow-lg group-hover:shadow-cyan-500/30"></div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Animated Profit Command Center */}
-              <div className="mb-0">
-                {/* Gaming-style Profit Dashboard */}
-                <div className="relative bg-gradient-to-br from-black/40 to-gray-900/40 backdrop-blur-xl rounded-2xl p-6 border border-cyan-500/30 overflow-hidden">
-                  {/* Animated Background Grid */}
-                  <div className="absolute inset-0 opacity-10">
-                    <div className="absolute inset-0 bg-grid-pattern animate-pulse"></div>
-                  </div>
-
-                  {/* Interactive Profit Cards Grid */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-                    {targets.map((target, index) => {
-                      const colors = [
-                        'from-green-400 to-emerald-600',
-                        'from-blue-400 to-cyan-600',
-                        'from-purple-400 to-violet-600',
-                        'from-pink-400 to-rose-600',
-                        'from-orange-400 to-yellow-600',
-                        'from-red-400 to-pink-600',
-                      ];
-                      const borderColors = [
-                        'border-green-400/40',
-                        'border-blue-400/40',
-                        'border-purple-400/40',
-                        'border-pink-400/40',
-                        'border-orange-400/40',
-                        'border-red-400/40',
-                      ];
-                      const glowColors = [
-                        'shadow-green-400/30',
-                        'shadow-blue-400/30',
-                        'shadow-purple-400/30',
-                        'shadow-pink-400/30',
-                        'shadow-orange-400/30',
-                        'shadow-red-400/30',
-                      ];
-
-                      return (
-                        <div
-                          key={index}
-                          className={`group relative bg-gradient-to-br from-black/60 to-gray-900/60 backdrop-blur-sm rounded-xl p-4 border-2 ${borderColors[index]} hover:border-white/50 transition-all duration-500 cursor-pointer hover:scale-105 ${glowColors[index]} hover:shadow-xl`}
-                          style={{
-                            animationDelay: `${index * 0.1}s`,
-                          }}
-                        >
-                          {/* Animated Power Level Indicator */}
-                          <div className="absolute top-2 right-2 flex space-x-1">
-                            {Array.from({ length: target.r }).map((_, i) => (
                               <div
-                                key={i}
-                                className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-pulse"
-                                style={{
-                                  animationDelay: `${i * 0.2}s`,
-                                }}
-                              ></div>
-                            ))}
+                                className={`text-xs font-bold ${
+                                  calculations.riskPercentage > 2
+                                    ? 'text-red-300'
+                                    : 'text-yellow-300'
+                                }`}
+                              >
+                                {calculations.riskPercentage > 2
+                                  ? 'HIGH'
+                                  : 'MODERATE'}
+                              </div>
+                            </div>
                           </div>
 
-                          {/* R-Multiple Badge */}
-                          <div className="flex items-center justify-center mb-3">
+                          <div className="mb-3">
+                            <div className="text-xs text-red-300 mb-1 flex items-center">
+                              <span className="w-1.5 h-1.5 bg-red-400 rounded-full mr-1"></span>
+                              RISK EXPOSURE
+                            </div>
+                            <div className="text-2xl font-bold text-white mb-1">
+                              {formatCurrency(calculations.riskAmount)}
+                            </div>
+                            <div className="text-xs text-red-200">
+                              {calculations.riskPercentage.toFixed(2)}%
+                              portfolio impact
+                            </div>
+                          </div>
+
+                          {/* Risk level indicator */}
+                          <div className="relative h-2 bg-gradient-to-r from-gray-800 to-gray-700 rounded-full overflow-hidden">
                             <div
-                              className={`w-12 h-12 bg-gradient-to-r ${colors[index]} rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg group-hover:animate-pulse`}
-                            >
-                              {target.r}R
+                              className="absolute inset-y-0 left-0 bg-gradient-to-r from-red-400 via-pink-400 to-rose-400 rounded-full transition-all duration-1000 group-hover:shadow-lg group-hover:shadow-red-500/30"
+                              style={{
+                                width: `${Math.min(
+                                  calculations.riskPercentage * 20,
+                                  100
+                                )}%`,
+                              }}
+                            ></div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Breakeven Analysis */}
+                      <div className="group relative bg-gradient-to-br from-black/40 to-gray-900/40 backdrop-blur-xl rounded-2xl p-4 border border-orange-500/20 hover:border-orange-400/50 transition-all duration-700 hover:scale-105 cursor-pointer overflow-hidden">
+                        <div className="absolute inset-0 bg-gradient-to-br from-orange-600/10 via-amber-600/10 to-yellow-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+
+                        <div className="relative z-10">
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="text-4xl">
+                              <Scale className="w-10 h-10 text-orange-400" />
+                            </div>
+                            <div className="bg-gradient-to-r from-orange-500/20 to-amber-500/20 border border-orange-500/40 rounded-lg px-2 py-1">
+                              <div className="text-xs text-orange-300 font-bold">
+                                BALANCE
+                              </div>
                             </div>
                           </div>
 
-                          {/* Critical Information - Always Visible */}
-                          <div className="space-y-3">
-                            {/* Profit Display */}
-                            <div className="text-center">
-                              <div className="text-xs text-green-300 mb-1">
-                                💰 PROFIT
-                              </div>
-                              <div className="text-sm font-bold text-green-400">
-                                {formatCurrency(target.netProfit)}
+                          <div className="mb-3">
+                            <div className="text-xs text-orange-300 mb-1 flex items-center">
+                              <span className="w-1.5 h-1.5 bg-orange-400 rounded-full mr-1"></span>
+                              BREAKEVEN PRICE
+                            </div>
+                            <div className="text-2xl font-bold text-white mb-1">
+                              {formatCurrency(calculations.breakEvenPrice)}
+                            </div>
+                            <div className="text-xs text-orange-200">
+                              survival line
+                            </div>
+                          </div>
+
+                          <div className="relative h-2 bg-gradient-to-r from-gray-800 to-gray-700 rounded-full overflow-hidden">
+                            <div className="absolute inset-y-0 left-0 bg-gradient-to-r from-orange-400 via-amber-400 to-yellow-400 rounded-full w-3/4 transition-all duration-1000 group-hover:shadow-lg group-hover:shadow-orange-500/30"></div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Brokerage Cost Analysis */}
+                      <div className="group relative bg-gradient-to-br from-black/40 to-gray-900/40 backdrop-blur-xl rounded-2xl p-4 border border-purple-500/20 hover:border-purple-400/50 transition-all duration-700 hover:scale-105 cursor-pointer overflow-hidden">
+                        <div className="absolute inset-0 bg-gradient-to-br from-purple-600/10 via-indigo-600/10 to-blue-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+
+                        <div className="relative z-10">
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="text-4xl">
+                              <Receipt className="w-10 h-10 text-purple-400" />
+                            </div>
+                            <div className="bg-gradient-to-r from-purple-500/20 to-indigo-500/20 border border-purple-500/40 rounded-lg px-2 py-1">
+                              <div className="text-xs text-purple-300 font-bold">
+                                AUTO
                               </div>
                             </div>
+                          </div>
 
-                            {/* Portfolio Impact with Animated Bar */}
-                            <div className="bg-gradient-to-r from-orange-500/20 to-yellow-500/20 border border-orange-400/30 rounded-lg p-2">
-                              <div className="text-xs text-orange-200 mb-1">
-                                📊 PF IMPACT
+                          <div className="mb-3">
+                            <div className="text-xs text-purple-300 mb-1 flex items-center">
+                              <span className="w-1.5 h-1.5 bg-purple-400 rounded-full mr-1"></span>
+                              BROKERAGE COST
+                            </div>
+                            <div className="text-2xl font-bold text-white mb-1">
+                              {formatCurrency(calculations.brokerageCost)}
+                            </div>
+                            <div className="text-xs text-purple-200">
+                              buy side (auto-calculated)
+                            </div>
+                          </div>
+
+                          <div className="relative h-2 bg-gradient-to-r from-gray-800 to-gray-700 rounded-full overflow-hidden">
+                            <div className="absolute inset-y-0 left-0 bg-gradient-to-r from-purple-400 via-indigo-400 to-blue-400 rounded-full w-1/4 transition-all duration-1000 group-hover:shadow-lg group-hover:shadow-purple-500/30"></div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Risk Per Share Detail */}
+                      <div className="group relative bg-gradient-to-br from-black/40 to-gray-900/40 backdrop-blur-xl rounded-2xl p-4 border border-cyan-500/20 hover:border-cyan-400/50 transition-all duration-700 hover:scale-105 cursor-pointer overflow-hidden">
+                        <div className="absolute inset-0 bg-gradient-to-br from-cyan-600/10 via-teal-600/10 to-blue-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+
+                        <div className="relative z-10">
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="text-4xl">
+                              <AlertTriangle className="w-10 h-10 text-cyan-400" />
+                            </div>
+                            <div className="bg-gradient-to-r from-cyan-500/20 to-teal-500/20 border border-cyan-500/40 rounded-lg px-2 py-1">
+                              <div className="text-xs text-cyan-300 font-bold">
+                                UNIT
                               </div>
-                              <div className="text-sm font-bold text-orange-300 mb-2">
-                                +{target.portfolioGainPercentage.toFixed(2)}%
-                              </div>
-                              {/* Animated Progress Bar */}
-                              <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
+                            </div>
+                          </div>
+
+                          <div className="mb-3">
+                            <div className="text-xs text-cyan-300 mb-1 flex items-center">
+                              <span className="w-1.5 h-1.5 bg-cyan-400 rounded-full mr-1"></span>
+                              RISK PER SHARE
+                            </div>
+                            <div className="text-2xl font-bold text-white mb-1">
+                              {formatCurrency(calculations.riskPerShare)}
+                            </div>
+                            <div className="text-xs text-cyan-200">
+                              per unit risk
+                            </div>
+                          </div>
+
+                          <div className="relative h-2 bg-gradient-to-r from-gray-800 to-gray-700 rounded-full overflow-hidden">
+                            <div className="absolute inset-y-0 left-0 bg-gradient-to-r from-cyan-400 via-teal-400 to-blue-400 rounded-full w-2/3 transition-all duration-1000 group-hover:shadow-lg group-hover:shadow-cyan-500/30"></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Animated Profit Command Center */}
+                <div className="mb-0">
+                  {/* Gaming-style Profit Dashboard */}
+                  <div className="relative bg-gradient-to-br from-black/40 to-gray-900/40 backdrop-blur-xl rounded-2xl p-6 border border-cyan-500/30 overflow-hidden">
+                    {/* Animated Background Grid */}
+                    <div className="absolute inset-0 opacity-10">
+                      <div className="absolute inset-0 bg-grid-pattern animate-pulse"></div>
+                    </div>
+
+                    {/* Interactive Profit Cards Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+                      {targets.map((target, index) => {
+                        const colors = [
+                          'from-green-400 to-emerald-600',
+                          'from-blue-400 to-cyan-600',
+                          'from-purple-400 to-violet-600',
+                          'from-pink-400 to-rose-600',
+                          'from-orange-400 to-yellow-600',
+                          'from-red-400 to-pink-600',
+                        ];
+                        const borderColors = [
+                          'border-green-400/40',
+                          'border-blue-400/40',
+                          'border-purple-400/40',
+                          'border-pink-400/40',
+                          'border-orange-400/40',
+                          'border-red-400/40',
+                        ];
+                        const glowColors = [
+                          'shadow-green-400/30',
+                          'shadow-blue-400/30',
+                          'shadow-purple-400/30',
+                          'shadow-pink-400/30',
+                          'shadow-orange-400/30',
+                          'shadow-red-400/30',
+                        ];
+
+                        return (
+                          <div
+                            key={index}
+                            className={`group relative bg-gradient-to-br from-black/60 to-gray-900/60 backdrop-blur-sm rounded-xl p-4 border-2 ${borderColors[index]} hover:border-white/50 transition-all duration-500 cursor-pointer hover:scale-105 ${glowColors[index]} hover:shadow-xl`}
+                            style={{
+                              animationDelay: `${index * 0.1}s`,
+                            }}
+                          >
+                            {/* Animated Power Level Indicator */}
+                            <div className="absolute top-2 right-2 flex space-x-1">
+                              {Array.from({ length: target.r }).map((_, i) => (
                                 <div
-                                  className="h-full bg-gradient-to-r from-orange-400 to-yellow-400 rounded-full transition-all duration-2000 ease-out"
+                                  key={i}
+                                  className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-pulse"
                                   style={{
-                                    width: `${Math.min(
-                                      target.portfolioGainPercentage * 10,
-                                      100
-                                    )}%`,
-                                    animationDelay: `${index * 0.3}s`,
+                                    animationDelay: `${i * 0.2}s`,
                                   }}
                                 ></div>
+                              ))}
+                            </div>
+
+                            {/* R-Multiple Badge */}
+                            <div className="flex items-center justify-center mb-3">
+                              <div
+                                className={`w-12 h-12 bg-gradient-to-r ${colors[index]} rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg group-hover:animate-pulse`}
+                              >
+                                {target.r}R
                               </div>
                             </div>
 
-                            {/* ROI Display */}
-                            <div className="text-center">
-                              <div className="text-xs text-blue-300 mb-1">
-                                🎯 ROI
+                            {/* Critical Information - Always Visible */}
+                            <div className="space-y-3">
+                              {/* Profit Display */}
+                              <div className="text-center">
+                                <div className="text-xs text-green-300 mb-1">
+                                  💰 PROFIT
+                                </div>
+                                <div className="text-sm font-bold text-green-400">
+                                  {formatCurrency(target.netProfit)}
+                                </div>
                               </div>
-                              <div className="text-sm font-bold text-blue-400">
-                                {target.returnPercentage.toFixed(1)}%
+
+                              {/* Portfolio Impact with Animated Bar */}
+                              <div className="bg-gradient-to-r from-orange-500/20 to-yellow-500/20 border border-orange-400/30 rounded-lg p-2">
+                                <div className="text-xs text-orange-200 mb-1">
+                                  📊 PF IMPACT
+                                </div>
+                                <div className="text-sm font-bold text-orange-300 mb-2">
+                                  +{target.portfolioGainPercentage.toFixed(2)}%
+                                </div>
+                                {/* Animated Progress Bar */}
+                                <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
+                                  <div
+                                    className="h-full bg-gradient-to-r from-orange-400 to-yellow-400 rounded-full transition-all duration-2000 ease-out"
+                                    style={{
+                                      width: `${Math.min(
+                                        target.portfolioGainPercentage * 10,
+                                        100
+                                      )}%`,
+                                      animationDelay: `${index * 0.3}s`,
+                                    }}
+                                  ></div>
+                                </div>
+                              </div>
+
+                              {/* ROI Display */}
+                              <div className="text-center">
+                                <div className="text-xs text-blue-300 mb-1">
+                                  🎯 ROI
+                                </div>
+                                <div className="text-sm font-bold text-blue-400">
+                                  {target.returnPercentage.toFixed(1)}%
+                                </div>
+                              </div>
+
+                              {/* Target Price */}
+                              <div className="text-center">
+                                <div className="text-xs text-purple-300 mb-1">
+                                  🎯 TARGET
+                                </div>
+                                <div className="text-xs font-bold text-white">
+                                  {formatCurrency(target.targetPrice)}
+                                </div>
                               </div>
                             </div>
 
-                            {/* Target Price */}
-                            <div className="text-center">
-                              <div className="text-xs text-purple-300 mb-1">
-                                🎯 TARGET
-                              </div>
-                              <div className="text-xs font-bold text-white">
-                                {formatCurrency(target.targetPrice)}
-                              </div>
-                            </div>
+                            {/* Animated Power Up Effect */}
+                            <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-cyan-400/10 to-blue-400/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                           </div>
-
-                          {/* Animated Power Up Effect */}
-                          <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-cyan-400/10 to-blue-400/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
+          )}
+
+          {/* Portfolio Snapshot Panel - Right Side */}
+          {hasActiveBrokerSession && (
+            <div className="lg:col-span-2">
+              <div className="bg-black/40 backdrop-blur-xl rounded-3xl p-6 shadow-2xl border border-cyan-500/30 sticky top-8 hover:border-cyan-400/50 transition-all duration-500 hover:shadow-cyan-500/20 hover:shadow-2xl">
+                <PortfolioSnapshot />
+              </div>
+            </div>
+          )}
         </div>
       </main>
 
