@@ -494,7 +494,7 @@ const TradingCalculator: React.FC = () => {
         instrument: selectedInstrument.tradingsymbol,
         stopLossPrice: formData.stopLoss,
         currentPrice: formData.entryPrice,
-        orderRequest
+        orderRequest,
       });
 
       // Use GTT-enabled order placement with stop loss from form data
@@ -503,13 +503,19 @@ const TradingCalculator: React.FC = () => {
         orderRequest,
         selectedInstrument,
         formData.entryPrice, // Current price for GTT calculations
-        formData.stopLoss,   // This will create GTT automatically if provided
-        undefined           // Target price (can be enhanced later)
+        formData.stopLoss, // This will create GTT automatically if provided
+        undefined // Target price (can be enhanced later)
       );
     } catch (error) {
       console.error('Order placement failed:', error);
     }
-  }, [selectedInstrument, calculations, formData, entryPriceMode, placeOrderWithGTT]);
+  }, [
+    selectedInstrument,
+    calculations,
+    formData,
+    entryPriceMode,
+    placeOrderWithGTT,
+  ]);
 
   // Handle input changes with automatic calculations
   const handleInputChange = useCallback(
@@ -1024,7 +1030,7 @@ const TradingCalculator: React.FC = () => {
           </div>
 
           {/* Gaming Results Arena */}
-          {!hasActiveBrokerSession && (
+          {(!hasActiveBrokerSession || selectedInstrument) && (
             <div className="lg:col-span-2">
               <div className="bg-black/40 backdrop-blur-xl rounded-3xl p-6 shadow-2xl border border-purple-500/30 hover:border-purple-400/50 transition-all duration-500">
                 {/* Gaming Alert System */}
