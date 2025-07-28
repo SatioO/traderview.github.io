@@ -20,6 +20,14 @@ interface UseOrderPlacementResult {
     broker: BrokerType,
     orderRequest: PlaceOrderRequest
   ) => Promise<void>;
+  placeOrderWithGTT: (
+    broker: BrokerType,
+    orderRequest: PlaceOrderRequest,
+    instrument: any,
+    currentPrice: number,
+    stopLossPrice?: number,
+    targetPrice?: number
+  ) => Promise<void>;
   confirmOrder: () => void;
   cancelOrder: () => void;
   resetStatus: () => void;
@@ -83,6 +91,68 @@ export const useOrderPlacement = (): UseOrderPlacementResult => {
     []
   );
 
+  // Place order with GTT - enhanced version
+  const placeOrderWithGTT = useCallback(
+    async (
+      broker: BrokerType,
+      orderRequest: PlaceOrderRequest,
+      instrument: any,
+      currentPrice: number,
+      stopLossPrice?: number,
+      targetPrice?: number
+    ) => {
+      try {
+        // Reset previous states
+        setLastError(null);
+        setLastOrderResponse(null);
+
+        // Show placing state with GTT message
+        setStatus({
+          state: 'placing',
+          message: stopLossPrice || targetPrice ? 'Placing order with GTT...' : 'Placing order...',
+          progress: 30,
+        });
+
+        // Execute the order with GTT
+        const response = await orderService.placeOrderWithGTT(
+          broker,
+          orderRequest,
+          instrument,
+          currentPrice,
+          stopLossPrice,
+          targetPrice
+        );
+
+        setLastOrderResponse(response);
+        
+        // Enhanced success message based on GTT result
+        let successMessage = 'Order placed!';
+        if (response.gtt?.success) {
+          successMessage += ` GTT created (ID: ${response.gtt.triggerId})`;
+        } else if (response.gtt?.error) {
+          successMessage += ` (GTT failed: ${response.gtt.error})`;
+        }
+
+        setStatus({
+          state: 'success',
+          message: successMessage,
+          orderId: response.orderId,
+          progress: 100,
+        });
+      } catch (error) {
+        const orderError = error as OrderError;
+        setLastError(orderError);
+        setStatus({
+          state: 'error',
+          message: orderService.getErrorMessage(orderError),
+          error: orderError.message,
+          progress: 0,
+        });
+      }
+    },
+    []
+  );
+
   // No longer needed - direct execution
   const confirmOrder = useCallback(() => {
     // Deprecated - orders execute immediately now
@@ -109,6 +179,7 @@ export const useOrderPlacement = (): UseOrderPlacementResult => {
     isSuccess,
     isError,
     placeOrder,
+    placeOrderWithGTT,
     confirmOrder,
     cancelOrder,
     resetStatus,

@@ -2,7 +2,10 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useTrading } from '../../contexts/TradingContext';
 import { tradingApiService } from '../../services/tradingApiService';
+import { useOrderPlacement } from '../../hooks/useOrderPlacement';
+import { orderService } from '../../services/orderService';
 import InstrumentSearch from './InstrumentSearch';
+import OrderGTTStatus from './OrderGTTStatus';
 import type { OrderData } from '../../contexts/TradingContext';
 
 interface TradingOrderFormProps {
@@ -96,56 +99,8 @@ const TradingOrderForm: React.FC<TradingOrderFormProps> = ({
     staleTime: 10000, // 10 seconds
   });
 
-  // Order placement mutation
-  const orderMutation = useMutation({
-    mutationFn: (orderData: OrderData) =>
-      tradingApiService.placeOrder(orderData),
-    onMutate: () => {
-      setOrderStatus('placing');
-      setOrderError(null);
-    },
-    onSuccess: (response) => {
-      setOrderStatus('success');
-      resetOrder();
-      if (onOrderPlaced) {
-        onOrderPlaced(response.order_id);
-      }
-    },
-    onError: (error: Error) => {
-      setOrderStatus('error');
-      setOrderError(error.message);
-      if (onOrderError) {
-        onOrderError(error.message);
-      }
-    },
-  });
-
-  // Order validation mutation
-  const validationMutation = useMutation({
-    mutationFn: (orderData: OrderData) =>
-      tradingApiService.validateOrder(orderData),
-    onMutate: () => {
-      setOrderStatus('validating');
-    },
-    onSuccess: (validation) => {
-      if (validation.valid) {
-        // Proceed with order placement
-        const finalOrderData: OrderData = {
-          ...(state.orderData as OrderData),
-          ...localOrderData,
-          quantity: state.calculatedQuantity,
-        };
-        orderMutation.mutate(finalOrderData);
-      } else {
-        setOrderStatus('error');
-        setOrderError(validation.errors.join(', '));
-      }
-    },
-    onError: (error: Error) => {
-      setOrderStatus('error');
-      setOrderError(error.message);
-    },
-  });
+  // Enhanced order placement with GTT support
+  const { placeOrderWithGTT, status: orderStatus, lastError, lastOrderResponse, isSuccess, isError } = useOrderPlacement();
 
   // Calculate position size based on entry price and account settings
   useEffect(() => {
@@ -189,6 +144,32 @@ const TradingOrderForm: React.FC<TradingOrderFormProps> = ({
     updateOrderData(localOrderData);
   }, [localOrderData, updateOrderData]);
 
+  // Handle order placement success
+  useEffect(() => {
+    if (isSuccess && lastOrderResponse) {
+      setOrderStatus('success');
+      resetOrder();
+      if (onOrderPlaced && lastOrderResponse.orderId) {
+        onOrderPlaced(lastOrderResponse.orderId);
+      }
+    }
+  }, [isSuccess, lastOrderResponse, setOrderStatus, resetOrder, onOrderPlaced]);
+
+  // Handle order placement error
+  useEffect(() => {
+    if (isError && lastError) {
+      setOrderStatus('error');
+      const errorMessage = orderService.getErrorMessage(lastError);
+      setOrderError(errorMessage);
+      if (onOrderError) {
+        onOrderError(errorMessage);
+      }
+    }
+  }, [isError, lastError, setOrderStatus, setOrderError, onOrderError]);
+
+  // Calculate current price
+  const currentPrice = entryPrice || marketPrice?.ltp || 0;
+
   // Handle form field changes
   const handleFieldChange = useCallback(
     (field: keyof OrderData, value: unknown) => {
@@ -207,38 +188,57 @@ const TradingOrderForm: React.FC<TradingOrderFormProps> = ({
     [localOrderData.order_type, handleFieldChange]
   );
 
-  // Handle order submission
-  const handleSubmitOrder = useCallback(() => {
-    if (!isOrderReady || !canPlaceOrder) return;
+  // Handle order submission with automatic GTT integration
+  const handleSubmitOrder = useCallback(async () => {
+    if (!isOrderReady || !canPlaceOrder || !state.selectedInstrument) return;
 
-    const finalOrderData: OrderData = {
-      tradingsymbol: state.selectedInstrument!.tradingsymbol,
-      exchange: state.selectedInstrument!.exchange,
-      transaction_type: localOrderData.transaction_type as 'BUY' | 'SELL',
-      order_type: localOrderData.order_type as OrderData['order_type'],
-      quantity: state.calculatedQuantity,
-      product: localOrderData.product as OrderData['product'],
-      validity: localOrderData.validity as OrderData['validity'],
-      variety: localOrderData.variety as OrderData['variety'],
-      ...(localOrderData.order_type === 'LIMIT' &&
-        localOrderData.price && { price: localOrderData.price }),
-      ...(stopLossPrice && { trigger_price: stopLossPrice }),
-    };
+    // Create order request for the orderService
+    const orderRequest = orderService.createOrderRequest(
+      state.selectedInstrument,
+      localOrderData,
+      localOrderData.order_type === 'MARKET' ? 'mkt' : 'lmt',
+      { positionSize: state.calculatedQuantity }
+    );
 
-    // Validate first, then place order
-    validationMutation.mutate(finalOrderData);
+    // Override with current form data
+    orderRequest.transaction_type = localOrderData.transaction_type as 'BUY' | 'SELL';
+    orderRequest.order_type = localOrderData.order_type as any;
+    orderRequest.product = localOrderData.product as any;
+    orderRequest.quantity = state.calculatedQuantity;
+    if (localOrderData.order_type === 'LIMIT' && localOrderData.price) {
+      orderRequest.price = localOrderData.price;
+    }
+
+    console.log('🚀 Placing order with GTT integration:', {
+      orderRequest,
+      stopLossPrice,
+      currentPrice,
+      instrument: state.selectedInstrument.tradingsymbol,
+      hasStopLoss: !!stopLossPrice,
+      willCreateGTT: !!(stopLossPrice && currentPrice > 0)
+    });
+
+    // Place order with automatic GTT creation using the hook
+    await placeOrderWithGTT(
+      'kite',
+      orderRequest,
+      state.selectedInstrument,
+      currentPrice,
+      stopLossPrice, // This will create a stop loss GTT if provided
+      undefined // No target price for now, can be enhanced later
+    );
   }, [
     isOrderReady,
     canPlaceOrder,
-    state,
+    state.selectedInstrument,
+    state.calculatedQuantity,
     localOrderData,
+    currentPrice,
     stopLossPrice,
-    validationMutation,
+    placeOrderWithGTT,
   ]);
 
-  const currentPrice = entryPrice || marketPrice?.ltp || 0;
-  const isLoading =
-    state.orderStatus === 'placing' || state.orderStatus === 'validating';
+  const isLoading = orderStatus.state === 'placing' || orderStatus.state === 'validating';
 
   return (
     <div className={`space-y-6 ${className}`}>
@@ -247,15 +247,20 @@ const TradingOrderForm: React.FC<TradingOrderFormProps> = ({
         <h3 className="text-lg font-semibold bg-gradient-to-r from-violet-300 to-cyan-300 bg-clip-text text-transparent">
           Place Order
         </h3>
-        {state.orderStatus === 'success' && (
+        {orderStatus.state === 'success' && (
           <div className="flex items-center space-x-2 px-3 py-1 bg-green-500/20 border border-green-400/30 rounded-lg">
             <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
             <span className="text-green-300 text-sm font-medium">
-              Order Placed
+              {orderStatus.message || 'Order Placed'}
             </span>
           </div>
         )}
       </div>
+
+      {/* Enhanced Order Status Display */}
+      {orderStatus.state === 'success' && lastOrderResponse && (
+        <OrderGTTStatus orderResponse={lastOrderResponse} />
+      )}
 
       {/* Instrument Search */}
       <div className="space-y-2">
@@ -443,7 +448,7 @@ const TradingOrderForm: React.FC<TradingOrderFormProps> = ({
           )}
 
           {/* Error Display */}
-          {state.orderError && (
+          {orderStatus.state === 'error' && (
             <div className="p-3 bg-red-500/10 border border-red-400/30 rounded-lg">
               <div className="flex items-center space-x-2">
                 <svg
@@ -459,7 +464,7 @@ const TradingOrderForm: React.FC<TradingOrderFormProps> = ({
                     d="M12 8v4m0 4h.01"
                   />
                 </svg>
-                <span className="text-red-300 text-sm">{state.orderError}</span>
+                <span className="text-red-300 text-sm">{orderStatus.message || orderStatus.error}</span>
               </div>
             </div>
           )}
@@ -478,9 +483,7 @@ const TradingOrderForm: React.FC<TradingOrderFormProps> = ({
               <div className="flex items-center justify-center space-x-2">
                 <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
                 <span>
-                  {state.orderStatus === 'validating'
-                    ? 'Validating Order...'
-                    : 'Placing Order...'}
+                  {orderStatus.message || 'Placing Order...'}
                 </span>
               </div>
             ) : (

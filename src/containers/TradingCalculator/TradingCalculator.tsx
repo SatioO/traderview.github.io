@@ -107,7 +107,7 @@ const TradingCalculator: React.FC = () => {
     isPlacing,
     isSuccess,
     isError,
-    placeOrder,
+    placeOrderWithGTT,
     resetStatus,
     lastOrderResponse,
     lastError,
@@ -475,7 +475,7 @@ const TradingCalculator: React.FC = () => {
     };
   };
 
-  // Handle order placement
+  // Handle order placement with GTT integration
   const handlePlaceOrder = useCallback(async () => {
     if (!selectedInstrument || !calculations) {
       return;
@@ -490,12 +490,26 @@ const TradingCalculator: React.FC = () => {
         calculations
       );
 
-      // Start the order placement process
-      await placeOrder('kite', orderRequest);
+      console.log('🎯 TradingCalculator: Placing order with GTT integration:', {
+        instrument: selectedInstrument.tradingsymbol,
+        stopLossPrice: formData.stopLoss,
+        currentPrice: formData.entryPrice,
+        orderRequest
+      });
+
+      // Use GTT-enabled order placement with stop loss from form data
+      await placeOrderWithGTT(
+        'kite',
+        orderRequest,
+        selectedInstrument,
+        formData.entryPrice, // Current price for GTT calculations
+        formData.stopLoss,   // This will create GTT automatically if provided
+        undefined           // Target price (can be enhanced later)
+      );
     } catch (error) {
       console.error('Order placement failed:', error);
     }
-  }, [selectedInstrument, calculations, formData, entryPriceMode, placeOrder]);
+  }, [selectedInstrument, calculations, formData, entryPriceMode, placeOrderWithGTT]);
 
   // Handle input changes with automatic calculations
   const handleInputChange = useCallback(

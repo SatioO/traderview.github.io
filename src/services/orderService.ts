@@ -1,4 +1,5 @@
 import httpClient from './httpClient';
+import { gttService, type PlaceGTTRequest } from './gttService';
 
 // Order Types
 export type BrokerType = 'kite';
@@ -46,6 +47,11 @@ export interface PlaceOrderResponse {
   order: OrderData;
   timestamp: string;
   requestId: string;
+  gtt?: {
+    success: boolean;
+    triggerId?: number;
+    error?: string;
+  };
 }
 
 export interface OrderError {
@@ -78,9 +84,13 @@ export interface OrderPlacementStatus {
 class OrderService {
   private baseUrl = '/brokers';
 
-  private async makeRequest<T>(endpoint: string, method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' = 'GET', data?: any): Promise<T> {
+  private async makeRequest<T>(
+    endpoint: string,
+    method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' = 'GET',
+    data?: any
+  ): Promise<T> {
     try {
-      let response;
+      let response: { data: T };
       switch (method) {
         case 'GET':
           response = await httpClient.get<T>(endpoint);
@@ -129,6 +139,114 @@ class OrderService {
       'POST',
       orderRequest
     );
+  }
+
+  // Place order with automatic GTT creation (enhanced version)
+  async placeOrderWithGTT(
+    broker: BrokerType,
+    orderRequest: PlaceOrderRequest,
+    instrument: any,
+    currentPrice: number,
+    stopLossPrice?: number,
+    targetPrice?: number
+  ): Promise<PlaceOrderResponse> {
+    console.log('📋 PlaceOrderWithGTT called with:', {
+      broker,
+      orderRequest,
+      instrument: instrument.tradingsymbol,
+      currentPrice,
+      stopLossPrice,
+      targetPrice,
+      hasStopLoss: !!stopLossPrice,
+      hasTarget: !!targetPrice,
+    });
+
+    // First place the regular order
+    try {
+      const orderResponse = await this.placeOrder(broker, orderRequest);
+      console.log('✅ Order placed successfully:', orderResponse);
+
+      // If order is successful and we have stop loss or target prices, create GTT
+      if (orderResponse.success && (stopLossPrice || targetPrice)) {
+        console.log(
+          '🎯 Creating GTT because order succeeded and we have stop loss/target:',
+          {
+            stopLossPrice,
+            targetPrice,
+          }
+        );
+        let gttRequest: PlaceGTTRequest | null = null;
+
+        if (stopLossPrice && targetPrice) {
+          // Two-leg GTT (OCO - One Cancels Other)
+          gttRequest = gttService.createTwoLegGTT(
+            instrument,
+            {
+              transaction_type:
+                orderRequest.transaction_type === 'BUY' ? 'SELL' : 'BUY',
+              quantity: orderRequest.quantity,
+              product: orderRequest.product,
+            },
+            stopLossPrice,
+            targetPrice,
+            currentPrice
+          );
+        } else if (stopLossPrice) {
+          // Single GTT for stop loss
+          gttRequest = gttService.createSingleGTT(
+            instrument,
+            {
+              transaction_type:
+                orderRequest.transaction_type === 'BUY' ? 'SELL' : 'BUY',
+              quantity: orderRequest.quantity,
+              order_type: 'LIMIT',
+              product: orderRequest.product,
+            },
+            stopLossPrice,
+            currentPrice
+          );
+        } else if (targetPrice) {
+          // Single GTT for target
+          gttRequest = gttService.createSingleGTT(
+            instrument,
+            {
+              transaction_type:
+                orderRequest.transaction_type === 'BUY' ? 'SELL' : 'BUY',
+              quantity: orderRequest.quantity,
+              order_type: 'LIMIT',
+              product: orderRequest.product,
+            },
+            targetPrice,
+            currentPrice
+          );
+        }
+
+        if (gttRequest) {
+          try {
+            const gttResponse = await gttService.placeGTT(gttRequest);
+            orderResponse.gtt = {
+              success: true,
+              triggerId: gttResponse.triggerId,
+            };
+            orderResponse.message += ` GTT created successfully (ID: ${gttResponse.triggerId})`;
+          } catch (gttError: any) {
+            console.error('GTT creation failed:', gttError);
+            orderResponse.gtt = {
+              success: false,
+              error: gttService.getErrorMessage(gttError),
+            };
+            orderResponse.message += ` Warning: GTT creation failed - ${gttService.getErrorMessage(
+              gttError
+            )}`;
+          }
+        }
+      }
+
+      return orderResponse;
+    } catch (error) {
+      // If regular order fails, don't attempt GTT creation
+      throw error;
+    }
   }
 
   // Validate order request before sending
