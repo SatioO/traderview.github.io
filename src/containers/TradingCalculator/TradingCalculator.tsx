@@ -64,6 +64,7 @@ const TradingCalculator: React.FC = () => {
   const [warnings, setWarnings] = useState<string[]>([]);
   const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
   const [stopLossPercentage, setStopLossPercentage] = useState<number>(3);
+
   // Settings context for capital management
   const {
     settings: settingsContext,
@@ -507,7 +508,7 @@ const TradingCalculator: React.FC = () => {
     }
 
     try {
-      // Create order request from current form data
+      // Create order request - GTT stop loss is now automatic
       const orderRequest = orderService.createOrderRequest(
         selectedInstrument,
         formData,

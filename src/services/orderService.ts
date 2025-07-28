@@ -1,4 +1,5 @@
 import httpClient from './httpClient';
+import { gttService, type PlaceGTTRequest } from './gttService';
 
 // Order Types
 export type BrokerType = 'kite';
@@ -27,6 +28,10 @@ export interface PlaceOrderRequest {
   validity_ttl?: number;
   disclosed_quantity?: number;
   tag?: string;
+  // GTT-specific fields
+  with_stop_loss?: boolean;
+  stop_loss_price?: number;
+  current_price?: number; // Current market price for GTT last_price
 }
 
 export interface OrderData {
@@ -46,6 +51,9 @@ export interface PlaceOrderResponse {
   order: OrderData;
   timestamp: string;
   requestId: string;
+  // GTT-specific response fields
+  gttTriggerId?: number;
+  isGttOrder?: boolean;
 }
 
 export interface OrderError {
@@ -78,7 +86,11 @@ export interface OrderPlacementStatus {
 class OrderService {
   private baseUrl = '/brokers';
 
-  private async makeRequest<T>(endpoint: string, method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' = 'GET', data?: any): Promise<T> {
+  private async makeRequest<T>(
+    endpoint: string,
+    method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' = 'GET',
+    data?: any
+  ): Promise<T> {
     try {
       let response;
       switch (method) {
@@ -116,7 +128,7 @@ class OrderService {
     }
   }
 
-  // Place order with comprehensive error handling
+  // Place order with dual approach: regular order + GTT stop loss
   async placeOrder(
     broker: BrokerType,
     orderRequest: PlaceOrderRequest
@@ -124,11 +136,118 @@ class OrderService {
     // Client-side validation
     this.validateOrderRequest(orderRequest);
 
-    return this.makeRequest<PlaceOrderResponse>(
-      `${this.baseUrl}/${broker}/orders/place`,
-      'POST',
-      orderRequest
-    );
+    try {
+      // Step 1: Place the regular BUY order (as it was before)
+      console.log('About to place main order...');
+      const cleanOrderRequest = {
+        ...orderRequest,
+        // Remove GTT-specific fields from regular order
+        with_stop_loss: undefined,
+        stop_loss_price: undefined,
+      };
+      console.log('Clean order request for main order:', cleanOrderRequest);
+
+      const mainOrderResponse = await this.makeRequest<PlaceOrderResponse>(
+        `${this.baseUrl}/${broker}/orders/place`,
+        'POST',
+        cleanOrderRequest
+      );
+
+      console.log('Main order API call completed');
+
+      // Step 2: If main order succeeds and we have stop loss, place GTT stop loss order
+      console.log('Main order response:', mainOrderResponse);
+      console.log('Stop loss price:', orderRequest.stop_loss_price);
+      console.log(
+        'Should place GTT:',
+        mainOrderResponse.success &&
+          orderRequest.stop_loss_price &&
+          orderRequest.stop_loss_price > 0
+      );
+
+      if (
+        mainOrderResponse.success &&
+        orderRequest.stop_loss_price &&
+        orderRequest.stop_loss_price > 0
+      ) {
+        console.log('Placing GTT stop loss order...');
+        try {
+          const gttRequest = this.createStopLossGTT(orderRequest);
+          console.log('GTT request:', gttRequest);
+          const gttResponse = await gttService.placeGTT(gttRequest);
+          console.log('GTT response:', gttResponse);
+
+          if (gttResponse.success) {
+            return {
+              ...mainOrderResponse,
+              message: `Order placed with GTT stop loss protection`,
+              gttTriggerId: gttResponse.data.trigger_id,
+              isGttOrder: true,
+            };
+          } else {
+            // Main order succeeded but GTT failed - still return success but warn user
+            return {
+              ...mainOrderResponse,
+              message: `Order placed successfully, but stop loss GTT failed: ${gttResponse.message}`,
+              isGttOrder: false,
+            };
+          }
+        } catch (gttError: any) {
+          // GTT failed but main order succeeded - warn user
+          return {
+            ...mainOrderResponse,
+            message: `Order placed successfully, but stop loss GTT failed: ${
+              gttError.message || 'GTT error'
+            }`,
+            isGttOrder: false,
+          };
+        }
+      }
+
+      // Return main order response if no stop loss or stop loss not available
+      return mainOrderResponse;
+    } catch (error: any) {
+      // Transform errors to OrderError format
+      console.error('Order placement error caught:', error);
+      const errorData = error.response?.data || error;
+      throw {
+        success: false,
+        message: errorData.message || error.message || 'Order placement failed',
+        error: errorData.error || 'Order placement error',
+        code: errorData.code || 'ORDER_ERROR',
+        timestamp: errorData.timestamp || new Date().toISOString(),
+        requestId: errorData.requestId || `order_error_${Date.now()}`,
+      } as OrderError;
+    }
+  }
+
+  // Create GTT stop loss order (single, sell) - triggers when price hits stop loss
+  private createStopLossGTT(orderRequest: PlaceOrderRequest): PlaceGTTRequest {
+    const stopLossPrice = orderRequest.stop_loss_price!;
+    const currentPrice = orderRequest.current_price!; // Current market price
+
+    // Create single GTT for stop loss protection only
+    // This assumes the main BUY order has already been placed successfully
+    return {
+      type: 'single',
+      condition: {
+        exchange: orderRequest.exchange,
+        tradingsymbol: orderRequest.tradingsymbol,
+        trigger_values: [stopLossPrice], // Stop loss trigger price
+        last_price: currentPrice, // Current market price for GTT validation
+      },
+      orders: [
+        {
+          exchange: orderRequest.exchange,
+          tradingsymbol: orderRequest.tradingsymbol,
+          transaction_type: 'SELL', // Stop loss sell order
+          quantity: orderRequest.quantity,
+          order_type: 'LIMIT', // Limit order for stop loss
+          product: orderRequest.product,
+          price: stopLossPrice, // Stop loss price as limit price
+        },
+      ],
+    };
   }
 
   // Validate order request before sending
@@ -180,6 +299,15 @@ class OrderService {
       errors.push('Tag must be less than 20 characters');
     }
 
+    // GTT-specific validation
+    if (orderRequest.with_stop_loss && !orderRequest.stop_loss_price) {
+      errors.push('Stop loss price is required when with_stop_loss is true');
+    }
+
+    if (orderRequest.stop_loss_price && orderRequest.stop_loss_price <= 0) {
+      errors.push('Stop loss price must be positive');
+    }
+
     if (errors.length > 0) {
       throw {
         success: false,
@@ -224,18 +352,33 @@ class OrderService {
     console.log('Creating order request with formData:', instrument, formData);
     console.log('Entry price mode:', entryPriceMode);
     console.log('Calculations:', calculations);
-    return {
+
+    const baseRequest: PlaceOrderRequest = {
       tradingsymbol: instrument.tradingsymbol,
       exchange: instrument.exchange || 'NSE',
       transaction_type: 'BUY', // Default to BUY, can be made configurable
       order_type: entryPriceMode === 'mkt' ? 'MARKET' : 'LIMIT',
       product: 'CNC', // Default to Cash & Carry
-      // quantity: Math.floor(calculations?.positionSize || 0),
+      // quantity: Math.floor(calculations?.positionSize || 1),
       quantity: 1,
       price: entryPriceMode === 'lmt' ? formData.entryPrice : undefined,
       validity: 'DAY',
       tag: `tv_${Date.now().toString().slice(-8)}`,
     };
+
+    // Always add GTT stop loss if stop loss is available
+    if (formData.stopLoss && formData.stopLoss > 0) {
+      console.log('Adding stop loss to order request:', formData.stopLoss);
+      baseRequest.with_stop_loss = true;
+      baseRequest.stop_loss_price = formData.stopLoss;
+      // Add current price for GTT (always use entryPrice as it's the current market price)
+      baseRequest.current_price = formData.entryPrice;
+    } else {
+      console.log('No stop loss found in formData:', formData.stopLoss);
+    }
+
+    console.log('Final order request:', baseRequest);
+    return baseRequest;
   }
 }
 
