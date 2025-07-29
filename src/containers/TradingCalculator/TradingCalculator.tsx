@@ -1098,6 +1098,183 @@ const TradingCalculator: React.FC = () => {
                   </div>
                 )}
 
+                {/* 🎮 Epic Loading Experience - Gaming Quote Fetcher */}
+                {false && selectedInstrument && (
+                  <div className="mb-6 relative overflow-hidden">
+                    {/* Holographic Background Effects */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-cyan-900/20 via-purple-900/30 to-pink-900/20 animate-pulse rounded-3xl"></div>
+                    <div className="absolute inset-0 bg-gradient-to-tr from-blue-500/5 via-transparent to-emerald-500/5 animate-pulse rounded-3xl" style={{ animationDelay: '1s' }}></div>
+                    
+                    {/* Floating Particles */}
+                    <div className="absolute inset-0 overflow-hidden rounded-3xl pointer-events-none">
+                      {[...Array(12)].map((_, i) => (
+                        <div
+                          key={i}
+                          className={`absolute w-1 h-1 bg-gradient-to-r ${
+                            i % 4 === 0 ? 'from-cyan-400 to-blue-500' :
+                            i % 4 === 1 ? 'from-purple-400 to-pink-500' :
+                            i % 4 === 2 ? 'from-emerald-400 to-teal-500' :
+                            'from-yellow-400 to-orange-500'
+                          } rounded-full animate-bounce opacity-60`}
+                          style={{
+                            left: `${10 + (i * 7)}%`,
+                            top: `${15 + (i % 3) * 25}%`,
+                            animationDelay: `${i * 0.2}s`,
+                            animationDuration: `${2 + (i % 3)}s`
+                          }}
+                        />
+                      ))}
+                    </div>
+
+                    <div className="relative bg-black/60 backdrop-blur-2xl rounded-3xl p-8 border-2 border-gradient-to-r from-cyan-500/30 via-purple-500/30 to-pink-500/30 shadow-2xl">
+                      <div className="flex flex-col items-center justify-center space-y-8">
+                        
+                        {/* 🌟 Central Quantum Loading Orb */}
+                        <div className="relative">
+                          {/* Outer Energy Rings */}
+                          <div className="absolute -inset-8">
+                            <div className="w-32 h-32 border-2 border-cyan-400/20 rounded-full animate-spin" style={{ animationDuration: '3s' }}></div>
+                            <div className="absolute inset-2 w-28 h-28 border-2 border-purple-400/20 rounded-full animate-spin" style={{ animationDirection: 'reverse', animationDuration: '2s' }}></div>
+                            <div className="absolute inset-4 w-24 h-24 border-2 border-pink-400/20 rounded-full animate-spin" style={{ animationDuration: '4s' }}></div>
+                          </div>
+                          
+                          {/* Core Pulsing Orb */}
+                          <div className="w-16 h-16 bg-gradient-to-br from-cyan-400 via-purple-500 to-pink-400 rounded-full animate-pulse shadow-2xl shadow-purple-500/50">
+                            <div className="w-full h-full bg-gradient-to-tr from-white/20 to-transparent rounded-full animate-ping"></div>
+                          </div>
+                          
+                          {/* Energy Bolts */}
+                          <div className="absolute inset-0 animate-spin" style={{ animationDuration: '1.5s' }}>
+                            {[0, 60, 120, 180, 240, 300].map((rotation, i) => (
+                              <div
+                                key={i}
+                                className="absolute w-1 h-4 bg-gradient-to-t from-transparent to-cyan-400 rounded-full"
+                                style={{
+                                  transform: `rotate(${rotation}deg) translateY(-40px)`,
+                                  transformOrigin: '50% 40px',
+                                  animationDelay: `${i * 0.1}s`
+                                }}
+                              />
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* 📊 Trading Calculations Status */}
+                        <div className="text-center space-y-4 relative">
+                          {/* Main Title */}
+                          <div className="relative">
+                            <h3 className="text-2xl font-bold bg-gradient-to-r from-green-300 via-blue-300 to-purple-300 bg-clip-text text-transparent animate-pulse">
+                              📈 CALCULATING POSITION SIZE 📈
+                            </h3>
+                            <div className="absolute -inset-2 bg-gradient-to-r from-green-500/20 via-blue-500/20 to-purple-500/20 blur-xl rounded-lg animate-pulse"></div>
+                          </div>
+                          
+                          {/* Instrument & Price Info */}
+                          <div className="flex items-center justify-center space-x-3 p-3 bg-gradient-to-r from-slate-800/50 to-slate-700/50 rounded-xl border border-green-500/30">
+                            <div className="w-3 h-3 bg-green-400 rounded-full animate-ping"></div>
+                            <span className="text-slate-300">Fetching live price for</span>
+                            <span className="font-mono text-xl font-bold text-green-300 tracking-wider animate-pulse">
+                              {selectedInstrument.tradingsymbol}
+                            </span>
+                            <div className="flex space-x-1">
+                              <span className="text-xs text-slate-400">•</span>
+                              <span className="text-xs text-blue-300 font-semibold animate-pulse">{selectedInstrument.exchange}</span>
+                            </div>
+                          </div>
+                          
+                          {/* Trading Calculation Steps */}
+                          <div className="space-y-2 w-full max-w-md">
+                            {[
+                              { label: 'Live Price Feed', icon: '💰' },
+                              { label: 'Risk Assessment', icon: '⚡' },
+                              { label: 'Position Sizing', icon: '📊' },
+                              { label: 'Profit Targets', icon: '🎯' }
+                            ].map((stage, i) => (
+                              <div key={stage.label} className="flex items-center space-x-3">
+                                <span className="text-lg">{stage.icon}</span>
+                                <span className="text-xs text-slate-400 w-24 text-left font-medium">{stage.label}</span>
+                                <div className="flex-1 h-2 bg-slate-700 rounded-full overflow-hidden">
+                                  <div 
+                                    className="h-full bg-gradient-to-r from-green-400 via-blue-400 to-purple-400 rounded-full animate-pulse"
+                                    style={{
+                                      width: `${75 + (i * 5)}%`,
+                                      animationDelay: `${i * 0.2}s`,
+                                      animationDuration: '1.5s'
+                                    }}
+                                  />
+                                </div>
+                                <div className="w-3 h-3 border border-green-400 rounded-full animate-spin" style={{ animationDelay: `${i * 0.1}s` }} />
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* 🎯 Position Sizing Dashboard Preview */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 w-full">
+                          {[
+                            { icon: '📦', label: 'Position Size', desc: 'Calculating units...', color: 'blue' },
+                            { icon: '💵', label: 'Investment', desc: 'Total capital required', color: 'green' },
+                            { icon: '🔥', label: 'Risk Exposure', desc: 'Maximum loss amount', color: 'red' },
+                            { icon: '⚖️', label: 'Breakeven', desc: 'Profit threshold price', color: 'orange' },
+                            { icon: '💎', label: 'Brokerage', desc: 'Trading costs', color: 'purple' },
+                            { icon: '⚡', label: 'Risk Per Unit', desc: 'Loss per share', color: 'cyan' }
+                          ].map((tile, i) => (
+                            <div 
+                              key={tile.label} 
+                              className="relative group bg-gradient-to-br from-slate-800/60 to-slate-900/60 backdrop-blur-xl rounded-2xl p-4 border border-slate-500/20 hover:border-slate-400/50 transition-all duration-700 overflow-hidden"
+                              style={{ animationDelay: `${i * 0.1}s` }}
+                            >
+                              {/* Shimmer Effect */}
+                              <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/5 to-transparent group-hover:translate-x-full transition-transform duration-1000"></div>
+                              
+                              {/* Content */}
+                              <div className="relative z-10 space-y-3">
+                                <div className="flex items-center justify-between">
+                                  <div className="text-2xl animate-bounce" style={{ animationDelay: `${i * 0.2}s` }}>
+                                    {tile.icon}
+                                  </div>
+                                  <div className="px-2 py-1 bg-slate-500/20 border border-slate-400/30 rounded text-xs text-slate-300 font-bold animate-pulse">
+                                    CALC
+                                  </div>
+                                </div>
+                                
+                                <div className="space-y-2">
+                                  <div className="text-xs text-slate-400 font-medium">{tile.label.toUpperCase()}</div>
+                                  <div className="h-6 bg-gradient-to-r from-slate-600/30 to-slate-500/30 rounded animate-pulse flex items-center justify-center">
+                                    <span className="text-xs text-slate-300 animate-pulse">₹ ---</span>
+                                  </div>
+                                  <div className="text-xs text-slate-500 animate-pulse">{tile.desc}</div>
+                                </div>
+                                
+                                {/* Calculation Progress */}
+                                <div className="h-2 bg-slate-700/50 rounded-full overflow-hidden">
+                                  <div 
+                                    className="h-full bg-gradient-to-r from-green-400 via-blue-400 to-purple-400 rounded-full transition-all duration-2000 ease-out animate-pulse"
+                                    style={{ 
+                                      width: `${60 + (i * 8)}%`,
+                                      animationDelay: `${i * 0.3}s`
+                                    }}
+                                  />
+                                </div>
+                              </div>
+                              
+                              {/* Corner Indicator */}
+                              <div className="absolute -top-2 -right-2 w-4 h-4 bg-green-400/30 rounded-full blur-sm animate-ping" style={{ animationDelay: `${i * 0.4}s` }}></div>
+                            </div>
+                          ))}
+                        </div>
+                        
+                        {/* 🎊 Completion Message */}
+                        <div className="text-center p-4 bg-gradient-to-r from-green-900/20 via-blue-900/20 to-purple-900/20 rounded-xl border border-green-500/30">
+                          <p className="text-green-300 text-sm font-medium animate-pulse">
+                            📊 Finalizing position size calculations based on live market data...
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {/* Enhanced Achievement Dashboard - Coinbase-Style Security Focus */}
                 {calculations && (
                   <div className="mb-6">
@@ -1118,9 +1295,17 @@ const TradingCalculator: React.FC = () => {
                             <div className="text-4xl">
                               <Package className="w-10 h-10 text-blue-400" />
                             </div>
-                            <div className="bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-blue-500/40 rounded-lg px-2 py-1">
-                              <div className="text-xs text-blue-300 font-bold">
-                                LOCKED
+                            <div className={`bg-gradient-to-r border rounded-lg px-2 py-1 ${
+                              (isLoadingQuote || isLoadingPrice)
+                                ? 'from-yellow-500/20 to-orange-500/20 border-yellow-500/40'
+                                : 'from-blue-500/20 to-purple-500/20 border-blue-500/40'
+                            }`}>
+                              <div className={`text-xs font-bold ${
+                                (isLoadingQuote || isLoadingPrice)
+                                  ? 'text-yellow-300 animate-pulse'
+                                  : 'text-blue-300'
+                              }`}>
+                                {(isLoadingQuote || isLoadingPrice) ? 'CALC...' : 'LOCKED'}
                               </div>
                             </div>
                           </div>
@@ -1131,10 +1316,21 @@ const TradingCalculator: React.FC = () => {
                               POSITION SIZE
                             </div>
                             <div className="text-2xl font-bold text-white mb-1">
-                              {calculations.positionSize.toLocaleString()}
+                              {(isLoadingQuote || isLoadingPrice) ? (
+                                <div className="flex items-center space-x-2">
+                                  <div className="w-6 h-6 border-2 border-blue-400/30 border-t-blue-400 rounded-full animate-spin"></div>
+                                  <span className="animate-pulse">---</span>
+                                </div>
+                              ) : (
+                                calculations.positionSize.toLocaleString()
+                              )}
                             </div>
                             <div className="text-xs text-blue-200">
-                              units secured
+                              {(isLoadingQuote || isLoadingPrice) ? (
+                                <span className="animate-pulse">calculating units...</span>
+                              ) : (
+                                'units secured'
+                              )}
                             </div>
                           </div>
 
@@ -1160,9 +1356,17 @@ const TradingCalculator: React.FC = () => {
                             <div className="text-4xl">
                               <Banknote className="w-10 h-10 text-green-400" />
                             </div>
-                            <div className="bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/40 rounded-lg px-2 py-1">
-                              <div className="text-xs text-green-300 font-bold">
-                                DEPLOYED
+                            <div className={`bg-gradient-to-r border rounded-lg px-2 py-1 ${
+                              (isLoadingQuote || isLoadingPrice)
+                                ? 'from-yellow-500/20 to-orange-500/20 border-yellow-500/40'
+                                : 'from-green-500/20 to-emerald-500/20 border-green-500/40'
+                            }`}>
+                              <div className={`text-xs font-bold ${
+                                (isLoadingQuote || isLoadingPrice)
+                                  ? 'text-yellow-300 animate-pulse'
+                                  : 'text-green-300'
+                              }`}>
+                                {(isLoadingQuote || isLoadingPrice) ? 'CALC...' : 'DEPLOYED'}
                               </div>
                             </div>
                           </div>
@@ -1173,11 +1377,21 @@ const TradingCalculator: React.FC = () => {
                               CAPITAL INVESTMENT
                             </div>
                             <div className="text-2xl font-bold text-white mb-1">
-                              {formatCurrency(calculations.totalInvestment)}
+                              {(isLoadingQuote || isLoadingPrice) ? (
+                                <div className="flex items-center space-x-2">
+                                  <div className="w-6 h-6 border-2 border-green-400/30 border-t-green-400 rounded-full animate-spin"></div>
+                                  <span className="animate-pulse">₹ ---</span>
+                                </div>
+                              ) : (
+                                formatCurrency(calculations.totalInvestment)
+                              )}
                             </div>
                             <div className="text-xs text-green-200">
-                              {calculations.portfolioPercentage.toFixed(1)}% of
-                              portfolio
+                              {(isLoadingQuote || isLoadingPrice) ? (
+                                <span className="animate-pulse">calculating allocation...</span>
+                              ) : (
+                                `${calculations.portfolioPercentage.toFixed(1)}% of portfolio`
+                              )}
                             </div>
                           </div>
 
@@ -1212,19 +1426,25 @@ const TradingCalculator: React.FC = () => {
                             </div>
                             <div
                               className={`border rounded-lg px-2 py-1 ${
-                                calculations.riskPercentage > 2
+                                (isLoadingQuote || isLoadingPrice)
+                                  ? 'bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border-yellow-500/40'
+                                  : calculations.riskPercentage > 2
                                   ? 'bg-gradient-to-r from-red-500/30 to-orange-500/30 border-red-500/50'
                                   : 'bg-gradient-to-r from-yellow-500/20 to-red-500/20 border-yellow-500/40'
                               }`}
                             >
                               <div
                                 className={`text-xs font-bold ${
-                                  calculations.riskPercentage > 2
+                                  (isLoadingQuote || isLoadingPrice)
+                                    ? 'text-yellow-300 animate-pulse'
+                                    : calculations.riskPercentage > 2
                                     ? 'text-red-300'
                                     : 'text-yellow-300'
                                 }`}
                               >
-                                {calculations.riskPercentage > 2
+                                {(isLoadingQuote || isLoadingPrice)
+                                  ? 'CALC...'
+                                  : calculations.riskPercentage > 2
                                   ? 'HIGH'
                                   : 'MODERATE'}
                               </div>
@@ -1237,11 +1457,21 @@ const TradingCalculator: React.FC = () => {
                               RISK EXPOSURE
                             </div>
                             <div className="text-2xl font-bold text-white mb-1">
-                              {formatCurrency(calculations.riskAmount)}
+                              {(isLoadingQuote || isLoadingPrice) ? (
+                                <div className="flex items-center space-x-2">
+                                  <div className="w-6 h-6 border-2 border-red-400/30 border-t-red-400 rounded-full animate-spin"></div>
+                                  <span className="animate-pulse">₹ ---</span>
+                                </div>
+                              ) : (
+                                formatCurrency(calculations.riskAmount)
+                              )}
                             </div>
                             <div className="text-xs text-red-200">
-                              {calculations.riskPercentage.toFixed(2)}%
-                              portfolio impact
+                              {(isLoadingQuote || isLoadingPrice) ? (
+                                <span className="animate-pulse">assessing risk impact...</span>
+                              ) : (
+                                `${calculations.riskPercentage.toFixed(2)}% portfolio impact`
+                              )}
                             </div>
                           </div>
 
