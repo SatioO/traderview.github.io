@@ -18,15 +18,26 @@ interface UseOrderPlacementResult {
   // Actions
   placeOrder: (
     broker: BrokerType,
-    orderRequest: PlaceOrderRequest
+    orderRequest: PlaceOrderRequest,
+    stopLossMetadata?: {
+      mode: 'price' | 'percentage';
+      percentage?: number;
+      originalPrice?: number;
+      stopLossPrice?: number;
+    }
   ) => Promise<void>;
   placeOrderWithGTT: (
     broker: BrokerType,
     orderRequest: PlaceOrderRequest,
     instrument: any,
     currentPrice: number,
-    stopLossPrice?: number,
-    targetPrice?: number
+    targetPrice?: number,
+    stopLossMetadata?: {
+      mode: 'price' | 'percentage';
+      percentage?: number;
+      stopLossPrice?: number;
+      originalPrice?: number;
+    }
   ) => Promise<void>;
   confirmOrder: () => void;
   cancelOrder: () => void;
@@ -54,7 +65,16 @@ export const useOrderPlacement = (): UseOrderPlacementResult => {
 
   // Place order immediately - no confirmations, no delays
   const placeOrder = useCallback(
-    async (broker: BrokerType, orderRequest: PlaceOrderRequest) => {
+    async (
+      broker: BrokerType, 
+      orderRequest: PlaceOrderRequest,
+      stopLossMetadata?: {
+        mode: 'price' | 'percentage';
+        percentage?: number;
+        originalPrice?: number;
+        stopLossPrice?: number;
+      }
+    ) => {
       try {
         // Reset previous states
         setLastError(null);
@@ -68,7 +88,7 @@ export const useOrderPlacement = (): UseOrderPlacementResult => {
         });
 
         // Execute the order immediately - no delays
-        const response = await orderService.placeOrder(broker, orderRequest);
+        const response = await orderService.placeOrder(broker, orderRequest, stopLossMetadata);
 
         setLastOrderResponse(response);
         setStatus({
@@ -98,8 +118,13 @@ export const useOrderPlacement = (): UseOrderPlacementResult => {
       orderRequest: PlaceOrderRequest,
       instrument: any,
       currentPrice: number,
-      stopLossPrice?: number,
-      targetPrice?: number
+      targetPrice?: number,
+      stopLossMetadata?: {
+        mode: 'price' | 'percentage';
+        percentage?: number;
+        originalPrice?: number;
+        stopLossPrice?: number;
+      }
     ) => {
       try {
         // Reset previous states
@@ -109,7 +134,7 @@ export const useOrderPlacement = (): UseOrderPlacementResult => {
         // Show placing state with GTT message
         setStatus({
           state: 'placing',
-          message: stopLossPrice || targetPrice ? 'Placing order with GTT...' : 'Placing order...',
+          message: stopLossMetadata?.stopLossPrice || targetPrice ? 'Placing order with GTT...' : 'Placing order...',
           progress: 30,
         });
 
@@ -119,8 +144,8 @@ export const useOrderPlacement = (): UseOrderPlacementResult => {
           orderRequest,
           instrument,
           currentPrice,
-          stopLossPrice,
-          targetPrice
+          targetPrice,
+          stopLossMetadata
         );
 
         setLastOrderResponse(response);

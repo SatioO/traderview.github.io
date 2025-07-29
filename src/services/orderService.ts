@@ -129,15 +129,27 @@ class OrderService {
   // Place order with comprehensive error handling
   async placeOrder(
     broker: BrokerType,
-    orderRequest: PlaceOrderRequest
+    orderRequest: PlaceOrderRequest,
+    stopLossMetadata?: {
+      mode: 'price' | 'percentage';
+      percentage?: number;
+      originalPrice?: number;
+      stopLossPrice?: number;
+    }
   ): Promise<PlaceOrderResponse> {
     // Client-side validation
     this.validateOrderRequest(orderRequest);
 
+    // Add stopLoss metadata to the request if provided
+    const requestWithMetadata = stopLossMetadata ? {
+      ...orderRequest,
+      metadata: stopLossMetadata
+    } : orderRequest;
+
     return this.makeRequest<PlaceOrderResponse>(
       `${this.baseUrl}/${broker}/orders/place`,
       'POST',
-      orderRequest
+      requestWithMetadata
     );
   }
 
@@ -147,37 +159,46 @@ class OrderService {
     orderRequest: PlaceOrderRequest,
     instrument: any,
     currentPrice: number,
-    stopLossPrice?: number,
-    targetPrice?: number
+    targetPrice?: number,
+    stopLossMetadata?: {
+      mode: 'price' | 'percentage';
+      percentage?: number;
+      originalPrice?: number;
+      stopLossPrice?: number;
+    }
   ): Promise<PlaceOrderResponse> {
     console.log('📋 PlaceOrderWithGTT called with:', {
       broker,
       orderRequest,
       instrument: instrument.tradingsymbol,
       currentPrice,
-      stopLossPrice,
       targetPrice,
-      hasStopLoss: !!stopLossPrice,
+      stopLossMetadata,
+      hasStopLoss: !!stopLossMetadata?.stopLossPrice,
       hasTarget: !!targetPrice,
     });
 
     // First place the regular order
     try {
-      const orderResponse = await this.placeOrder(broker, orderRequest);
+      const orderResponse = await this.placeOrder(broker, orderRequest, stopLossMetadata);
       console.log('✅ Order placed successfully:', orderResponse);
 
+      // Extract stopLoss from metadata
+      const actualStopLossPrice = stopLossMetadata?.stopLossPrice;
+
       // If order is successful and we have stop loss or target prices, create GTT
-      if (orderResponse.success && (stopLossPrice || targetPrice)) {
+      if (orderResponse.success && (actualStopLossPrice || targetPrice)) {
         console.log(
           '🎯 Creating GTT because order succeeded and we have stop loss/target:',
           {
-            stopLossPrice,
+            stopLossPrice: actualStopLossPrice,
             targetPrice,
+            stopLossMetadata,
           }
         );
         let gttRequest: PlaceGTTRequest | null = null;
 
-        if (stopLossPrice && targetPrice) {
+        if (actualStopLossPrice && targetPrice) {
           // Two-leg GTT (OCO - One Cancels Other)
           gttRequest = gttService.createTwoLegGTT(
             instrument,
@@ -187,11 +208,11 @@ class OrderService {
               quantity: orderRequest.quantity,
               product: orderRequest.product,
             },
-            stopLossPrice,
+            actualStopLossPrice,
             targetPrice,
             currentPrice
           );
-        } else if (stopLossPrice) {
+        } else if (actualStopLossPrice) {
           // Single GTT for stop loss
           gttRequest = gttService.createSingleGTT(
             instrument,
@@ -202,8 +223,16 @@ class OrderService {
               order_type: 'LIMIT',
               product: orderRequest.product,
             },
-            stopLossPrice,
-            currentPrice
+            actualStopLossPrice,
+            currentPrice,
+            stopLossMetadata
+              ? {
+                  stop_loss_mode: stopLossMetadata.mode,
+                  stop_loss_percentage: stopLossMetadata.percentage,
+                  original_entry_price:
+                    stopLossMetadata.originalPrice || currentPrice,
+                }
+              : undefined
           );
         } else if (targetPrice) {
           // Single GTT for target

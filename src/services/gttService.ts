@@ -32,6 +32,13 @@ export interface PlaceGTTRequest {
   type: GTTType;
   condition: GTTCondition;
   orders: GTTOrder[];
+  metadata?: {
+    stop_loss_mode?: 'price' | 'percentage';
+    stop_loss_percentage?: number;
+    stop_loss_price?: number;
+    original_entry_price?: number;
+    created_from?: string;
+  };
 }
 
 export interface GTTTrigger {
@@ -305,16 +312,23 @@ class GTTService {
     instrument: any,
     orderData: any,
     triggerPrice: number,
-    currentPrice: number
+    currentPrice: number,
+    metadata?: {
+      stop_loss_mode?: 'price' | 'percentage';
+      stop_loss_percentage?: number;
+      stop_loss_price?: number;
+      original_entry_price?: number;
+    }
   ): PlaceGTTRequest {
     console.log('🏗️ GTT Service: Creating single GTT:', {
       instrument: instrument.tradingsymbol,
       orderData,
       triggerPrice,
       currentPrice,
+      metadata,
     });
 
-    const gttRequest = {
+    const gttRequest: PlaceGTTRequest = {
       type: 'single' as const,
       condition: {
         exchange: instrument.exchange || 'NSE',
@@ -335,7 +349,16 @@ class GTTService {
       ],
     };
 
-    console.log('📦 GTT Service: Created GTT request:', gttRequest);
+    // Add metadata if provided
+    if (metadata) {
+      gttRequest.metadata = {
+        ...metadata,
+        stop_loss_price: triggerPrice, // Include the actual trigger price
+        created_from: 'traderview_stop_loss',
+      };
+    }
+
+    console.log('📦 GTT Service: Created GTT request with metadata:', gttRequest);
     return gttRequest;
   }
 

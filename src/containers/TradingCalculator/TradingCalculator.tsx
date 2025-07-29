@@ -493,6 +493,8 @@ const TradingCalculator: React.FC = () => {
       console.log('🎯 TradingCalculator: Placing order with GTT integration:', {
         instrument: selectedInstrument.tradingsymbol,
         stopLossPrice: formData.stopLoss,
+        stopLossPercentage,
+        stopLossMode,
         currentPrice: formData.entryPrice,
         orderRequest,
       });
@@ -503,8 +505,13 @@ const TradingCalculator: React.FC = () => {
         orderRequest,
         selectedInstrument,
         formData.entryPrice, // Current price for GTT calculations
-        formData.stopLoss, // This will create GTT automatically if provided
-        undefined // Target price (can be enhanced later)
+        undefined, // Target price (can be enhanced later)
+        {
+          mode: stopLossMode,
+          percentage: stopLossPercentage,
+          originalPrice: formData.entryPrice,
+          stopLossPrice: formData.stopLoss, // stopLoss price moved here
+        }
       );
     } catch (error) {
       console.error('Order placement failed:', error);
@@ -514,6 +521,8 @@ const TradingCalculator: React.FC = () => {
     calculations,
     formData,
     entryPriceMode,
+    stopLossMode,
+    stopLossPercentage,
     placeOrderWithGTT,
   ]);
 
