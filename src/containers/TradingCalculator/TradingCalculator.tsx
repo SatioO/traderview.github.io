@@ -1461,7 +1461,7 @@ const TradingCalculator: React.FC = () => {
           )}
 
           {/* Portfolio Snapshot Panel - Right Side */}
-          {hasActiveBrokerSession && (
+          {hasActiveBrokerSession && !selectedInstrument && (
             <div className="lg:col-span-2">
               <div className="bg-black/40 backdrop-blur-xl rounded-3xl p-6 shadow-2xl border border-cyan-500/30 sticky top-8 hover:border-cyan-400/50 transition-all duration-500 hover:shadow-cyan-500/20 hover:shadow-2xl">
                 <PortfolioSnapshot />
