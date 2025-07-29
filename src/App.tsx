@@ -86,10 +86,8 @@ function AppContent() {
 }
 
 function App() {
-  const basename =
-    import.meta.env.MODE === 'development'
-      ? '/'
-      : import.meta.env.VITE_BASE_PATH || '/';
+  const basename = import.meta.env.VITE_BASE_PATH || '';
+  console.log({ basename });
 
   return (
     <BrowserRouter basename={basename}>
