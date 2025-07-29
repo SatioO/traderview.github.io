@@ -99,9 +99,9 @@ const TradingOrderForm: React.FC<TradingOrderFormProps> = ({
     staleTime: 10000, // 10 seconds
   });
 
-  // Enhanced order placement with GTT support
+  // Order placement support
   const {
-    placeOrderWithGTT,
+    placeOrder,
     status: orderStatus,
     lastError,
     lastOrderResponse,
@@ -227,13 +227,10 @@ const TradingOrderForm: React.FC<TradingOrderFormProps> = ({
       willCreateGTT: !!(stopLossPrice && currentPrice > 0),
     });
 
-    // Place order with automatic GTT creation using the hook
-    await placeOrderWithGTT(
+    // Place order with stop loss metadata (GTT handled by backend)
+    await placeOrder(
       'kite',
       orderRequest,
-      state.selectedInstrument,
-      currentPrice,
-      undefined, // No target price for now, can be enhanced later
       stopLossPrice ? {
         mode: 'price',
         stopLossPrice: stopLossPrice,
@@ -248,7 +245,7 @@ const TradingOrderForm: React.FC<TradingOrderFormProps> = ({
     localOrderData,
     currentPrice,
     stopLossPrice,
-    placeOrderWithGTT,
+    placeOrder,
   ]);
 
   const isLoading =

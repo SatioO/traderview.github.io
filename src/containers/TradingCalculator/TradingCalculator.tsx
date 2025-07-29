@@ -107,7 +107,7 @@ const TradingCalculator: React.FC = () => {
     isPlacing,
     isSuccess,
     isError,
-    placeOrderWithGTT,
+    placeOrder,
     resetStatus,
     lastOrderResponse,
     lastError,
@@ -499,18 +499,15 @@ const TradingCalculator: React.FC = () => {
         orderRequest,
       });
 
-      // Use GTT-enabled order placement with stop loss from form data
-      await placeOrderWithGTT(
+      // Use regular order placement with stop loss metadata (GTT handled by backend)
+      await placeOrder(
         'kite',
         orderRequest,
-        selectedInstrument,
-        formData.entryPrice, // Current price for GTT calculations
-        undefined, // Target price (can be enhanced later)
         {
           mode: stopLossMode,
           percentage: stopLossPercentage,
           originalPrice: formData.entryPrice,
-          stopLossPrice: formData.stopLoss, // stopLoss price moved here
+          stopLossPrice: formData.stopLoss,
         }
       );
     } catch (error) {
@@ -523,7 +520,7 @@ const TradingCalculator: React.FC = () => {
     entryPriceMode,
     stopLossMode,
     stopLossPercentage,
-    placeOrderWithGTT,
+    placeOrder,
   ]);
 
   // Handle input changes with automatic calculations
