@@ -102,6 +102,18 @@ const TradingCalculator: React.FC = () => {
     currentPrice,
   } = useTrading();
 
+  // Track loading state for price fetching
+  const [isLoadingPrice, setIsLoadingPrice] = useState(false);
+
+  // Monitor when instrument changes to show loading state
+  useEffect(() => {
+    if (selectedInstrument && !currentPrice) {
+      setIsLoadingPrice(true);
+    } else if (currentPrice) {
+      setIsLoadingPrice(false);
+    }
+  }, [selectedInstrument, currentPrice]);
+
   // Order placement management
   const {
     isPlacing,
@@ -500,16 +512,12 @@ const TradingCalculator: React.FC = () => {
       });
 
       // Use regular order placement with stop loss metadata (GTT handled by backend)
-      await placeOrder(
-        'kite',
-        orderRequest,
-        {
-          mode: stopLossMode,
-          percentage: stopLossPercentage,
-          originalPrice: formData.entryPrice,
-          stopLossPrice: formData.stopLoss,
-        }
-      );
+      await placeOrder('kite', orderRequest, {
+        mode: stopLossMode,
+        percentage: stopLossPercentage,
+        originalPrice: formData.entryPrice,
+        stopLossPrice: formData.stopLoss,
+      });
     } catch (error) {
       console.error('Order placement failed:', error);
     }
@@ -706,8 +714,8 @@ const TradingCalculator: React.FC = () => {
                         className={`w-full px-4 py-3 pl-10 pr-20 border-2 rounded-xl text-white font-mono transition-all duration-300 focus:shadow-lg ${
                           entryPriceMode === 'mkt'
                             ? 'bg-gray-800/40 border-gray-500/50 text-gray-400 placeholder-gray-500/70 cursor-not-allowed'
-                            : isLoadingQuote
-                            ? 'bg-black/40 border-yellow-500/50 focus:border-yellow-400 focus:ring-2 focus:ring-yellow-400/20 placeholder-green-300/50'
+                            : (isLoadingQuote || isLoadingPrice)
+                            ? 'bg-black/40 border-yellow-500/50 focus:border-yellow-400 focus:ring-2 focus:ring-yellow-400/20 placeholder-green-300/50 cursor-not-allowed'
                             : isEntryPriceAutoPopulated
                             ? 'bg-black/40 border-blue-500/50 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 focus:shadow-blue-500/20 placeholder-green-300/50'
                             : 'bg-black/40 border-green-500/50 focus:border-green-400 focus:ring-2 focus:ring-green-400/20 focus:shadow-green-500/20 placeholder-green-300/50'
@@ -717,11 +725,11 @@ const TradingCalculator: React.FC = () => {
                         placeholder={
                           entryPriceMode === 'mkt'
                             ? '0.00'
-                            : isLoadingQuote
+                            : (isLoadingQuote || isLoadingPrice)
                             ? 'Loading price...'
                             : '0.00'
                         }
-                        disabled={isLoadingQuote || entryPriceMode === 'mkt'}
+                        disabled={(isLoadingQuote || isLoadingPrice) || entryPriceMode === 'mkt'}
                       />
                       <span
                         className={`absolute left-3 top-1/2 transform -translate-y-1/2 transition-all duration-300 ${
@@ -830,10 +838,15 @@ const TradingCalculator: React.FC = () => {
                                 handleInputChange('stopLoss', value.toFixed(2));
                               }
                             }}
-                            className="w-full px-4 py-3 pl-10 pr-20 bg-black/40 border-2 border-red-500/50 rounded-xl focus:border-red-400 focus:ring-2 focus:ring-red-400/20 text-white placeholder-red-300/50 font-mono transition-all duration-300 focus:shadow-lg focus:shadow-red-500/20"
+                            className={`w-full px-4 py-3 pl-10 pr-20 bg-black/40 border-2 rounded-xl text-white placeholder-red-300/50 font-mono transition-all duration-300 focus:shadow-lg ${
+                              (isLoadingQuote || isLoadingPrice)
+                                ? 'border-yellow-500/50 focus:border-yellow-400 focus:ring-2 focus:ring-yellow-400/20 cursor-not-allowed'
+                                : 'border-red-500/50 focus:border-red-400 focus:ring-2 focus:ring-red-400/20 focus:shadow-red-500/20'
+                            }`}
                             min="0"
                             step="0.01"
-                            placeholder="Enter stop loss price"
+                            placeholder={(isLoadingQuote || isLoadingPrice) ? 'Loading price...' : 'Enter stop loss price'}
+                            disabled={isLoadingQuote || isLoadingPrice}
                           />
                           <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-red-400">
                             ₹
@@ -889,11 +902,16 @@ const TradingCalculator: React.FC = () => {
                                 );
                               }
                             }}
-                            className="w-full px-4 py-3 pl-10 pr-20 bg-black/40 border-2 border-red-500/50 rounded-xl focus:border-red-400 focus:ring-2 focus:ring-red-400/20 text-white placeholder-red-300/50 font-mono transition-all duration-300 focus:shadow-lg focus:shadow-red-500/20"
+                            className={`w-full px-4 py-3 pl-10 pr-20 bg-black/40 border-2 rounded-xl text-white placeholder-red-300/50 font-mono transition-all duration-300 focus:shadow-lg ${
+                              (isLoadingQuote || isLoadingPrice)
+                                ? 'border-yellow-500/50 focus:border-yellow-400 focus:ring-2 focus:ring-yellow-400/20 cursor-not-allowed'
+                                : 'border-red-500/50 focus:border-red-400 focus:ring-2 focus:ring-red-400/20 focus:shadow-red-500/20'
+                            }`}
                             min="0"
                             max="50"
                             step="0.1"
-                            placeholder="Enter risk %"
+                            placeholder={(isLoadingQuote || isLoadingPrice) ? 'Loading price...' : 'Enter risk %'}
+                            disabled={isLoadingQuote || isLoadingPrice}
                           />
                           <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-red-400">
                             %
@@ -979,6 +997,7 @@ const TradingCalculator: React.FC = () => {
                       }`}
                       disabled={
                         isLoadingQuote ||
+                        isLoadingPrice ||
                         !selectedInstrument ||
                         !formData.entryPrice ||
                         !formData.stopLoss ||
@@ -1002,6 +1021,24 @@ const TradingCalculator: React.FC = () => {
                             ></div>
                           </div>
                           <span>Executing Order</span>
+                        </>
+                      ) : isLoadingQuote || isLoadingPrice ? (
+                        <>
+                          <div className="flex space-x-1">
+                            <div
+                              className="w-1 h-1 bg-white rounded-full animate-pulse"
+                              style={{ animationDelay: '0ms' }}
+                            ></div>
+                            <div
+                              className="w-1 h-1 bg-white rounded-full animate-pulse"
+                              style={{ animationDelay: '150ms' }}
+                            ></div>
+                            <div
+                              className="w-1 h-1 bg-white rounded-full animate-pulse"
+                              style={{ animationDelay: '300ms' }}
+                            ></div>
+                          </div>
+                          <span>Fetching Quote...</span>
                         </>
                       ) : !selectedInstrument ? (
                         <>
