@@ -45,10 +45,10 @@ function AppRoutes() {
   const routes = useRoutes([
     ...unprotectedRouteObjects,
     ...protectedRouteObjects,
-    // Fallback route - redirect any unknown path to home
+    // Fallback route - redirect any unknown path to dashboard
     {
       path: '*',
-      element: <Navigate to={ROUTES.HOME} replace />,
+      element: <Navigate to={ROUTES.DASHBOARD} replace />,
     },
   ]);
 

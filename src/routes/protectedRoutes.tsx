@@ -1,12 +1,20 @@
 import type { RouteConfig } from '../types/routes';
 import TradingCalculator from '../containers/TradingCalculator';
+import { Navigate } from 'react-router-dom';
 
 // These routes require authentication
 export const protectedRoutes: RouteConfig[] = [
   {
     path: '/',
-    element: <TradingCalculator />,
+    element: <Navigate to="/dashboard" replace />,
     index: true,
+    protected: true,
+    title: 'Home Redirect',
+    description: 'Redirects to dashboard',
+  },
+  {
+    path: '/dashboard',
+    element: <TradingCalculator />,
     protected: true,
     title: 'Trading Calculator',
     description: 'Main trading calculator interface',

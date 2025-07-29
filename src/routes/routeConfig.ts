@@ -24,6 +24,7 @@ export const getUnprotectedRoutes = () => routeConfiguration.unprotected;
 export const ROUTES = {
   // Protected routes
   HOME: '/',
+  DASHBOARD: '/dashboard',
   
   // Unprotected routes
   LOGIN: '/login',
