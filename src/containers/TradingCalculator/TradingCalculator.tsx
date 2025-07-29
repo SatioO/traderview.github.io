@@ -105,13 +105,28 @@ const TradingCalculator: React.FC = () => {
 
   // Track loading state for price fetching
   const [isLoadingPrice, setIsLoadingPrice] = useState(false);
+  const [isAutoPopulating, setIsAutoPopulating] = useState(false);
+
+  // Safe warning setter that prevents updates during loading
+  const setSafeWarnings = useCallback((newWarnings: string[]) => {
+    if (!isLoadingQuote && !isLoadingPrice && !isAutoPopulating) {
+      setWarnings(newWarnings);
+    }
+  }, [isLoadingQuote, isLoadingPrice, isAutoPopulating]);
 
   // Monitor when instrument changes to show loading state
   useEffect(() => {
     if (selectedInstrument && !currentPrice) {
       setIsLoadingPrice(true);
+      // Clear warnings during loading to prevent flickering
+      setWarnings([]);
     } else if (currentPrice) {
-      setIsLoadingPrice(false);
+      // Add a small delay before setting loading to false to prevent validation flash
+      const timer = setTimeout(() => {
+        setIsLoadingPrice(false);
+      }, 150); // Wait for auto-population to complete
+      
+      return () => clearTimeout(timer);
     }
   }, [selectedInstrument, currentPrice]);
 
@@ -157,12 +172,21 @@ const TradingCalculator: React.FC = () => {
   // Auto-populate entry price when instrument quote is loaded
   useEffect(() => {
     if (currentPrice && selectedInstrument) {
+      setIsAutoPopulating(true);
+      
       // Always update entry price with live price when quote is available
       // This ensures calculations are always based on current market price
       setFormData((prev) => ({
         ...prev,
         entryPrice: currentPrice,
       }));
+      
+      // Clear auto-populating flag after a brief delay to prevent validation flash
+      const timer = setTimeout(() => {
+        setIsAutoPopulating(false);
+      }, 200);
+      
+      return () => clearTimeout(timer);
     }
   }, [currentPrice, selectedInstrument]);
 
@@ -246,8 +270,13 @@ const TradingCalculator: React.FC = () => {
   // Calculate position size based on risk-based sizing
   const calculateRiskBasedPositionSize =
     useCallback((): Calculations | null => {
+      // Skip validation during loading to prevent warning flicker
+      if (isLoadingQuote || isLoadingPrice || isAutoPopulating) {
+        return null;
+      }
+
       const validationWarnings = validateInputs();
-      setWarnings(validationWarnings);
+      setSafeWarnings(validationWarnings);
 
       if (validationWarnings.length > 0) return null;
 
@@ -302,13 +331,22 @@ const TradingCalculator: React.FC = () => {
       validateInputs,
       calculateBrokerage,
       getMarketSizingAdjustment,
+      isLoadingQuote,
+      isLoadingPrice,
+      isAutoPopulating,
+      setSafeWarnings,
     ]);
 
   // Calculate position size based on allocation-based sizing
   const calculateAllocationBasedPositionSize =
     useCallback((): Calculations | null => {
+      // Skip validation during loading to prevent warning flicker
+      if (isLoadingQuote || isLoadingPrice || isAutoPopulating) {
+        return null;
+      }
+
       const validationWarnings = validateInputs();
-      setWarnings(validationWarnings);
+      setSafeWarnings(validationWarnings);
 
       if (validationWarnings.length > 0) return null;
 
@@ -363,6 +401,10 @@ const TradingCalculator: React.FC = () => {
       validateInputs,
       calculateBrokerage,
       getMarketSizingAdjustment,
+      isLoadingQuote,
+      isLoadingPrice,
+      isAutoPopulating,
+      setSafeWarnings,
     ]);
 
   // Calculate position size based on active tab
@@ -378,9 +420,14 @@ const TradingCalculator: React.FC = () => {
 
   // Update calculations when form data or active tab changes
   useEffect(() => {
+    // Skip calculations during loading to prevent warning flicker
+    if (isLoadingQuote || isLoadingPrice || isAutoPopulating) {
+      return;
+    }
+    
     const result = calculatePositionSize();
     setCalculations(result);
-  }, [calculatePositionSize, activeTab]);
+  }, [calculatePositionSize, activeTab, isLoadingQuote, isLoadingPrice, isAutoPopulating]);
 
   const formatCurrencyShort = (amount: number | undefined): string => {
     if (amount === undefined || amount === null || isNaN(amount)) {
@@ -1090,7 +1137,7 @@ const TradingCalculator: React.FC = () => {
             <div className="lg:col-span-2">
               <div className="bg-black/40 backdrop-blur-xl rounded-3xl p-6 shadow-2xl border border-purple-500/30 hover:border-purple-400/50 transition-all duration-500">
                 {/* Gaming Alert System */}
-                {warnings.length > 0 && (
+                {warnings.length > 0 && !isLoadingQuote && !isLoadingPrice && !isAutoPopulating && (
                   <div className="mb-6 p-4 bg-gradient-to-r from-orange-500/20 to-red-500/20 border border-orange-500/50 rounded-2xl backdrop-blur-sm animate-pulse">
                     <div className="flex items-center space-x-2 mb-2">
                       <div className="w-8 h-8 bg-gradient-to-r from-orange-400 to-red-400 rounded-lg flex items-center justify-center">
