@@ -18,6 +18,7 @@ import {
 import { useOrderPlacement } from '../../hooks/useOrderPlacement';
 import { orderService } from '../../services/orderService';
 import { FloatingOrderNotification } from '../../components/OrderPlacement/FloatingOrderNotification';
+import '../../components/ui/AdvancedAnimations.css';
 import { useTradingSettings } from '../../hooks/useTradingSettings';
 import { useSettings } from '../../contexts/SettingsContext';
 import { useTrading } from '../../contexts/TradingContext';
@@ -1174,11 +1175,11 @@ const TradingCalculator: React.FC = () => {
                             <div className="w-3 h-3 bg-green-400 rounded-full animate-ping"></div>
                             <span className="text-slate-300">Fetching live price for</span>
                             <span className="font-mono text-xl font-bold text-green-300 tracking-wider animate-pulse">
-                              {selectedInstrument.tradingsymbol}
+                              {selectedInstrument?.tradingsymbol}
                             </span>
                             <div className="flex space-x-1">
                               <span className="text-xs text-slate-400">•</span>
-                              <span className="text-xs text-blue-300 font-semibold animate-pulse">{selectedInstrument.exchange}</span>
+                              <span className="text-xs text-blue-300 font-semibold animate-pulse">{selectedInstrument?.exchange}</span>
                             </div>
                           </div>
                           
@@ -1280,7 +1281,7 @@ const TradingCalculator: React.FC = () => {
                   <div className="mb-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
                       {/* Position Size Achievement with Progress */}
-                      <div className="group relative bg-gradient-to-br from-black/40 to-gray-900/40 backdrop-blur-xl rounded-2xl p-4 border border-blue-500/20 hover:border-blue-400/50 transition-all duration-700 hover:scale-105 cursor-pointer overflow-hidden">
+                      <div className="group relative bg-gradient-to-br from-black/40 to-gray-900/40 backdrop-blur-xl rounded-2xl p-4 border border-blue-500/20 hover:border-blue-400/50 transition-all duration-700 hover:scale-105 cursor-pointer overflow-hidden micro-glow micro-scale">
                         <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 via-purple-600/10 to-cyan-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
 
                         {/* Robinhood-style celebration particles */}
@@ -1317,33 +1318,64 @@ const TradingCalculator: React.FC = () => {
                             </div>
                             <div className="text-2xl font-bold text-white mb-1">
                               {(isLoadingQuote || isLoadingPrice) ? (
-                                <div className="flex items-center space-x-2">
-                                  <div className="w-6 h-6 border-2 border-blue-400/30 border-t-blue-400 rounded-full animate-spin"></div>
-                                  <span className="animate-pulse">---</span>
+                                <div className="relative">
+                                  {/* Skeleton shimmer effect */}
+                                  <div className="flex items-center space-x-2">
+                                    <div className="relative overflow-hidden bg-gradient-to-r from-slate-600/20 via-slate-500/40 to-slate-600/20 rounded-md h-8 w-24">
+                                      <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer"></div>
+                                    </div>
+                                    <div className="flex flex-col space-y-1">
+                                      <div className="flex space-x-1">
+                                        {[...Array(3)].map((_, i) => (
+                                          <div 
+                                            key={i} 
+                                            className="w-1 h-1 bg-blue-400 rounded-full animate-bounce"
+                                            style={{ animationDelay: `${i * 0.15}s` }}
+                                          />
+                                        ))}
+                                      </div>
+                                      <div className="text-xs text-blue-300/60 animate-pulse font-normal tracking-wider">SIZING</div>
+                                    </div>
+                                  </div>
                                 </div>
                               ) : (
-                                calculations.positionSize.toLocaleString()
+                                <div className="animate-slideInFromLeft data-loaded success-flash">
+                                  {calculations.positionSize.toLocaleString()}
+                                </div>
                               )}
                             </div>
                             <div className="text-xs text-blue-200">
                               {(isLoadingQuote || isLoadingPrice) ? (
-                                <span className="animate-pulse">calculating units...</span>
+                                <div className="flex items-center space-x-2">
+                                  <div className="flex space-x-1">
+                                    {['analyzing', 'market', 'data'].map((word, i) => (
+                                      <span 
+                                        key={word}
+                                        className="animate-pulse opacity-40"
+                                        style={{ animationDelay: `${i * 0.3}s`, animationDuration: '1.5s' }}
+                                      >
+                                        {word}
+                                      </span>
+                                    ))}
+                                  </div>
+                                  <div className="w-2 h-2 border border-blue-400/50 rounded-full animate-ping"></div>
+                                </div>
                               ) : (
-                                'units secured'
+                                <div className="animate-fadeInScale">units secured</div>
                               )}
                             </div>
                           </div>
 
                           {/* Achievement progress bar */}
-                          <div className="relative h-2 bg-gradient-to-r from-gray-800 to-gray-700 rounded-full overflow-hidden">
-                            <div className="absolute inset-y-0 left-0 bg-gradient-to-r from-blue-400 via-purple-400 to-cyan-400 rounded-full w-full transition-all duration-1000 group-hover:shadow-lg group-hover:shadow-blue-500/30"></div>
+                          <div className="relative h-2 bg-gradient-to-r from-gray-800 to-gray-700 rounded-full overflow-hidden micro-bounce">
+                            <div className="absolute inset-y-0 left-0 bg-gradient-to-r from-blue-400 via-purple-400 to-cyan-400 rounded-full w-full transition-all duration-1000 group-hover:shadow-lg group-hover:shadow-blue-500/30 group-hover:animate-pulseGlow"></div>
                             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-pulse"></div>
                           </div>
                         </div>
                       </div>
 
                       {/* Investment with Portfolio Allocation */}
-                      <div className="group relative bg-gradient-to-br from-black/40 to-gray-900/40 backdrop-blur-xl rounded-2xl p-4 border border-green-500/20 hover:border-green-400/50 transition-all duration-700 hover:scale-105 cursor-pointer overflow-hidden">
+                      <div className="group relative bg-gradient-to-br from-black/40 to-gray-900/40 backdrop-blur-xl rounded-2xl p-4 border border-green-500/20 hover:border-green-400/50 transition-all duration-700 hover:scale-105 cursor-pointer overflow-hidden micro-glow micro-scale">
                         <div className="absolute inset-0 bg-gradient-to-br from-green-600/10 via-emerald-600/10 to-teal-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
 
                         <div className="absolute inset-0 overflow-hidden rounded-3xl">
@@ -1378,19 +1410,71 @@ const TradingCalculator: React.FC = () => {
                             </div>
                             <div className="text-2xl font-bold text-white mb-1">
                               {(isLoadingQuote || isLoadingPrice) ? (
-                                <div className="flex items-center space-x-2">
-                                  <div className="w-6 h-6 border-2 border-green-400/30 border-t-green-400 rounded-full animate-spin"></div>
-                                  <span className="animate-pulse">₹ ---</span>
+                                <div className="relative">
+                                  <div className="flex items-center space-x-2">
+                                    {/* Morphing currency display */}
+                                    <div className="relative overflow-hidden">
+                                      <div className="flex items-center space-x-1">
+                                        <span className="text-green-400 animate-pulse">₹</span>
+                                        <div className="flex space-x-0.5">
+                                          {[...Array(6)].map((_, i) => (
+                                            <div 
+                                              key={i} 
+                                              className="w-4 h-8 bg-gradient-to-t from-slate-600/20 via-slate-400/40 to-slate-600/20 rounded-sm animate-pulse"
+                                              style={{ 
+                                                animationDelay: `${i * 0.1}s`,
+                                                animationDuration: '1.2s'
+                                              }}
+                                            >
+                                              <div className="w-full h-full bg-gradient-to-t from-green-500/20 via-green-400/30 to-green-500/20 rounded-sm animate-pulse" style={{ animationDelay: `${i * 0.2 + 0.5}s` }}></div>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    </div>
+                                    {/* Animated bars indicating calculation */}
+                                    <div className="flex flex-col space-y-0.5">
+                                      {[...Array(3)].map((_, i) => (
+                                        <div 
+                                          key={i}
+                                          className="h-1 bg-gradient-to-r from-green-400/40 to-emerald-400/40 rounded-full animate-pulse"
+                                          style={{ 
+                                            width: `${12 + i * 4}px`,
+                                            animationDelay: `${i * 0.2}s`,
+                                            animationDuration: '1.5s'
+                                          }}
+                                        />
+                                      ))}
+                                    </div>
+                                  </div>
                                 </div>
                               ) : (
-                                formatCurrency(calculations.totalInvestment)
+                                <div className="animate-slideInFromLeft data-loaded success-flash">
+                                  {formatCurrency(calculations.totalInvestment)}
+                                </div>
                               )}
                             </div>
                             <div className="text-xs text-green-200">
                               {(isLoadingQuote || isLoadingPrice) ? (
-                                <span className="animate-pulse">calculating allocation...</span>
+                                <div className="flex items-center space-x-1">
+                                  {['calculating', 'capital', 'required'].map((word, i) => (
+                                    <span 
+                                      key={word}
+                                      className="animate-pulse opacity-60"
+                                      style={{ 
+                                        animationDelay: `${i * 0.25}s`,
+                                        animationDuration: '1.8s'
+                                      }}
+                                    >
+                                      {word}
+                                    </span>
+                                  ))}
+                                  <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-bounce" style={{ animationDelay: '0.8s' }}></div>
+                                </div>
                               ) : (
-                                `${calculations.portfolioPercentage.toFixed(1)}% of portfolio`
+                                <div className="animate-fadeInScale">
+                                  {`${calculations.portfolioPercentage.toFixed(1)}% of portfolio`}
+                                </div>
                               )}
                             </div>
                           </div>
@@ -1411,7 +1495,7 @@ const TradingCalculator: React.FC = () => {
                       </div>
 
                       {/* Risk Analysis with Warning System */}
-                      <div className="group relative bg-gradient-to-br from-black/40 to-gray-900/40 backdrop-blur-xl rounded-2xl p-4 border border-red-500/20 hover:border-red-400/50 transition-all duration-700 hover:scale-105 cursor-pointer overflow-hidden">
+                      <div className="group relative bg-gradient-to-br from-black/40 to-gray-900/40 backdrop-blur-xl rounded-2xl p-4 border border-red-500/20 hover:border-red-400/50 transition-all duration-700 hover:scale-105 cursor-pointer overflow-hidden micro-glow micro-scale">
                         <div className="absolute inset-0 bg-gradient-to-br from-red-600/10 via-pink-600/10 to-rose-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
 
                         <div className="absolute inset-0 overflow-hidden rounded-3xl">
@@ -1458,19 +1542,65 @@ const TradingCalculator: React.FC = () => {
                             </div>
                             <div className="text-2xl font-bold text-white mb-1">
                               {(isLoadingQuote || isLoadingPrice) ? (
-                                <div className="flex items-center space-x-2">
-                                  <div className="w-6 h-6 border-2 border-red-400/30 border-t-red-400 rounded-full animate-spin"></div>
-                                  <span className="animate-pulse">₹ ---</span>
+                                <div className="relative">
+                                  <div className="flex items-center space-x-2">
+                                    {/* Digital-style loading bars */}
+                                    <div className="flex items-end space-x-1">
+                                      {[...Array(5)].map((_, i) => (
+                                        <div 
+                                          key={i}
+                                          className="bg-gradient-to-t from-red-600/30 via-red-400/50 to-red-600/30 rounded-sm animate-pulse"
+                                          style={{ 
+                                            width: '3px',
+                                            height: `${12 + i * 3}px`,
+                                            animationDelay: `${i * 0.15}s`,
+                                            animationDuration: '1.3s'
+                                          }}
+                                        />
+                                      ))}
+                                    </div>
+                                    {/* Pulsing indicators */}
+                                    <div className="flex flex-col space-y-1">
+                                      {[...Array(2)].map((_, i) => (
+                                        <div 
+                                          key={i}
+                                          className="w-4 h-1 bg-gradient-to-r from-red-500/40 to-orange-500/40 rounded-full animate-pulse"
+                                          style={{ 
+                                            animationDelay: `${i * 0.3}s`,
+                                            animationDuration: '1.6s'
+                                          }}
+                                        />
+                                      ))}
+                                    </div>
+                                  </div>
                                 </div>
                               ) : (
-                                formatCurrency(calculations.riskAmount)
+                                <div className="animate-slideInFromLeft data-loaded success-flash">
+                                  {formatCurrency(calculations.riskAmount)}
+                                </div>
                               )}
                             </div>
                             <div className="text-xs text-red-200">
                               {(isLoadingQuote || isLoadingPrice) ? (
-                                <span className="animate-pulse">assessing risk impact...</span>
+                                <div className="flex items-center space-x-1">
+                                  {['analyzing', 'risk', 'exposure'].map((word, i) => (
+                                    <span 
+                                      key={word}
+                                      className="animate-pulse opacity-50"
+                                      style={{ 
+                                        animationDelay: `${i * 0.35}s`,
+                                        animationDuration: '2s'
+                                      }}
+                                    >
+                                      {word}
+                                    </span>
+                                  ))}
+                                  <div className="w-1.5 h-1.5 border border-red-400/60 rounded-full animate-ping" style={{ animationDelay: '1s' }}></div>
+                                </div>
                               ) : (
-                                `${calculations.riskPercentage.toFixed(2)}% portfolio impact`
+                                <div className="animate-fadeInScale">
+                                  {`${calculations.riskPercentage.toFixed(2)}% portfolio impact`}
+                                </div>
                               )}
                             </div>
                           </div>
@@ -1491,7 +1621,7 @@ const TradingCalculator: React.FC = () => {
                       </div>
 
                       {/* Breakeven Analysis */}
-                      <div className="group relative bg-gradient-to-br from-black/40 to-gray-900/40 backdrop-blur-xl rounded-2xl p-4 border border-orange-500/20 hover:border-orange-400/50 transition-all duration-700 hover:scale-105 cursor-pointer overflow-hidden">
+                      <div className="group relative bg-gradient-to-br from-black/40 to-gray-900/40 backdrop-blur-xl rounded-2xl p-4 border border-orange-500/20 hover:border-orange-400/50 transition-all duration-700 hover:scale-105 cursor-pointer overflow-hidden micro-glow micro-scale">
                         <div className="absolute inset-0 bg-gradient-to-br from-orange-600/10 via-amber-600/10 to-yellow-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
 
                         <div className="relative z-10">
@@ -1512,10 +1642,65 @@ const TradingCalculator: React.FC = () => {
                               BREAKEVEN PRICE
                             </div>
                             <div className="text-2xl font-bold text-white mb-1">
-                              {formatCurrency(calculations.breakEvenPrice)}
+                              {(isLoadingQuote || isLoadingPrice) ? (
+                                <div className="relative">
+                                  <div className="flex items-center space-x-2">
+                                    {/* Balance scale animation */}
+                                    <div className="relative">
+                                      <div className="flex items-center space-x-1">
+                                        <span className="text-orange-400 animate-pulse">₹</span>
+                                        {/* Morphing numbers */}
+                                        <div className="flex space-x-0.5">
+                                          {[...Array(5)].map((_, i) => (
+                                            <div 
+                                              key={i}
+                                              className="w-3 h-6 bg-gradient-to-t from-orange-600/20 via-orange-400/40 to-orange-600/20 rounded-sm animate-pulse"
+                                              style={{ 
+                                                animationDelay: `${i * 0.12}s`,
+                                                animationDuration: '1.4s',
+                                                transform: `scaleY(${0.7 + (Math.sin(i * 0.5) * 0.3)})`
+                                              }}
+                                            >
+                                              <div className="w-full h-full bg-gradient-to-t from-orange-500/30 via-amber-400/40 to-orange-500/30 rounded-sm animate-pulse" style={{ animationDelay: `${i * 0.15 + 0.3}s` }}></div>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    </div>
+                                    {/* Equilibrium indicators */}
+                                    <div className="flex flex-col items-center space-y-0.5">
+                                      <div className="w-6 h-0.5 bg-gradient-to-r from-orange-400/40 to-amber-400/40 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+                                      <div className="w-4 h-0.5 bg-gradient-to-r from-amber-400/40 to-yellow-400/40 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+                                      <div className="w-6 h-0.5 bg-gradient-to-r from-yellow-400/40 to-orange-400/40 rounded-full animate-pulse" style={{ animationDelay: '0.6s' }}></div>
+                                    </div>
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="animate-slideInFromLeft data-loaded success-flash">
+                                  {formatCurrency(calculations.breakEvenPrice)}
+                                </div>
+                              )}
                             </div>
                             <div className="text-xs text-orange-200">
-                              survival line
+                              {(isLoadingQuote || isLoadingPrice) ? (
+                                <div className="flex items-center space-x-1">
+                                  {['calculating', 'equilibrium', 'point'].map((word, i) => (
+                                    <span 
+                                      key={word}
+                                      className="animate-pulse opacity-60"
+                                      style={{ 
+                                        animationDelay: `${i * 0.3}s`,
+                                        animationDuration: '1.6s'
+                                      }}
+                                    >
+                                      {word}
+                                    </span>
+                                  ))}
+                                  <div className="w-1.5 h-1.5 border border-orange-400/50 rounded-full animate-spin" style={{ animationDelay: '0.9s' }}></div>
+                                </div>
+                              ) : (
+                                <div className="animate-fadeInScale">survival line</div>
+                              )}
                             </div>
                           </div>
 
@@ -1526,7 +1711,7 @@ const TradingCalculator: React.FC = () => {
                       </div>
 
                       {/* Brokerage Cost Analysis */}
-                      <div className="group relative bg-gradient-to-br from-black/40 to-gray-900/40 backdrop-blur-xl rounded-2xl p-4 border border-purple-500/20 hover:border-purple-400/50 transition-all duration-700 hover:scale-105 cursor-pointer overflow-hidden">
+                      <div className="group relative bg-gradient-to-br from-black/40 to-gray-900/40 backdrop-blur-xl rounded-2xl p-4 border border-purple-500/20 hover:border-purple-400/50 transition-all duration-700 hover:scale-105 cursor-pointer overflow-hidden micro-glow micro-scale">
                         <div className="absolute inset-0 bg-gradient-to-br from-purple-600/10 via-indigo-600/10 to-blue-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
 
                         <div className="relative z-10">
@@ -1547,10 +1732,75 @@ const TradingCalculator: React.FC = () => {
                               BROKERAGE COST
                             </div>
                             <div className="text-2xl font-bold text-white mb-1">
-                              {formatCurrency(calculations.brokerageCost)}
+                              {(isLoadingQuote || isLoadingPrice) ? (
+                                <div className="relative">
+                                  <div className="flex items-center space-x-2">
+                                    {/* Receipt-style loading animation */}
+                                    <div className="relative">
+                                      <div className="flex items-center space-x-1">
+                                        <span className="text-purple-400 animate-pulse">₹</span>
+                                        {/* Calculating digits */}
+                                        <div className="flex space-x-0.5">
+                                          {[...Array(4)].map((_, i) => (
+                                            <div 
+                                              key={i}
+                                              className="relative overflow-hidden"
+                                            >
+                                              <div 
+                                                className="w-3 h-6 bg-gradient-to-t from-purple-600/20 via-purple-400/40 to-purple-600/20 rounded-sm animate-pulse"
+                                                style={{ 
+                                                  animationDelay: `${i * 0.1}s`,
+                                                  animationDuration: '1.3s'
+                                                }}
+                                              >
+                                                <div className="absolute inset-0 -translate-y-full bg-gradient-to-t from-transparent via-purple-300/30 to-transparent animate-slide-down" style={{ animationDelay: `${i * 0.2}s` }}></div>
+                                              </div>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    </div>
+                                    {/* Fee calculation indicators */}
+                                    <div className="flex flex-col space-y-0.5">
+                                      <div className="flex space-x-1">
+                                        {[...Array(3)].map((_, i) => (
+                                          <div 
+                                            key={i} 
+                                            className="w-1 h-1 bg-purple-400 rounded-full animate-bounce"
+                                            style={{ animationDelay: `${i * 0.15}s` }}
+                                          />
+                                        ))}
+                                      </div>
+                                      <div className="text-xs text-purple-300/60 animate-pulse font-normal tracking-wider">CALC</div>
+                                    </div>
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="animate-slideInFromLeft data-loaded success-flash">
+                                  {formatCurrency(calculations.brokerageCost)}
+                                </div>
+                              )}
                             </div>
                             <div className="text-xs text-purple-200">
-                              buy side (auto-calculated)
+                              {(isLoadingQuote || isLoadingPrice) ? (
+                                <div className="flex items-center space-x-1">
+                                  {['processing', 'fees', 'structure'].map((word, i) => (
+                                    <span 
+                                      key={word}
+                                      className="animate-pulse opacity-50"
+                                      style={{ 
+                                        animationDelay: `${i * 0.28}s`,
+                                        animationDuration: '1.7s'
+                                      }}
+                                    >
+                                      {word}
+                                    </span>
+                                  ))}
+                                  <div className="w-1.5 h-1.5 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0.85s' }}></div>
+                                </div>
+                              ) : (
+                                <div className="animate-fadeInScale">buy side (auto-calculated)</div>
+                              )}
                             </div>
                           </div>
 
@@ -1561,7 +1811,7 @@ const TradingCalculator: React.FC = () => {
                       </div>
 
                       {/* Risk Per Share Detail */}
-                      <div className="group relative bg-gradient-to-br from-black/40 to-gray-900/40 backdrop-blur-xl rounded-2xl p-4 border border-cyan-500/20 hover:border-cyan-400/50 transition-all duration-700 hover:scale-105 cursor-pointer overflow-hidden">
+                      <div className="group relative bg-gradient-to-br from-black/40 to-gray-900/40 backdrop-blur-xl rounded-2xl p-4 border border-cyan-500/20 hover:border-cyan-400/50 transition-all duration-700 hover:scale-105 cursor-pointer overflow-hidden micro-glow micro-scale">
                         <div className="absolute inset-0 bg-gradient-to-br from-cyan-600/10 via-teal-600/10 to-blue-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
 
                         <div className="relative z-10">
@@ -1582,10 +1832,81 @@ const TradingCalculator: React.FC = () => {
                               RISK PER SHARE
                             </div>
                             <div className="text-2xl font-bold text-white mb-1">
-                              {formatCurrency(calculations.riskPerShare)}
+                              {(isLoadingQuote || isLoadingPrice) ? (
+                                <div className="relative">
+                                  <div className="flex items-center space-x-2">
+                                    {/* Unit risk calculation animation */}
+                                    <div className="relative">
+                                      <div className="flex items-center space-x-1">
+                                        <span className="text-cyan-400 animate-pulse">₹</span>
+                                        {/* Per-unit calculation display */}
+                                        <div className="flex space-x-0.5">
+                                          {[...Array(3)].map((_, i) => (
+                                            <div 
+                                              key={i}
+                                              className="relative"
+                                            >
+                                              <div 
+                                                className="w-4 h-6 bg-gradient-to-t from-cyan-600/20 via-cyan-400/40 to-cyan-600/20 rounded-sm animate-pulse"
+                                                style={{ 
+                                                  animationDelay: `${i * 0.15}s`,
+                                                  animationDuration: '1.2s'
+                                                }}
+                                              >
+                                                {/* Electric-style effect */}
+                                                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-cyan-300/20 to-transparent animate-pulse" style={{ animationDelay: `${i * 0.2 + 0.4}s` }}></div>
+                                              </div>
+                                              {/* Unit separator */}
+                                              {i < 2 && (
+                                                <div className="absolute -right-1 top-1/2 w-0.5 h-0.5 bg-cyan-400/60 rounded-full animate-ping" style={{ animationDelay: `${i * 0.3}s` }}></div>
+                                              )}
+                                            </div>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    </div>
+                                    {/* Risk level indicators */}
+                                    <div className="flex items-center space-x-1">
+                                      {[...Array(3)].map((_, i) => (
+                                        <div 
+                                          key={i}
+                                          className="w-2 h-3 bg-gradient-to-t from-cyan-600/30 to-cyan-400/60 rounded-sm animate-pulse"
+                                          style={{ 
+                                            animationDelay: `${i * 0.2}s`,
+                                            animationDuration: '1.4s',
+                                            height: `${8 + i * 4}px`
+                                          }}
+                                        />
+                                      ))}
+                                    </div>
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="animate-slideInFromLeft data-loaded success-flash">
+                                  {formatCurrency(calculations.riskPerShare)}
+                                </div>
+                              )}
                             </div>
                             <div className="text-xs text-cyan-200">
-                              per unit risk
+                              {(isLoadingQuote || isLoadingPrice) ? (
+                                <div className="flex items-center space-x-1">
+                                  {['analyzing', 'unit', 'exposure'].map((word, i) => (
+                                    <span 
+                                      key={word}
+                                      className="animate-pulse opacity-60"
+                                      style={{ 
+                                        animationDelay: `${i * 0.32}s`,
+                                        animationDuration: '1.8s'
+                                      }}
+                                    >
+                                      {word}
+                                    </span>
+                                  ))}
+                                  <div className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-bounce" style={{ animationDelay: '0.95s' }}></div>
+                                </div>
+                              ) : (
+                                <div className="animate-fadeInScale">per unit risk</div>
+                              )}
                             </div>
                           </div>
 
