@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { gttService, type GTTTrigger, type GTTStatus } from '../../services/gttService';
+import { gttService, type GTTStatus } from '../../services/gttService';
 
 interface GTTManagementProps {
   className?: string;
@@ -8,11 +8,14 @@ interface GTTManagementProps {
 
 const GTTManagement: React.FC<GTTManagementProps> = ({ className = '' }) => {
   const queryClient = useQueryClient();
-  const [selectedGTT, setSelectedGTT] = useState<GTTTrigger | null>(null);
-  const [showEditModal, setShowEditModal] = useState(false);
 
   // Fetch all GTT triggers
-  const { data: gttData, isLoading, error, refetch } = useQuery({
+  const {
+    data: gttData,
+    isLoading,
+    error,
+    refetch,
+  } = useQuery({
     queryKey: ['gtt-triggers'],
     queryFn: () => gttService.getAllGTT(),
     refetchInterval: 30000, // Refresh every 30 seconds
@@ -31,7 +34,11 @@ const GTTManagement: React.FC<GTTManagementProps> = ({ className = '' }) => {
   });
 
   const handleDeleteGTT = async (triggerId: number, tradingsymbol: string) => {
-    if (window.confirm(`Are you sure you want to delete GTT for ${tradingsymbol}?`)) {
+    if (
+      window.confirm(
+        `Are you sure you want to delete GTT for ${tradingsymbol}?`
+      )
+    ) {
       try {
         await deleteMutation.mutateAsync(triggerId);
       } catch (error) {
@@ -65,19 +72,31 @@ const GTTManagement: React.FC<GTTManagementProps> = ({ className = '' }) => {
       case 'active':
         return (
           <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+            <path
+              fillRule="evenodd"
+              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+              clipRule="evenodd"
+            />
           </svg>
         );
       case 'triggered':
         return (
           <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+            <path
+              fillRule="evenodd"
+              d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+              clipRule="evenodd"
+            />
           </svg>
         );
       default:
         return (
           <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+            <path
+              fillRule="evenodd"
+              d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+              clipRule="evenodd"
+            />
           </svg>
         );
     }
@@ -99,8 +118,18 @@ const GTTManagement: React.FC<GTTManagementProps> = ({ className = '' }) => {
       <div className={`${className}`}>
         <div className="p-4 bg-red-500/10 border border-red-400/20 rounded-lg">
           <div className="flex items-center space-x-2">
-            <svg className="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01" />
+            <svg
+              className="w-5 h-5 text-red-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 8v4m0 4h.01"
+              />
             </svg>
             <span className="text-red-300">Failed to load GTT orders</span>
           </div>
@@ -133,8 +162,18 @@ const GTTManagement: React.FC<GTTManagementProps> = ({ className = '' }) => {
             className="p-2 text-slate-400 hover:text-white transition-colors"
             title="Refresh GTT list"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+              />
             </svg>
           </button>
         </div>
@@ -144,13 +183,26 @@ const GTTManagement: React.FC<GTTManagementProps> = ({ className = '' }) => {
       {gttTriggers.length === 0 ? (
         <div className="text-center py-8">
           <div className="w-16 h-16 mx-auto mb-4 bg-slate-800/50 rounded-full flex items-center justify-center">
-            <svg className="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            <svg
+              className="w-8 h-8 text-slate-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+              />
             </svg>
           </div>
-          <h4 className="text-lg font-medium text-slate-300 mb-2">No GTT Orders</h4>
+          <h4 className="text-lg font-medium text-slate-300 mb-2">
+            No GTT Orders
+          </h4>
           <p className="text-sm text-slate-400">
-            GTT orders will appear here when you place orders with stop loss or target prices.
+            GTT orders will appear here when you place orders with stop loss or
+            target prices.
           </p>
         </div>
       ) : (
@@ -169,7 +221,11 @@ const GTTManagement: React.FC<GTTManagementProps> = ({ className = '' }) => {
                   <div className="text-sm text-slate-400">
                     {gtt.condition.exchange}
                   </div>
-                  <div className={`px-2 py-1 text-xs font-medium rounded border flex items-center space-x-1 ${getStatusColor(gtt.status)}`}>
+                  <div
+                    className={`px-2 py-1 text-xs font-medium rounded border flex items-center space-x-1 ${getStatusColor(
+                      gtt.status
+                    )}`}
+                  >
                     {getStatusIcon(gtt.status)}
                     <span className="uppercase">{gtt.status}</span>
                   </div>
@@ -180,13 +236,28 @@ const GTTManagement: React.FC<GTTManagementProps> = ({ className = '' }) => {
                   </div>
                   {gtt.status === 'active' && (
                     <button
-                      onClick={() => handleDeleteGTT(gtt.trigger_id, gtt.condition.tradingsymbol)}
+                      onClick={() =>
+                        handleDeleteGTT(
+                          gtt.trigger_id,
+                          gtt.condition.tradingsymbol
+                        )
+                      }
                       disabled={deleteMutation.isPending}
                       className="p-1 text-red-400 hover:text-red-300 transition-colors disabled:opacity-50"
                       title="Delete GTT"
                     >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                        />
                       </svg>
                     </button>
                   )}
@@ -197,21 +268,30 @@ const GTTManagement: React.FC<GTTManagementProps> = ({ className = '' }) => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Trigger Conditions */}
                 <div className="space-y-2">
-                  <div className="text-sm font-medium text-slate-300">Trigger Conditions</div>
+                  <div className="text-sm font-medium text-slate-300">
+                    Trigger Conditions
+                  </div>
                   <div className="space-y-1">
                     <div className="flex justify-between text-sm">
                       <span className="text-slate-400">Type:</span>
-                      <span className="text-white font-medium uppercase">{gtt.type}</span>
+                      <span className="text-white font-medium uppercase">
+                        {gtt.type}
+                      </span>
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-slate-400">Current Price:</span>
-                      <span className="text-white">₹{gtt.condition.last_price.toFixed(2)}</span>
+                      <span className="text-white">
+                        ₹{gtt.condition.last_price.toFixed(2)}
+                      </span>
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-slate-400">Trigger Price(s):</span>
                       <div className="text-right">
                         {gtt.condition.trigger_values.map((price, index) => (
-                          <div key={index} className="text-yellow-300 font-medium">
+                          <div
+                            key={index}
+                            className="text-yellow-300 font-medium"
+                          >
                             ₹{price.toFixed(2)}
                           </div>
                         ))}
@@ -222,13 +302,24 @@ const GTTManagement: React.FC<GTTManagementProps> = ({ className = '' }) => {
 
                 {/* Orders */}
                 <div className="space-y-2">
-                  <div className="text-sm font-medium text-slate-300">Orders ({gtt.orders.length})</div>
+                  <div className="text-sm font-medium text-slate-300">
+                    Orders ({gtt.orders.length})
+                  </div>
                   <div className="space-y-2">
                     {gtt.orders.map((order, index) => (
-                      <div key={index} className="p-2 bg-slate-800/30 rounded border border-slate-600/30">
+                      <div
+                        key={index}
+                        className="p-2 bg-slate-800/30 rounded border border-slate-600/30"
+                      >
                         <div className="flex justify-between items-center text-sm">
                           <div className="flex items-center space-x-2">
-                            <span className={`font-medium ${order.transaction_type === 'BUY' ? 'text-green-400' : 'text-red-400'}`}>
+                            <span
+                              className={`font-medium ${
+                                order.transaction_type === 'BUY'
+                                  ? 'text-green-400'
+                                  : 'text-red-400'
+                              }`}
+                            >
                               {order.transaction_type}
                             </span>
                             <span className="text-slate-400">
@@ -252,8 +343,12 @@ const GTTManagement: React.FC<GTTManagementProps> = ({ className = '' }) => {
 
               {/* Timestamps */}
               <div className="flex justify-between text-xs text-slate-400 mt-3 pt-3 border-t border-slate-600/30">
-                <span>Created: {new Date(gtt.created_at).toLocaleString()}</span>
-                <span>Updated: {new Date(gtt.updated_at).toLocaleString()}</span>
+                <span>
+                  Created: {new Date(gtt.created_at).toLocaleString()}
+                </span>
+                <span>
+                  Updated: {new Date(gtt.updated_at).toLocaleString()}
+                </span>
               </div>
 
               {/* Status Message */}
