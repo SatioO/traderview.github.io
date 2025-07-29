@@ -715,7 +715,7 @@ const TradingCalculator: React.FC = () => {
                         className={`w-full px-4 py-3 pl-10 pr-20 border-2 rounded-xl text-white font-mono transition-all duration-300 focus:shadow-lg ${
                           entryPriceMode === 'mkt'
                             ? 'bg-gray-800/40 border-gray-500/50 text-gray-400 placeholder-gray-500/70 cursor-not-allowed'
-                            : (isLoadingQuote || isLoadingPrice)
+                            : isLoadingQuote || isLoadingPrice
                             ? 'bg-black/40 border-yellow-500/50 focus:border-yellow-400 focus:ring-2 focus:ring-yellow-400/20 placeholder-green-300/50 cursor-not-allowed'
                             : isEntryPriceAutoPopulated
                             ? 'bg-black/40 border-blue-500/50 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 focus:shadow-blue-500/20 placeholder-green-300/50'
@@ -726,11 +726,15 @@ const TradingCalculator: React.FC = () => {
                         placeholder={
                           entryPriceMode === 'mkt'
                             ? '0.00'
-                            : (isLoadingQuote || isLoadingPrice)
+                            : isLoadingQuote || isLoadingPrice
                             ? 'Loading price...'
                             : '0.00'
                         }
-                        disabled={(isLoadingQuote || isLoadingPrice) || entryPriceMode === 'mkt'}
+                        disabled={
+                          isLoadingQuote ||
+                          isLoadingPrice ||
+                          entryPriceMode === 'mkt'
+                        }
                       />
                       <span
                         className={`absolute left-3 top-1/2 transform -translate-y-1/2 transition-all duration-300 ${
@@ -840,13 +844,17 @@ const TradingCalculator: React.FC = () => {
                               }
                             }}
                             className={`w-full px-4 py-3 pl-10 pr-20 bg-black/40 border-2 rounded-xl text-white placeholder-red-300/50 font-mono transition-all duration-300 focus:shadow-lg ${
-                              (isLoadingQuote || isLoadingPrice)
+                              isLoadingQuote || isLoadingPrice
                                 ? 'border-yellow-500/50 focus:border-yellow-400 focus:ring-2 focus:ring-yellow-400/20 cursor-not-allowed'
                                 : 'border-red-500/50 focus:border-red-400 focus:ring-2 focus:ring-red-400/20 focus:shadow-red-500/20'
                             }`}
                             min="0"
                             step="0.01"
-                            placeholder={(isLoadingQuote || isLoadingPrice) ? 'Loading price...' : 'Enter stop loss price'}
+                            placeholder={
+                              isLoadingQuote || isLoadingPrice
+                                ? 'Loading price...'
+                                : 'Enter stop loss price'
+                            }
                             disabled={isLoadingQuote || isLoadingPrice}
                           />
                           <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-red-400">
@@ -904,14 +912,18 @@ const TradingCalculator: React.FC = () => {
                               }
                             }}
                             className={`w-full px-4 py-3 pl-10 pr-20 bg-black/40 border-2 rounded-xl text-white placeholder-red-300/50 font-mono transition-all duration-300 focus:shadow-lg ${
-                              (isLoadingQuote || isLoadingPrice)
+                              isLoadingQuote || isLoadingPrice
                                 ? 'border-yellow-500/50 focus:border-yellow-400 focus:ring-2 focus:ring-yellow-400/20 cursor-not-allowed'
                                 : 'border-red-500/50 focus:border-red-400 focus:ring-2 focus:ring-red-400/20 focus:shadow-red-500/20'
                             }`}
                             min="0"
                             max="50"
                             step="0.1"
-                            placeholder={(isLoadingQuote || isLoadingPrice) ? 'Loading price...' : 'Enter risk %'}
+                            placeholder={
+                              isLoadingQuote || isLoadingPrice
+                                ? 'Loading price...'
+                                : 'Enter risk %'
+                            }
                             disabled={isLoadingQuote || isLoadingPrice}
                           />
                           <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-red-400">
@@ -1104,24 +1116,30 @@ const TradingCalculator: React.FC = () => {
                   <div className="mb-6 relative overflow-hidden">
                     {/* Holographic Background Effects */}
                     <div className="absolute inset-0 bg-gradient-to-br from-cyan-900/20 via-purple-900/30 to-pink-900/20 animate-pulse rounded-3xl"></div>
-                    <div className="absolute inset-0 bg-gradient-to-tr from-blue-500/5 via-transparent to-emerald-500/5 animate-pulse rounded-3xl" style={{ animationDelay: '1s' }}></div>
-                    
+                    <div
+                      className="absolute inset-0 bg-gradient-to-tr from-blue-500/5 via-transparent to-emerald-500/5 animate-pulse rounded-3xl"
+                      style={{ animationDelay: '1s' }}
+                    ></div>
+
                     {/* Floating Particles */}
                     <div className="absolute inset-0 overflow-hidden rounded-3xl pointer-events-none">
                       {[...Array(12)].map((_, i) => (
                         <div
                           key={i}
                           className={`absolute w-1 h-1 bg-gradient-to-r ${
-                            i % 4 === 0 ? 'from-cyan-400 to-blue-500' :
-                            i % 4 === 1 ? 'from-purple-400 to-pink-500' :
-                            i % 4 === 2 ? 'from-emerald-400 to-teal-500' :
-                            'from-yellow-400 to-orange-500'
+                            i % 4 === 0
+                              ? 'from-cyan-400 to-blue-500'
+                              : i % 4 === 1
+                              ? 'from-purple-400 to-pink-500'
+                              : i % 4 === 2
+                              ? 'from-emerald-400 to-teal-500'
+                              : 'from-yellow-400 to-orange-500'
                           } rounded-full animate-bounce opacity-60`}
                           style={{
-                            left: `${10 + (i * 7)}%`,
+                            left: `${10 + i * 7}%`,
                             top: `${15 + (i % 3) * 25}%`,
                             animationDelay: `${i * 0.2}s`,
-                            animationDuration: `${2 + (i % 3)}s`
+                            animationDuration: `${2 + (i % 3)}s`,
                           }}
                         />
                       ))}
@@ -1129,23 +1147,37 @@ const TradingCalculator: React.FC = () => {
 
                     <div className="relative bg-black/60 backdrop-blur-2xl rounded-3xl p-8 border-2 border-gradient-to-r from-cyan-500/30 via-purple-500/30 to-pink-500/30 shadow-2xl">
                       <div className="flex flex-col items-center justify-center space-y-8">
-                        
                         {/* 🌟 Central Quantum Loading Orb */}
                         <div className="relative">
                           {/* Outer Energy Rings */}
                           <div className="absolute -inset-8">
-                            <div className="w-32 h-32 border-2 border-cyan-400/20 rounded-full animate-spin" style={{ animationDuration: '3s' }}></div>
-                            <div className="absolute inset-2 w-28 h-28 border-2 border-purple-400/20 rounded-full animate-spin" style={{ animationDirection: 'reverse', animationDuration: '2s' }}></div>
-                            <div className="absolute inset-4 w-24 h-24 border-2 border-pink-400/20 rounded-full animate-spin" style={{ animationDuration: '4s' }}></div>
+                            <div
+                              className="w-32 h-32 border-2 border-cyan-400/20 rounded-full animate-spin"
+                              style={{ animationDuration: '3s' }}
+                            ></div>
+                            <div
+                              className="absolute inset-2 w-28 h-28 border-2 border-purple-400/20 rounded-full animate-spin"
+                              style={{
+                                animationDirection: 'reverse',
+                                animationDuration: '2s',
+                              }}
+                            ></div>
+                            <div
+                              className="absolute inset-4 w-24 h-24 border-2 border-pink-400/20 rounded-full animate-spin"
+                              style={{ animationDuration: '4s' }}
+                            ></div>
                           </div>
-                          
+
                           {/* Core Pulsing Orb */}
                           <div className="w-16 h-16 bg-gradient-to-br from-cyan-400 via-purple-500 to-pink-400 rounded-full animate-pulse shadow-2xl shadow-purple-500/50">
                             <div className="w-full h-full bg-gradient-to-tr from-white/20 to-transparent rounded-full animate-ping"></div>
                           </div>
-                          
+
                           {/* Energy Bolts */}
-                          <div className="absolute inset-0 animate-spin" style={{ animationDuration: '1.5s' }}>
+                          <div
+                            className="absolute inset-0 animate-spin"
+                            style={{ animationDuration: '1.5s' }}
+                          >
                             {[0, 60, 120, 180, 240, 300].map((rotation, i) => (
                               <div
                                 key={i}
@@ -1153,7 +1185,7 @@ const TradingCalculator: React.FC = () => {
                                 style={{
                                   transform: `rotate(${rotation}deg) translateY(-40px)`,
                                   transformOrigin: '50% 40px',
-                                  animationDelay: `${i * 0.1}s`
+                                  animationDelay: `${i * 0.1}s`,
                                 }}
                               />
                             ))}
@@ -1169,42 +1201,54 @@ const TradingCalculator: React.FC = () => {
                             </h3>
                             <div className="absolute -inset-2 bg-gradient-to-r from-green-500/20 via-blue-500/20 to-purple-500/20 blur-xl rounded-lg animate-pulse"></div>
                           </div>
-                          
+
                           {/* Instrument & Price Info */}
                           <div className="flex items-center justify-center space-x-3 p-3 bg-gradient-to-r from-slate-800/50 to-slate-700/50 rounded-xl border border-green-500/30">
                             <div className="w-3 h-3 bg-green-400 rounded-full animate-ping"></div>
-                            <span className="text-slate-300">Fetching live price for</span>
+                            <span className="text-slate-300">
+                              Fetching live price for
+                            </span>
                             <span className="font-mono text-xl font-bold text-green-300 tracking-wider animate-pulse">
                               {selectedInstrument?.tradingsymbol}
                             </span>
                             <div className="flex space-x-1">
                               <span className="text-xs text-slate-400">•</span>
-                              <span className="text-xs text-blue-300 font-semibold animate-pulse">{selectedInstrument?.exchange}</span>
+                              <span className="text-xs text-blue-300 font-semibold animate-pulse">
+                                {selectedInstrument?.exchange}
+                              </span>
                             </div>
                           </div>
-                          
+
                           {/* Trading Calculation Steps */}
                           <div className="space-y-2 w-full max-w-md">
                             {[
                               { label: 'Live Price Feed', icon: '💰' },
                               { label: 'Risk Assessment', icon: '⚡' },
                               { label: 'Position Sizing', icon: '📊' },
-                              { label: 'Profit Targets', icon: '🎯' }
+                              { label: 'Profit Targets', icon: '🎯' },
                             ].map((stage, i) => (
-                              <div key={stage.label} className="flex items-center space-x-3">
+                              <div
+                                key={stage.label}
+                                className="flex items-center space-x-3"
+                              >
                                 <span className="text-lg">{stage.icon}</span>
-                                <span className="text-xs text-slate-400 w-24 text-left font-medium">{stage.label}</span>
+                                <span className="text-xs text-slate-400 w-24 text-left font-medium">
+                                  {stage.label}
+                                </span>
                                 <div className="flex-1 h-2 bg-slate-700 rounded-full overflow-hidden">
-                                  <div 
+                                  <div
                                     className="h-full bg-gradient-to-r from-green-400 via-blue-400 to-purple-400 rounded-full animate-pulse"
                                     style={{
-                                      width: `${75 + (i * 5)}%`,
+                                      width: `${75 + i * 5}%`,
                                       animationDelay: `${i * 0.2}s`,
-                                      animationDuration: '1.5s'
+                                      animationDuration: '1.5s',
                                     }}
                                   />
                                 </div>
-                                <div className="w-3 h-3 border border-green-400 rounded-full animate-spin" style={{ animationDelay: `${i * 0.1}s` }} />
+                                <div
+                                  className="w-3 h-3 border border-green-400 rounded-full animate-spin"
+                                  style={{ animationDelay: `${i * 0.1}s` }}
+                                />
                               </div>
                             ))}
                           </div>
@@ -1213,62 +1257,105 @@ const TradingCalculator: React.FC = () => {
                         {/* 🎯 Position Sizing Dashboard Preview */}
                         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 w-full">
                           {[
-                            { icon: '📦', label: 'Position Size', desc: 'Calculating units...', color: 'blue' },
-                            { icon: '💵', label: 'Investment', desc: 'Total capital required', color: 'green' },
-                            { icon: '🔥', label: 'Risk Exposure', desc: 'Maximum loss amount', color: 'red' },
-                            { icon: '⚖️', label: 'Breakeven', desc: 'Profit threshold price', color: 'orange' },
-                            { icon: '💎', label: 'Brokerage', desc: 'Trading costs', color: 'purple' },
-                            { icon: '⚡', label: 'Risk Per Unit', desc: 'Loss per share', color: 'cyan' }
+                            {
+                              icon: '📦',
+                              label: 'Position Size',
+                              desc: 'Calculating units...',
+                              color: 'blue',
+                            },
+                            {
+                              icon: '💵',
+                              label: 'Investment',
+                              desc: 'Total capital required',
+                              color: 'green',
+                            },
+                            {
+                              icon: '🔥',
+                              label: 'Risk Exposure',
+                              desc: 'Maximum loss amount',
+                              color: 'red',
+                            },
+                            {
+                              icon: '⚖️',
+                              label: 'Breakeven',
+                              desc: 'Profit threshold price',
+                              color: 'orange',
+                            },
+                            {
+                              icon: '💎',
+                              label: 'Brokerage',
+                              desc: 'Trading costs',
+                              color: 'purple',
+                            },
+                            {
+                              icon: '⚡',
+                              label: 'Risk Per Unit',
+                              desc: 'Loss per share',
+                              color: 'cyan',
+                            },
                           ].map((tile, i) => (
-                            <div 
-                              key={tile.label} 
+                            <div
+                              key={tile.label}
                               className="relative group bg-gradient-to-br from-slate-800/60 to-slate-900/60 backdrop-blur-xl rounded-2xl p-4 border border-slate-500/20 hover:border-slate-400/50 transition-all duration-700 overflow-hidden"
                               style={{ animationDelay: `${i * 0.1}s` }}
                             >
                               {/* Shimmer Effect */}
                               <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/5 to-transparent group-hover:translate-x-full transition-transform duration-1000"></div>
-                              
+
                               {/* Content */}
                               <div className="relative z-10 space-y-3">
                                 <div className="flex items-center justify-between">
-                                  <div className="text-2xl animate-bounce" style={{ animationDelay: `${i * 0.2}s` }}>
+                                  <div
+                                    className="text-2xl animate-bounce"
+                                    style={{ animationDelay: `${i * 0.2}s` }}
+                                  >
                                     {tile.icon}
                                   </div>
                                   <div className="px-2 py-1 bg-slate-500/20 border border-slate-400/30 rounded text-xs text-slate-300 font-bold animate-pulse">
                                     CALC
                                   </div>
                                 </div>
-                                
+
                                 <div className="space-y-2">
-                                  <div className="text-xs text-slate-400 font-medium">{tile.label.toUpperCase()}</div>
-                                  <div className="h-6 bg-gradient-to-r from-slate-600/30 to-slate-500/30 rounded animate-pulse flex items-center justify-center">
-                                    <span className="text-xs text-slate-300 animate-pulse">₹ ---</span>
+                                  <div className="text-xs text-slate-400 font-medium">
+                                    {tile.label.toUpperCase()}
                                   </div>
-                                  <div className="text-xs text-slate-500 animate-pulse">{tile.desc}</div>
+                                  <div className="h-6 bg-gradient-to-r from-slate-600/30 to-slate-500/30 rounded animate-pulse flex items-center justify-center">
+                                    <span className="text-xs text-slate-300 animate-pulse">
+                                      ₹ ---
+                                    </span>
+                                  </div>
+                                  <div className="text-xs text-slate-500 animate-pulse">
+                                    {tile.desc}
+                                  </div>
                                 </div>
-                                
+
                                 {/* Calculation Progress */}
                                 <div className="h-2 bg-slate-700/50 rounded-full overflow-hidden">
-                                  <div 
+                                  <div
                                     className="h-full bg-gradient-to-r from-green-400 via-blue-400 to-purple-400 rounded-full transition-all duration-2000 ease-out animate-pulse"
-                                    style={{ 
-                                      width: `${60 + (i * 8)}%`,
-                                      animationDelay: `${i * 0.3}s`
+                                    style={{
+                                      width: `${60 + i * 8}%`,
+                                      animationDelay: `${i * 0.3}s`,
                                     }}
                                   />
                                 </div>
                               </div>
-                              
+
                               {/* Corner Indicator */}
-                              <div className="absolute -top-2 -right-2 w-4 h-4 bg-green-400/30 rounded-full blur-sm animate-ping" style={{ animationDelay: `${i * 0.4}s` }}></div>
+                              <div
+                                className="absolute -top-2 -right-2 w-4 h-4 bg-green-400/30 rounded-full blur-sm animate-ping"
+                                style={{ animationDelay: `${i * 0.4}s` }}
+                              ></div>
                             </div>
                           ))}
                         </div>
-                        
+
                         {/* 🎊 Completion Message */}
                         <div className="text-center p-4 bg-gradient-to-r from-green-900/20 via-blue-900/20 to-purple-900/20 rounded-xl border border-green-500/30">
                           <p className="text-green-300 text-sm font-medium animate-pulse">
-                            📊 Finalizing position size calculations based on live market data...
+                            📊 Finalizing position size calculations based on
+                            live market data...
                           </p>
                         </div>
                       </div>
@@ -1296,17 +1383,23 @@ const TradingCalculator: React.FC = () => {
                             <div className="text-4xl">
                               <Package className="w-10 h-10 text-blue-400" />
                             </div>
-                            <div className={`bg-gradient-to-r border rounded-lg px-2 py-1 ${
-                              (isLoadingQuote || isLoadingPrice)
-                                ? 'from-yellow-500/20 to-orange-500/20 border-yellow-500/40'
-                                : 'from-blue-500/20 to-purple-500/20 border-blue-500/40'
-                            }`}>
-                              <div className={`text-xs font-bold ${
-                                (isLoadingQuote || isLoadingPrice)
-                                  ? 'text-yellow-300 animate-pulse'
-                                  : 'text-blue-300'
-                              }`}>
-                                {(isLoadingQuote || isLoadingPrice) ? 'CALC...' : 'LOCKED'}
+                            <div
+                              className={`bg-gradient-to-r border rounded-lg px-2 py-1 ${
+                                isLoadingQuote || isLoadingPrice
+                                  ? 'from-yellow-500/20 to-orange-500/20 border-yellow-500/40'
+                                  : 'from-blue-500/20 to-purple-500/20 border-blue-500/40'
+                              }`}
+                            >
+                              <div
+                                className={`text-xs font-bold ${
+                                  isLoadingQuote || isLoadingPrice
+                                    ? 'text-yellow-300 animate-pulse'
+                                    : 'text-blue-300'
+                                }`}
+                              >
+                                {isLoadingQuote || isLoadingPrice
+                                  ? 'CALC...'
+                                  : 'LOCKED'}
                               </div>
                             </div>
                           </div>
@@ -1317,7 +1410,7 @@ const TradingCalculator: React.FC = () => {
                               POSITION SIZE
                             </div>
                             <div className="text-2xl font-bold text-white mb-1">
-                              {(isLoadingQuote || isLoadingPrice) ? (
+                              {isLoadingQuote || isLoadingPrice ? (
                                 <div className="relative">
                                   {/* Skeleton shimmer effect */}
                                   <div className="flex items-center space-x-2">
@@ -1327,14 +1420,18 @@ const TradingCalculator: React.FC = () => {
                                     <div className="flex flex-col space-y-1">
                                       <div className="flex space-x-1">
                                         {[...Array(3)].map((_, i) => (
-                                          <div 
-                                            key={i} 
+                                          <div
+                                            key={i}
                                             className="w-1 h-1 bg-blue-400 rounded-full animate-bounce"
-                                            style={{ animationDelay: `${i * 0.15}s` }}
+                                            style={{
+                                              animationDelay: `${i * 0.15}s`,
+                                            }}
                                           />
                                         ))}
                                       </div>
-                                      <div className="text-xs text-blue-300/60 animate-pulse font-normal tracking-wider">SIZING</div>
+                                      <div className="text-xs text-blue-300/60 ">
+                                        SIZING
+                                      </div>
                                     </div>
                                   </div>
                                 </div>
@@ -1345,23 +1442,30 @@ const TradingCalculator: React.FC = () => {
                               )}
                             </div>
                             <div className="text-xs text-blue-200">
-                              {(isLoadingQuote || isLoadingPrice) ? (
+                              {isLoadingQuote || isLoadingPrice ? (
                                 <div className="flex items-center space-x-2">
                                   <div className="flex space-x-1">
-                                    {['analyzing', 'market', 'data'].map((word, i) => (
-                                      <span 
-                                        key={word}
-                                        className="animate-pulse opacity-40"
-                                        style={{ animationDelay: `${i * 0.3}s`, animationDuration: '1.5s' }}
-                                      >
-                                        {word}
-                                      </span>
-                                    ))}
+                                    {['analyzing', 'market', 'data'].map(
+                                      (word, i) => (
+                                        <span
+                                          key={word}
+                                          className="animate-pulse opacity-40"
+                                          style={{
+                                            animationDelay: `${i * 0.3}s`,
+                                            animationDuration: '1.5s',
+                                          }}
+                                        >
+                                          {word}
+                                        </span>
+                                      )
+                                    )}
                                   </div>
                                   <div className="w-2 h-2 border border-blue-400/50 rounded-full animate-ping"></div>
                                 </div>
                               ) : (
-                                <div className="animate-fadeInScale">units secured</div>
+                                <div className="animate-fadeInScale">
+                                  units secured
+                                </div>
                               )}
                             </div>
                           </div>
@@ -1388,17 +1492,23 @@ const TradingCalculator: React.FC = () => {
                             <div className="text-4xl">
                               <Banknote className="w-10 h-10 text-green-400" />
                             </div>
-                            <div className={`bg-gradient-to-r border rounded-lg px-2 py-1 ${
-                              (isLoadingQuote || isLoadingPrice)
-                                ? 'from-yellow-500/20 to-orange-500/20 border-yellow-500/40'
-                                : 'from-green-500/20 to-emerald-500/20 border-green-500/40'
-                            }`}>
-                              <div className={`text-xs font-bold ${
-                                (isLoadingQuote || isLoadingPrice)
-                                  ? 'text-yellow-300 animate-pulse'
-                                  : 'text-green-300'
-                              }`}>
-                                {(isLoadingQuote || isLoadingPrice) ? 'CALC...' : 'DEPLOYED'}
+                            <div
+                              className={`bg-gradient-to-r border rounded-lg px-2 py-1 ${
+                                isLoadingQuote || isLoadingPrice
+                                  ? 'from-yellow-500/20 to-orange-500/20 border-yellow-500/40'
+                                  : 'from-green-500/20 to-emerald-500/20 border-green-500/40'
+                              }`}
+                            >
+                              <div
+                                className={`text-xs font-bold ${
+                                  isLoadingQuote || isLoadingPrice
+                                    ? 'text-yellow-300 animate-pulse'
+                                    : 'text-green-300'
+                                }`}
+                              >
+                                {isLoadingQuote || isLoadingPrice
+                                  ? 'CALC...'
+                                  : 'DEPLOYED'}
                               </div>
                             </div>
                           </div>
@@ -1409,24 +1519,33 @@ const TradingCalculator: React.FC = () => {
                               CAPITAL INVESTMENT
                             </div>
                             <div className="text-2xl font-bold text-white mb-1">
-                              {(isLoadingQuote || isLoadingPrice) ? (
+                              {isLoadingQuote || isLoadingPrice ? (
                                 <div className="relative">
                                   <div className="flex items-center space-x-2">
                                     {/* Morphing currency display */}
                                     <div className="relative overflow-hidden">
                                       <div className="flex items-center space-x-1">
-                                        <span className="text-green-400 animate-pulse">₹</span>
+                                        <span className="text-green-400 animate-pulse">
+                                          ₹
+                                        </span>
                                         <div className="flex space-x-0.5">
                                           {[...Array(6)].map((_, i) => (
-                                            <div 
-                                              key={i} 
+                                            <div
+                                              key={i}
                                               className="w-4 h-8 bg-gradient-to-t from-slate-600/20 via-slate-400/40 to-slate-600/20 rounded-sm animate-pulse"
-                                              style={{ 
+                                              style={{
                                                 animationDelay: `${i * 0.1}s`,
-                                                animationDuration: '1.2s'
+                                                animationDuration: '1.2s',
                                               }}
                                             >
-                                              <div className="w-full h-full bg-gradient-to-t from-green-500/20 via-green-400/30 to-green-500/20 rounded-sm animate-pulse" style={{ animationDelay: `${i * 0.2 + 0.5}s` }}></div>
+                                              <div
+                                                className="w-full h-full bg-gradient-to-t from-green-500/20 via-green-400/30 to-green-500/20 rounded-sm animate-pulse"
+                                                style={{
+                                                  animationDelay: `${
+                                                    i * 0.2 + 0.5
+                                                  }s`,
+                                                }}
+                                              ></div>
                                             </div>
                                           ))}
                                         </div>
@@ -1435,13 +1554,13 @@ const TradingCalculator: React.FC = () => {
                                     {/* Animated bars indicating calculation */}
                                     <div className="flex flex-col space-y-0.5">
                                       {[...Array(3)].map((_, i) => (
-                                        <div 
+                                        <div
                                           key={i}
                                           className="h-1 bg-gradient-to-r from-green-400/40 to-emerald-400/40 rounded-full animate-pulse"
-                                          style={{ 
+                                          style={{
                                             width: `${12 + i * 4}px`,
                                             animationDelay: `${i * 0.2}s`,
-                                            animationDuration: '1.5s'
+                                            animationDuration: '1.5s',
                                           }}
                                         />
                                       ))}
@@ -1455,25 +1574,32 @@ const TradingCalculator: React.FC = () => {
                               )}
                             </div>
                             <div className="text-xs text-green-200">
-                              {(isLoadingQuote || isLoadingPrice) ? (
+                              {isLoadingQuote || isLoadingPrice ? (
                                 <div className="flex items-center space-x-1">
-                                  {['calculating', 'capital', 'required'].map((word, i) => (
-                                    <span 
-                                      key={word}
-                                      className="animate-pulse opacity-60"
-                                      style={{ 
-                                        animationDelay: `${i * 0.25}s`,
-                                        animationDuration: '1.8s'
-                                      }}
-                                    >
-                                      {word}
-                                    </span>
-                                  ))}
-                                  <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-bounce" style={{ animationDelay: '0.8s' }}></div>
+                                  {['calculating', 'capital', 'required'].map(
+                                    (word, i) => (
+                                      <span
+                                        key={word}
+                                        className="animate-pulse opacity-60"
+                                        style={{
+                                          animationDelay: `${i * 0.25}s`,
+                                          animationDuration: '1.8s',
+                                        }}
+                                      >
+                                        {word}
+                                      </span>
+                                    )
+                                  )}
+                                  <div
+                                    className="w-1.5 h-1.5 bg-green-400 rounded-full animate-bounce"
+                                    style={{ animationDelay: '0.8s' }}
+                                  ></div>
                                 </div>
                               ) : (
                                 <div className="animate-fadeInScale">
-                                  {`${calculations.portfolioPercentage.toFixed(1)}% of portfolio`}
+                                  {`${calculations.portfolioPercentage.toFixed(
+                                    1
+                                  )}% of portfolio`}
                                 </div>
                               )}
                             </div>
@@ -1510,7 +1636,7 @@ const TradingCalculator: React.FC = () => {
                             </div>
                             <div
                               className={`border rounded-lg px-2 py-1 ${
-                                (isLoadingQuote || isLoadingPrice)
+                                isLoadingQuote || isLoadingPrice
                                   ? 'bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border-yellow-500/40'
                                   : calculations.riskPercentage > 2
                                   ? 'bg-gradient-to-r from-red-500/30 to-orange-500/30 border-red-500/50'
@@ -1519,14 +1645,14 @@ const TradingCalculator: React.FC = () => {
                             >
                               <div
                                 className={`text-xs font-bold ${
-                                  (isLoadingQuote || isLoadingPrice)
+                                  isLoadingQuote || isLoadingPrice
                                     ? 'text-yellow-300 animate-pulse'
                                     : calculations.riskPercentage > 2
                                     ? 'text-red-300'
                                     : 'text-yellow-300'
                                 }`}
                               >
-                                {(isLoadingQuote || isLoadingPrice)
+                                {isLoadingQuote || isLoadingPrice
                                   ? 'CALC...'
                                   : calculations.riskPercentage > 2
                                   ? 'HIGH'
@@ -1541,20 +1667,20 @@ const TradingCalculator: React.FC = () => {
                               RISK EXPOSURE
                             </div>
                             <div className="text-2xl font-bold text-white mb-1">
-                              {(isLoadingQuote || isLoadingPrice) ? (
+                              {isLoadingQuote || isLoadingPrice ? (
                                 <div className="relative">
                                   <div className="flex items-center space-x-2">
                                     {/* Digital-style loading bars */}
                                     <div className="flex items-end space-x-1">
                                       {[...Array(5)].map((_, i) => (
-                                        <div 
+                                        <div
                                           key={i}
                                           className="bg-gradient-to-t from-red-600/30 via-red-400/50 to-red-600/30 rounded-sm animate-pulse"
-                                          style={{ 
+                                          style={{
                                             width: '3px',
                                             height: `${12 + i * 3}px`,
                                             animationDelay: `${i * 0.15}s`,
-                                            animationDuration: '1.3s'
+                                            animationDuration: '1.3s',
                                           }}
                                         />
                                       ))}
@@ -1562,12 +1688,12 @@ const TradingCalculator: React.FC = () => {
                                     {/* Pulsing indicators */}
                                     <div className="flex flex-col space-y-1">
                                       {[...Array(2)].map((_, i) => (
-                                        <div 
+                                        <div
                                           key={i}
                                           className="w-4 h-1 bg-gradient-to-r from-red-500/40 to-orange-500/40 rounded-full animate-pulse"
-                                          style={{ 
+                                          style={{
                                             animationDelay: `${i * 0.3}s`,
-                                            animationDuration: '1.6s'
+                                            animationDuration: '1.6s',
                                           }}
                                         />
                                       ))}
@@ -1581,25 +1707,32 @@ const TradingCalculator: React.FC = () => {
                               )}
                             </div>
                             <div className="text-xs text-red-200">
-                              {(isLoadingQuote || isLoadingPrice) ? (
+                              {isLoadingQuote || isLoadingPrice ? (
                                 <div className="flex items-center space-x-1">
-                                  {['analyzing', 'risk', 'exposure'].map((word, i) => (
-                                    <span 
-                                      key={word}
-                                      className="animate-pulse opacity-50"
-                                      style={{ 
-                                        animationDelay: `${i * 0.35}s`,
-                                        animationDuration: '2s'
-                                      }}
-                                    >
-                                      {word}
-                                    </span>
-                                  ))}
-                                  <div className="w-1.5 h-1.5 border border-red-400/60 rounded-full animate-ping" style={{ animationDelay: '1s' }}></div>
+                                  {['analyzing', 'risk', 'exposure'].map(
+                                    (word, i) => (
+                                      <span
+                                        key={word}
+                                        className="animate-pulse opacity-50"
+                                        style={{
+                                          animationDelay: `${i * 0.35}s`,
+                                          animationDuration: '2s',
+                                        }}
+                                      >
+                                        {word}
+                                      </span>
+                                    )
+                                  )}
+                                  <div
+                                    className="w-1.5 h-1.5 border border-red-400/60 rounded-full animate-ping"
+                                    style={{ animationDelay: '1s' }}
+                                  ></div>
                                 </div>
                               ) : (
                                 <div className="animate-fadeInScale">
-                                  {`${calculations.riskPercentage.toFixed(2)}% portfolio impact`}
+                                  {`${calculations.riskPercentage.toFixed(
+                                    2
+                                  )}% portfolio impact`}
                                 </div>
                               )}
                             </div>
@@ -1642,26 +1775,37 @@ const TradingCalculator: React.FC = () => {
                               BREAKEVEN PRICE
                             </div>
                             <div className="text-2xl font-bold text-white mb-1">
-                              {(isLoadingQuote || isLoadingPrice) ? (
+                              {isLoadingQuote || isLoadingPrice ? (
                                 <div className="relative">
                                   <div className="flex items-center space-x-2">
                                     {/* Balance scale animation */}
                                     <div className="relative">
                                       <div className="flex items-center space-x-1">
-                                        <span className="text-orange-400 animate-pulse">₹</span>
+                                        <span className="text-orange-400 animate-pulse">
+                                          ₹
+                                        </span>
                                         {/* Morphing numbers */}
                                         <div className="flex space-x-0.5">
                                           {[...Array(5)].map((_, i) => (
-                                            <div 
+                                            <div
                                               key={i}
                                               className="w-3 h-6 bg-gradient-to-t from-orange-600/20 via-orange-400/40 to-orange-600/20 rounded-sm animate-pulse"
-                                              style={{ 
+                                              style={{
                                                 animationDelay: `${i * 0.12}s`,
                                                 animationDuration: '1.4s',
-                                                transform: `scaleY(${0.7 + (Math.sin(i * 0.5) * 0.3)})`
+                                                transform: `scaleY(${
+                                                  0.7 + Math.sin(i * 0.5) * 0.3
+                                                })`,
                                               }}
                                             >
-                                              <div className="w-full h-full bg-gradient-to-t from-orange-500/30 via-amber-400/40 to-orange-500/30 rounded-sm animate-pulse" style={{ animationDelay: `${i * 0.15 + 0.3}s` }}></div>
+                                              <div
+                                                className="w-full h-full bg-gradient-to-t from-orange-500/30 via-amber-400/40 to-orange-500/30 rounded-sm animate-pulse"
+                                                style={{
+                                                  animationDelay: `${
+                                                    i * 0.15 + 0.3
+                                                  }s`,
+                                                }}
+                                              ></div>
                                             </div>
                                           ))}
                                         </div>
@@ -1669,9 +1813,18 @@ const TradingCalculator: React.FC = () => {
                                     </div>
                                     {/* Equilibrium indicators */}
                                     <div className="flex flex-col items-center space-y-0.5">
-                                      <div className="w-6 h-0.5 bg-gradient-to-r from-orange-400/40 to-amber-400/40 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
-                                      <div className="w-4 h-0.5 bg-gradient-to-r from-amber-400/40 to-yellow-400/40 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
-                                      <div className="w-6 h-0.5 bg-gradient-to-r from-yellow-400/40 to-orange-400/40 rounded-full animate-pulse" style={{ animationDelay: '0.6s' }}></div>
+                                      <div
+                                        className="w-6 h-0.5 bg-gradient-to-r from-orange-400/40 to-amber-400/40 rounded-full animate-pulse"
+                                        style={{ animationDelay: '0.2s' }}
+                                      ></div>
+                                      <div
+                                        className="w-4 h-0.5 bg-gradient-to-r from-amber-400/40 to-yellow-400/40 rounded-full animate-pulse"
+                                        style={{ animationDelay: '0.4s' }}
+                                      ></div>
+                                      <div
+                                        className="w-6 h-0.5 bg-gradient-to-r from-yellow-400/40 to-orange-400/40 rounded-full animate-pulse"
+                                        style={{ animationDelay: '0.6s' }}
+                                      ></div>
                                     </div>
                                   </div>
                                 </div>
@@ -1682,24 +1835,31 @@ const TradingCalculator: React.FC = () => {
                               )}
                             </div>
                             <div className="text-xs text-orange-200">
-                              {(isLoadingQuote || isLoadingPrice) ? (
+                              {isLoadingQuote || isLoadingPrice ? (
                                 <div className="flex items-center space-x-1">
-                                  {['calculating', 'equilibrium', 'point'].map((word, i) => (
-                                    <span 
-                                      key={word}
-                                      className="animate-pulse opacity-60"
-                                      style={{ 
-                                        animationDelay: `${i * 0.3}s`,
-                                        animationDuration: '1.6s'
-                                      }}
-                                    >
-                                      {word}
-                                    </span>
-                                  ))}
-                                  <div className="w-1.5 h-1.5 border border-orange-400/50 rounded-full animate-spin" style={{ animationDelay: '0.9s' }}></div>
+                                  {['calculating', 'equilibrium', 'point'].map(
+                                    (word, i) => (
+                                      <span
+                                        key={word}
+                                        className="animate-pulse opacity-60"
+                                        style={{
+                                          animationDelay: `${i * 0.3}s`,
+                                          animationDuration: '1.6s',
+                                        }}
+                                      >
+                                        {word}
+                                      </span>
+                                    )
+                                  )}
+                                  <div
+                                    className="w-1.5 h-1.5 border border-orange-400/50 rounded-full animate-spin"
+                                    style={{ animationDelay: '0.9s' }}
+                                  ></div>
                                 </div>
                               ) : (
-                                <div className="animate-fadeInScale">survival line</div>
+                                <div className="animate-fadeInScale">
+                                  survival line
+                                </div>
                               )}
                             </div>
                           </div>
@@ -1732,28 +1892,37 @@ const TradingCalculator: React.FC = () => {
                               BROKERAGE COST
                             </div>
                             <div className="text-2xl font-bold text-white mb-1">
-                              {(isLoadingQuote || isLoadingPrice) ? (
+                              {isLoadingQuote || isLoadingPrice ? (
                                 <div className="relative">
                                   <div className="flex items-center space-x-2">
                                     {/* Receipt-style loading animation */}
                                     <div className="relative">
                                       <div className="flex items-center space-x-1">
-                                        <span className="text-purple-400 animate-pulse">₹</span>
+                                        <span className="text-purple-400 animate-pulse">
+                                          ₹
+                                        </span>
                                         {/* Calculating digits */}
                                         <div className="flex space-x-0.5">
                                           {[...Array(4)].map((_, i) => (
-                                            <div 
+                                            <div
                                               key={i}
                                               className="relative overflow-hidden"
                                             >
-                                              <div 
+                                              <div
                                                 className="w-3 h-6 bg-gradient-to-t from-purple-600/20 via-purple-400/40 to-purple-600/20 rounded-sm animate-pulse"
-                                                style={{ 
+                                                style={{
                                                   animationDelay: `${i * 0.1}s`,
-                                                  animationDuration: '1.3s'
+                                                  animationDuration: '1.3s',
                                                 }}
                                               >
-                                                <div className="absolute inset-0 -translate-y-full bg-gradient-to-t from-transparent via-purple-300/30 to-transparent animate-slide-down" style={{ animationDelay: `${i * 0.2}s` }}></div>
+                                                <div
+                                                  className="absolute inset-0 -translate-y-full bg-gradient-to-t from-transparent via-purple-300/30 to-transparent animate-slide-down"
+                                                  style={{
+                                                    animationDelay: `${
+                                                      i * 0.2
+                                                    }s`,
+                                                  }}
+                                                ></div>
                                               </div>
                                             </div>
                                           ))}
@@ -1764,14 +1933,18 @@ const TradingCalculator: React.FC = () => {
                                     <div className="flex flex-col space-y-0.5">
                                       <div className="flex space-x-1">
                                         {[...Array(3)].map((_, i) => (
-                                          <div 
-                                            key={i} 
+                                          <div
+                                            key={i}
                                             className="w-1 h-1 bg-purple-400 rounded-full animate-bounce"
-                                            style={{ animationDelay: `${i * 0.15}s` }}
+                                            style={{
+                                              animationDelay: `${i * 0.15}s`,
+                                            }}
                                           />
                                         ))}
                                       </div>
-                                      <div className="text-xs text-purple-300/60 animate-pulse font-normal tracking-wider">CALC</div>
+                                      <div className="text-xs text-purple-300/60 ">
+                                        CALC
+                                      </div>
                                     </div>
                                   </div>
                                 </div>
@@ -1782,24 +1955,31 @@ const TradingCalculator: React.FC = () => {
                               )}
                             </div>
                             <div className="text-xs text-purple-200">
-                              {(isLoadingQuote || isLoadingPrice) ? (
+                              {isLoadingQuote || isLoadingPrice ? (
                                 <div className="flex items-center space-x-1">
-                                  {['processing', 'fees', 'structure'].map((word, i) => (
-                                    <span 
-                                      key={word}
-                                      className="animate-pulse opacity-50"
-                                      style={{ 
-                                        animationDelay: `${i * 0.28}s`,
-                                        animationDuration: '1.7s'
-                                      }}
-                                    >
-                                      {word}
-                                    </span>
-                                  ))}
-                                  <div className="w-1.5 h-1.5 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0.85s' }}></div>
+                                  {['processing', 'fees', 'structure'].map(
+                                    (word, i) => (
+                                      <span
+                                        key={word}
+                                        className="animate-pulse opacity-50"
+                                        style={{
+                                          animationDelay: `${i * 0.28}s`,
+                                          animationDuration: '1.7s',
+                                        }}
+                                      >
+                                        {word}
+                                      </span>
+                                    )
+                                  )}
+                                  <div
+                                    className="w-1.5 h-1.5 bg-purple-400 rounded-full animate-bounce"
+                                    style={{ animationDelay: '0.85s' }}
+                                  ></div>
                                 </div>
                               ) : (
-                                <div className="animate-fadeInScale">buy side (auto-calculated)</div>
+                                <div className="animate-fadeInScale">
+                                  buy side (auto-calculated)
+                                </div>
                               )}
                             </div>
                           </div>
@@ -1832,33 +2012,48 @@ const TradingCalculator: React.FC = () => {
                               RISK PER SHARE
                             </div>
                             <div className="text-2xl font-bold text-white mb-1">
-                              {(isLoadingQuote || isLoadingPrice) ? (
+                              {isLoadingQuote || isLoadingPrice ? (
                                 <div className="relative">
                                   <div className="flex items-center space-x-2">
                                     {/* Unit risk calculation animation */}
                                     <div className="relative">
                                       <div className="flex items-center space-x-1">
-                                        <span className="text-cyan-400 animate-pulse">₹</span>
+                                        <span className="text-cyan-400 animate-pulse">
+                                          ₹
+                                        </span>
                                         {/* Per-unit calculation display */}
                                         <div className="flex space-x-0.5">
                                           {[...Array(3)].map((_, i) => (
-                                            <div 
-                                              key={i}
-                                              className="relative"
-                                            >
-                                              <div 
+                                            <div key={i} className="relative">
+                                              <div
                                                 className="w-4 h-6 bg-gradient-to-t from-cyan-600/20 via-cyan-400/40 to-cyan-600/20 rounded-sm animate-pulse"
-                                                style={{ 
-                                                  animationDelay: `${i * 0.15}s`,
-                                                  animationDuration: '1.2s'
+                                                style={{
+                                                  animationDelay: `${
+                                                    i * 0.15
+                                                  }s`,
+                                                  animationDuration: '1.2s',
                                                 }}
                                               >
                                                 {/* Electric-style effect */}
-                                                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-cyan-300/20 to-transparent animate-pulse" style={{ animationDelay: `${i * 0.2 + 0.4}s` }}></div>
+                                                <div
+                                                  className="absolute inset-0 bg-gradient-to-r from-transparent via-cyan-300/20 to-transparent animate-pulse"
+                                                  style={{
+                                                    animationDelay: `${
+                                                      i * 0.2 + 0.4
+                                                    }s`,
+                                                  }}
+                                                ></div>
                                               </div>
                                               {/* Unit separator */}
                                               {i < 2 && (
-                                                <div className="absolute -right-1 top-1/2 w-0.5 h-0.5 bg-cyan-400/60 rounded-full animate-ping" style={{ animationDelay: `${i * 0.3}s` }}></div>
+                                                <div
+                                                  className="absolute -right-1 top-1/2 w-0.5 h-0.5 bg-cyan-400/60 rounded-full animate-ping"
+                                                  style={{
+                                                    animationDelay: `${
+                                                      i * 0.3
+                                                    }s`,
+                                                  }}
+                                                ></div>
                                               )}
                                             </div>
                                           ))}
@@ -1868,13 +2063,13 @@ const TradingCalculator: React.FC = () => {
                                     {/* Risk level indicators */}
                                     <div className="flex items-center space-x-1">
                                       {[...Array(3)].map((_, i) => (
-                                        <div 
+                                        <div
                                           key={i}
                                           className="w-2 h-3 bg-gradient-to-t from-cyan-600/30 to-cyan-400/60 rounded-sm animate-pulse"
-                                          style={{ 
+                                          style={{
                                             animationDelay: `${i * 0.2}s`,
                                             animationDuration: '1.4s',
-                                            height: `${8 + i * 4}px`
+                                            height: `${8 + i * 4}px`,
                                           }}
                                         />
                                       ))}
@@ -1888,24 +2083,31 @@ const TradingCalculator: React.FC = () => {
                               )}
                             </div>
                             <div className="text-xs text-cyan-200">
-                              {(isLoadingQuote || isLoadingPrice) ? (
+                              {isLoadingQuote || isLoadingPrice ? (
                                 <div className="flex items-center space-x-1">
-                                  {['analyzing', 'unit', 'exposure'].map((word, i) => (
-                                    <span 
-                                      key={word}
-                                      className="animate-pulse opacity-60"
-                                      style={{ 
-                                        animationDelay: `${i * 0.32}s`,
-                                        animationDuration: '1.8s'
-                                      }}
-                                    >
-                                      {word}
-                                    </span>
-                                  ))}
-                                  <div className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-bounce" style={{ animationDelay: '0.95s' }}></div>
+                                  {['analyzing', 'unit', 'exposure'].map(
+                                    (word, i) => (
+                                      <span
+                                        key={word}
+                                        className="animate-pulse opacity-60"
+                                        style={{
+                                          animationDelay: `${i * 0.32}s`,
+                                          animationDuration: '1.8s',
+                                        }}
+                                      >
+                                        {word}
+                                      </span>
+                                    )
+                                  )}
+                                  <div
+                                    className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-bounce"
+                                    style={{ animationDelay: '0.95s' }}
+                                  ></div>
                                 </div>
                               ) : (
-                                <div className="animate-fadeInScale">per unit risk</div>
+                                <div className="animate-fadeInScale">
+                                  per unit risk
+                                </div>
                               )}
                             </div>
                           </div>
