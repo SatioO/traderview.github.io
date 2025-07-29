@@ -89,7 +89,7 @@ function App() {
   const basename =
     import.meta.env.MODE === 'development'
       ? '/'
-      : import.meta.env.VITE_BASE_PATH || '/';
+      : '/traderview.github.io';
 
   return (
     <BrowserRouter basename={basename}>
