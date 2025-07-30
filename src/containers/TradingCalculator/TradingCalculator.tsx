@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { useOrderPlacement } from '../../hooks/useOrderPlacement';
 import { orderService } from '../../services/orderService';
+import { tradingApiService } from '../../services/tradingApiService';
 import { FloatingOrderNotification } from '../../components/OrderPlacement/FloatingOrderNotification';
 import '../../components/ui/AdvancedAnimations.css';
 import { useTradingSettings } from '../../hooks/useTradingSettings';
@@ -253,6 +254,69 @@ const TradingCalculator: React.FC = () => {
       }));
     }
   }, [stopLossPercentage, formData.entryPrice, stopLossMode]);
+
+  // Fetch fresh quote when switching to MKT mode
+  const fetchLatestQuote = useCallback(async () => {
+    if (!selectedInstrument) return;
+    
+    try {
+      setIsLoadingPrice(true);
+      setIsAutoPopulating(true);
+      
+      const quote = await tradingApiService.getSingleInstrumentQuote(
+        selectedInstrument.tradingsymbol,
+        selectedInstrument.exchange
+      );
+      
+      if (quote && quote.last_price) {
+        const latestPrice = quote.last_price;
+        
+        // Update entry price with fresh market price and recalculate stop loss
+        const defaultStopLossPercentage = settings.defaultStopLossPercentage || 3;
+        const multiplier = (100 - defaultStopLossPercentage) / 100;
+        const calculatedStopLoss = parseFloat((latestPrice * multiplier).toFixed(2));
+        
+        setFormData((prev) => ({
+          ...prev,
+          entryPrice: latestPrice,
+          stopLoss: calculatedStopLoss,
+        }));
+        
+        // Update stop loss percentage for display
+        setStopLossPercentage(defaultStopLossPercentage);
+      } else {
+        throw new Error('No quote data received');
+      }
+      
+    } catch (error) {
+      console.error('Error fetching latest quote:', error);
+      // Fallback to current price if available
+      if (currentPrice) {
+        const defaultStopLossPercentage = settings.defaultStopLossPercentage || 3;
+        const multiplier = (100 - defaultStopLossPercentage) / 100;
+        const calculatedStopLoss = parseFloat((currentPrice * multiplier).toFixed(2));
+        
+        setFormData((prev) => ({
+          ...prev,
+          entryPrice: currentPrice,
+          stopLoss: calculatedStopLoss,
+        }));
+        
+        setStopLossPercentage(defaultStopLossPercentage);
+      }
+    } finally {
+      setIsLoadingPrice(false);
+      setIsAutoPopulating(false);
+    }
+  }, [selectedInstrument, settings.defaultStopLossPercentage, currentPrice]);
+
+  // Auto-fetch quote when switching to MKT mode
+  useEffect(() => {
+    if (entryPriceMode === 'mkt' && selectedInstrument) {
+      // Always fetch fresh quote when switching to MKT mode
+      fetchLatestQuote();
+    }
+  }, [entryPriceMode, selectedInstrument, fetchLatestQuote]);
 
   // Validate inputs
   const validateInputs = useCallback((): string[] => {
