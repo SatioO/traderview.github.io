@@ -603,8 +603,8 @@ const TradingCalculator: React.FC = () => {
       setFormData((prev) => {
         const newData: FormData = { ...prev, [field]: processedValue };
 
-        // Auto-calculate stop loss when entry price is entered (only in percentage mode)
-        if (field === 'entryPrice' && processedValue && processedValue > 0 && stopLossMode === 'percentage') {
+        // Auto-calculate stop loss when entry price is entered (always calculate based on default percentage)
+        if (field === 'entryPrice' && processedValue && processedValue > 0) {
           const defaultStopLossPercentage =
             settings.defaultStopLossPercentage || 3; // Use user setting or default to 3%
           const multiplier = (100 - defaultStopLossPercentage) / 100; // Convert percentage to multiplier
