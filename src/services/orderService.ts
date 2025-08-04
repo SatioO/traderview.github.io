@@ -383,8 +383,8 @@ class OrderService {
       transaction_type: 'BUY', // Default to BUY, can be made configurable
       order_type: entryPriceMode === 'mkt' ? 'MARKET' : 'LIMIT',
       product: 'CNC', // Default to Cash & Carry
-      // quantity: Math.floor(calculations?.positionSize || 0),
-      quantity: 1,
+      quantity: Math.floor(calculations?.positionSize || 0),
+      // quantity: 1,
       price: entryPriceMode === 'lmt' ? formData.entryPrice : undefined,
       validity: 'DAY',
       tag: `tv_${Date.now().toString().slice(-8)}`,

@@ -1,6 +1,6 @@
 import './App.css';
 import {
-  BrowserRouter,
+  HashRouter,
   useRoutes,
   Navigate,
   useLocation,
@@ -92,7 +92,7 @@ function App() {
       : import.meta.env.VITE_BASE_PATH || '/';
 
   return (
-    <BrowserRouter basename={basename}>
+    <HashRouter>
       <AuthProvider>
         <SettingsProvider>
           <TradingProvider>
@@ -102,7 +102,7 @@ function App() {
           </TradingProvider>
         </SettingsProvider>
       </AuthProvider>
-    </BrowserRouter>
+    </HashRouter>
   );
 }
 
