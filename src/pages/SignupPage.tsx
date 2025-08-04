@@ -367,14 +367,14 @@ const SignupPage: React.FC = () => {
           {/* Sign In Link */}
           <div className="text-center space-y-2">
             <div className="flex items-center justify-center space-x-2 text-xs">
-              <span className="text-slate-400">Already trading with us?</span>
+              <span className="text-slate-400">Already have an account?</span>
               <button
                 type="button"
                 onClick={handleSwitchToLogin}
                 className="inline-flex items-center space-x-1 text-purple-300 hover:text-purple-200 transition-colors duration-300 font-medium focus:outline-none focus:ring-2 focus:ring-purple-400/50 focus:ring-offset-2 focus:ring-offset-slate-900 rounded px-2 py-1"
               >
                 <Shield className="w-3 h-3 flex-shrink-0" />
-                <span>Welcome Back</span>
+                <span>Sign In</span>
               </button>
             </div>
             <p className="text-xs text-slate-500">

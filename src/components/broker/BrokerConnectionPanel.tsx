@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { brokerApiService } from '../../services/brokerApiService';
+import { getBrokerIcon } from '../../utils/brokerIcons';
 
 interface BrokerConnectionPanelProps {
   className?: string;
@@ -289,7 +290,7 @@ const BrokerConnectionPanel: React.FC<BrokerConnectionPanelProps> = ({
                       disabled={isLoadingBroker || broker.isConnected}
                       className={`${
                         brokers.length > 2 ? 'w-full' : 'flex-1'
-                      } text-left relative overflow-hidden backdrop-blur-md rounded-xl border transition-all duration-500 hover:scale-[1.02] hover:-translate-y-0.5 p-3 group/broker ${
+                      } text-left relative overflow-hidden backdrop-blur-md rounded-xl border transition-all duration-500 hover:scale-[1.02] hover:-translate-y-0.5 px-3 py-2 group/broker ${
                         hasError
                           ? 'bg-gradient-to-br from-rose-950/80 via-red-900/60 to-pink-950/80 border-red-400/50 hover:border-red-300/70 hover:shadow-xl hover:shadow-red-500/20'
                           : hasSuccess
@@ -324,7 +325,7 @@ const BrokerConnectionPanel: React.FC<BrokerConnectionPanelProps> = ({
                         <div className="absolute inset-0 bg-gradient-to-r from-violet-500/0 via-violet-500/5 to-violet-500/0 opacity-0 group-hover/broker:opacity-100 transition-opacity duration-500 rounded-xl"></div>
                       </div>
 
-                      <div className="relative flex items-center space-x-3">
+                      <div className="relative flex items-center justify-between">
                         {/* Enhanced Logo Container */}
                         <div className="relative flex-shrink-0">
                           <div>
@@ -400,41 +401,25 @@ const BrokerConnectionPanel: React.FC<BrokerConnectionPanelProps> = ({
                                   : 'opacity-100'
                               }`}
                             >
-                              {broker.icon ? (
-                                <img
-                                  src={broker.icon}
-                                  alt={`${broker.name} logo`}
-                                  className="w-5 h-5 object-contain filter drop-shadow-md group-hover/broker:drop-shadow-lg transition-all duration-300 group-hover/broker:scale-105"
-                                  onError={(e) => {
-                                    const target = e.target as HTMLImageElement;
-                                    target.style.display = 'none';
-                                    const emojiSpan =
-                                      document.createElement('span');
-                                    emojiSpan.className = 'text-xs';
-                                    emojiSpan.textContent =
-                                      broker.id === 'kite'
-                                        ? '🔥'
-                                        : broker.id === 'groww'
-                                        ? '📈'
-                                        : broker.id === 'angelone'
-                                        ? '⚡'
-                                        : '🏛️';
-                                    target.parentElement!.appendChild(
-                                      emojiSpan
-                                    );
-                                  }}
-                                />
-                              ) : (
-                                <span className="text-xs">
-                                  {broker.id === 'kite'
-                                    ? '🔥'
-                                    : broker.id === 'groww'
-                                    ? '📈'
-                                    : broker.id === 'angelone'
-                                    ? '⚡'
-                                    : '🏛️'}
-                                </span>
-                              )}
+                              {(() => {
+                                const brokerConfig = getBrokerIcon(broker.id);
+
+                                if (brokerConfig.icon) {
+                                  return (
+                                    <img
+                                      src={brokerConfig.icon}
+                                      alt={`${brokerConfig.name} logo`}
+                                      className="w-10 h-10 object-contain filter drop-shadow-md group-hover/broker:drop-shadow-lg transition-all duration-300 group-hover/broker:scale-105"
+                                    />
+                                  );
+                                } else {
+                                  return (
+                                    <span className="text-lg">
+                                      {brokerConfig.emoji}
+                                    </span>
+                                  );
+                                }
+                              })()}
                             </div>
                           </div>
                         </div>
@@ -442,22 +427,19 @@ const BrokerConnectionPanel: React.FC<BrokerConnectionPanelProps> = ({
                         {/* Enhanced Arrow indicator */}
                         {!isLoadingBroker && !hasError && !hasSuccess && (
                           <div className="flex-shrink-0">
-                            <div className="relative">
-                              <svg
-                                className="w-4 h-4 text-violet-400/70 transition-all duration-300 group-hover/broker:text-violet-300 group-hover/broker:translate-x-1 drop-shadow-sm"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2.5}
-                                  d="M9 5l7 7-7 7"
-                                />
-                              </svg>
-                              <div className="absolute inset-0 bg-violet-400/10 rounded-full group-hover/broker:bg-violet-400/20 transition-colors duration-300"></div>
-                            </div>
+                            <svg
+                              className="w-4 h-4 text-violet-400/70 transition-all duration-300 group-hover/broker:text-violet-300 group-hover/broker:translate-x-0.5 drop-shadow-sm"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2.5}
+                                d="M9 5l7 7-7 7"
+                              />
+                            </svg>
                           </div>
                         )}
                       </div>

@@ -164,53 +164,49 @@ class AnalyticsService {
   private async setupLocationTracking() {
     try {
       // Use IP-based geolocation service (you can replace with your preferred service)
-      const response = await fetch('https://ipapi.co/json/');
-      const locationData = await response.json();
-
-      const locationInfo = {
-        country: locationData.country_name || 'Unknown',
-        region: locationData.region || 'Unknown',
-        city: locationData.city || 'Unknown',
-        timezone: locationData.timezone || 'Unknown',
-        ip: locationData.ip || 'Unknown',
-        isp: locationData.org || 'Unknown',
-        latitude: locationData.latitude || null,
-        longitude: locationData.longitude || null,
-        countryCode: locationData.country_code || 'XX',
-      };
-
-      this.userProfile.location = locationInfo;
-
+      // const response = await fetch('https://ipapi.co/json/');
+      // const locationData = await response.json();
+      // const locationInfo = {
+      //   country: locationData.country_name || 'Unknown',
+      //   region: locationData.region || 'Unknown',
+      //   city: locationData.city || 'Unknown',
+      //   timezone: locationData.timezone || 'Unknown',
+      //   ip: locationData.ip || 'Unknown',
+      //   isp: locationData.org || 'Unknown',
+      //   latitude: locationData.latitude || null,
+      //   longitude: locationData.longitude || null,
+      //   countryCode: locationData.country_code || 'XX',
+      // };
+      // this.userProfile.location = locationInfo;
       // Set user properties for location
-      if (this.isInitialized) {
-        setUserProperties(this.analytics, {
-          user_country: locationInfo.country,
-          user_region: locationInfo.region,
-          user_city: locationInfo.city,
-          user_timezone: locationInfo.timezone,
-          user_isp: locationInfo.isp,
-        });
-      }
-
+      // if (this.isInitialized) {
+      //   setUserProperties(this.analytics, {
+      //     user_country: locationInfo.country,
+      //     user_region: locationInfo.region,
+      //     user_city: locationInfo.city,
+      //     user_timezone: locationInfo.timezone,
+      //     user_isp: locationInfo.isp,
+      //   });
+      // }
       // Track location data
-      this.trackEvent('user_location_detected', {
-        country: locationInfo.country,
-        region: locationInfo.region,
-        city: locationInfo.city,
-        timezone: locationInfo.timezone,
-      });
+      // this.trackEvent('user_location_detected', {
+      //   country: locationInfo.country,
+      //   region: locationInfo.region,
+      //   city: locationInfo.city,
+      //   timezone: locationInfo.timezone,
+      // });
     } catch (error) {
       console.warn('Could not fetch location data:', error);
 
-      // Fallback to basic timezone info
-      const fallbackLocation = {
-        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        country: 'Unknown',
-        region: 'Unknown',
-        city: 'Unknown',
-      };
+      // // Fallback to basic timezone info
+      // const fallbackLocation = {
+      //   timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      //   country: 'Unknown',
+      //   region: 'Unknown',
+      //   city: 'Unknown',
+      // };
 
-      this.userProfile.location = fallbackLocation;
+      // this.userProfile.location = fallbackLocation;
     }
   }
 
