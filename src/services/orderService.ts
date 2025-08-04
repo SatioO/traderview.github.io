@@ -141,10 +141,12 @@ class OrderService {
     this.validateOrderRequest(orderRequest);
 
     // Add stopLoss metadata to the request if provided
-    const requestWithMetadata = stopLossMetadata ? {
-      ...orderRequest,
-      metadata: stopLossMetadata
-    } : orderRequest;
+    const requestWithMetadata = stopLossMetadata
+      ? {
+          ...orderRequest,
+          stopLossMetadata,
+        }
+      : orderRequest;
 
     return this.makeRequest<PlaceOrderResponse>(
       `${this.baseUrl}/${broker}/orders/place`,
@@ -180,7 +182,11 @@ class OrderService {
 
     // First place the regular order
     try {
-      const orderResponse = await this.placeOrder(broker, orderRequest, stopLossMetadata);
+      const orderResponse = await this.placeOrder(
+        broker,
+        orderRequest,
+        stopLossMetadata
+      );
       console.log('✅ Order placed successfully:', orderResponse);
 
       // Extract stopLoss from metadata

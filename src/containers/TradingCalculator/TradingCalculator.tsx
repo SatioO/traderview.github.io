@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { useOrderPlacement } from '../../hooks/useOrderPlacement';
 import { orderService } from '../../services/orderService';
+import { tradingApiService } from '../../services/tradingApiService';
 import { FloatingOrderNotification } from '../../components/OrderPlacement/FloatingOrderNotification';
 import '../../components/ui/AdvancedAnimations.css';
 import { useTradingSettings } from '../../hooks/useTradingSettings';
@@ -169,17 +170,25 @@ const TradingCalculator: React.FC = () => {
     []
   );
 
-  // Auto-populate entry price when instrument quote is loaded
+  // Auto-populate entry price and stop loss when instrument quote is loaded
   useEffect(() => {
     if (currentPrice && selectedInstrument) {
       setIsAutoPopulating(true);
       
       // Always update entry price with live price when quote is available
       // This ensures calculations are always based on current market price
+      const defaultStopLossPercentage = settings.defaultStopLossPercentage || 3;
+      const multiplier = (100 - defaultStopLossPercentage) / 100;
+      const calculatedStopLoss = parseFloat((currentPrice * multiplier).toFixed(2));
+      
       setFormData((prev) => ({
         ...prev,
         entryPrice: currentPrice,
+        stopLoss: calculatedStopLoss,
       }));
+      
+      // Update stop loss percentage for display
+      setStopLossPercentage(defaultStopLossPercentage);
       
       // Clear auto-populating flag after a brief delay to prevent validation flash
       const timer = setTimeout(() => {
@@ -188,7 +197,7 @@ const TradingCalculator: React.FC = () => {
       
       return () => clearTimeout(timer);
     }
-  }, [currentPrice, selectedInstrument]);
+  }, [currentPrice, selectedInstrument, settings.defaultStopLossPercentage]);
 
   // Check if current entry price matches the live price (auto-populated)
   const isEntryPriceAutoPopulated =
@@ -232,9 +241,9 @@ const TradingCalculator: React.FC = () => {
     setStopLossPercentage(settings.defaultStopLossPercentage);
   }, [settings.defaultStopLossPercentage]);
 
-  // Recalculate stop loss price when percentage changes and entry price exists
+  // Recalculate stop loss price when percentage changes and entry price exists (only in percentage mode)
   useEffect(() => {
-    if (formData.entryPrice > 0 && stopLossPercentage > 0) {
+    if (stopLossMode === 'percentage' && formData.entryPrice > 0 && stopLossPercentage > 0) {
       const multiplier = (100 - stopLossPercentage) / 100;
       const newStopLoss = parseFloat(
         (formData.entryPrice * multiplier).toFixed(2)
@@ -244,7 +253,70 @@ const TradingCalculator: React.FC = () => {
         stopLoss: newStopLoss,
       }));
     }
-  }, [stopLossPercentage, formData.entryPrice]);
+  }, [stopLossPercentage, formData.entryPrice, stopLossMode]);
+
+  // Fetch fresh quote when switching to MKT mode
+  const fetchLatestQuote = useCallback(async () => {
+    if (!selectedInstrument) return;
+    
+    try {
+      setIsLoadingPrice(true);
+      setIsAutoPopulating(true);
+      
+      const quote = await tradingApiService.getSingleInstrumentQuote(
+        selectedInstrument.tradingsymbol,
+        selectedInstrument.exchange
+      );
+      
+      if (quote && quote.last_price) {
+        const latestPrice = quote.last_price;
+        
+        // Update entry price with fresh market price and recalculate stop loss
+        const defaultStopLossPercentage = settings.defaultStopLossPercentage || 3;
+        const multiplier = (100 - defaultStopLossPercentage) / 100;
+        const calculatedStopLoss = parseFloat((latestPrice * multiplier).toFixed(2));
+        
+        setFormData((prev) => ({
+          ...prev,
+          entryPrice: latestPrice,
+          stopLoss: calculatedStopLoss,
+        }));
+        
+        // Update stop loss percentage for display
+        setStopLossPercentage(defaultStopLossPercentage);
+      } else {
+        throw new Error('No quote data received');
+      }
+      
+    } catch (error) {
+      console.error('Error fetching latest quote:', error);
+      // Fallback to current price if available
+      if (currentPrice) {
+        const defaultStopLossPercentage = settings.defaultStopLossPercentage || 3;
+        const multiplier = (100 - defaultStopLossPercentage) / 100;
+        const calculatedStopLoss = parseFloat((currentPrice * multiplier).toFixed(2));
+        
+        setFormData((prev) => ({
+          ...prev,
+          entryPrice: currentPrice,
+          stopLoss: calculatedStopLoss,
+        }));
+        
+        setStopLossPercentage(defaultStopLossPercentage);
+      }
+    } finally {
+      setIsLoadingPrice(false);
+      setIsAutoPopulating(false);
+    }
+  }, [selectedInstrument, settings.defaultStopLossPercentage, currentPrice]);
+
+  // Auto-fetch quote when switching to MKT mode
+  useEffect(() => {
+    if (entryPriceMode === 'mkt' && selectedInstrument) {
+      // Always fetch fresh quote when switching to MKT mode
+      fetchLatestQuote();
+    }
+  }, [entryPriceMode, selectedInstrument, fetchLatestQuote]);
 
   // Validate inputs
   const validateInputs = useCallback((): string[] => {
@@ -595,7 +667,7 @@ const TradingCalculator: React.FC = () => {
       setFormData((prev) => {
         const newData: FormData = { ...prev, [field]: processedValue };
 
-        // Auto-calculate stop loss when entry price is entered (using user's default percentage)
+        // Auto-calculate stop loss when entry price is entered (always calculate based on default percentage)
         if (field === 'entryPrice' && processedValue && processedValue > 0) {
           const defaultStopLossPercentage =
             settings.defaultStopLossPercentage || 3; // Use user setting or default to 3%
@@ -629,7 +701,7 @@ const TradingCalculator: React.FC = () => {
         return newData;
       });
     },
-    [activeTab, settings.defaultStopLossPercentage]
+    [activeTab, settings.defaultStopLossPercentage, stopLossMode]
   );
 
   // Generate R-multiple targets
@@ -870,10 +942,11 @@ const TradingCalculator: React.FC = () => {
                             onChange={(e) => {
                               const value = e.target.value;
                               handleInputChange('stopLoss', value);
-                              // Auto-calculate percentage
+                              // Auto-calculate percentage (only update percentage when in price mode for display purposes)
                               if (
                                 formData.entryPrice > 0 &&
-                                parseFloat(value) > 0
+                                parseFloat(value) > 0 &&
+                                stopLossMode === 'price'
                               ) {
                                 const percentage =
                                   ((formData.entryPrice - parseFloat(value)) /

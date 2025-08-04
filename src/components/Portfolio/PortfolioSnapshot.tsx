@@ -419,7 +419,7 @@ const PortfolioSnapshot: React.FC = () => {
         <div className="px-4 py-2 bg-slate-900/10 border-b border-slate-700/20">
           <div
             className="grid gap-3 text-xs font-medium text-slate-500 uppercase tracking-wide"
-            style={{ gridTemplateColumns: '2fr 1fr 1fr 1.5fr 0.8fr 1fr 1.5fr' }}
+            style={{ gridTemplateColumns: '2fr 1fr 1fr 1.2fr 1fr 1fr 1.5fr' }}
           >
             <div>Symbol</div>
             <div>Status</div>
@@ -497,7 +497,7 @@ const PortfolioSnapshot: React.FC = () => {
                   <div
                     className="grid gap-3 items-center"
                     style={{
-                      gridTemplateColumns: '2fr 1fr 1fr 1.5fr 0.8fr 1fr 1.5fr',
+                      gridTemplateColumns: '2fr 1fr 1fr 1.2fr 1fr 1fr 1.5fr',
                     }}
                   >
                     {/* Compact Symbol */}
@@ -547,7 +547,7 @@ const PortfolioSnapshot: React.FC = () => {
                     </div>
 
                     {/* Size with Mini Bar */}
-                    <div className="text-center">
+                    <div className="flex flex-col items-center justify-center text-center">
                       <div className="text-sm font-semibold text-orange-400 mb-1">
                         {position.sizePercent}%
                       </div>
