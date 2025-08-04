@@ -81,13 +81,8 @@ function AppContent() {
 }
 
 function App() {
-  const basename =
-    import.meta.env.MODE === 'development'
-      ? '/'
-      : import.meta.env.VITE_BASE_PATH || '/';
-
   return (
-    <HashRouter basename={basename}>
+    <HashRouter>
       <AuthProvider>
         <SettingsProvider>
           <TradingProvider>
