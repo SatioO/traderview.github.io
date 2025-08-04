@@ -5,6 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { UserPlus, Shield, Zap, TrendingUp } from 'lucide-react';
 import Input from '../components/ui/Input';
 import Button from '../components/ui/Button';
+import BrandLogo from '../components/ui/BrandLogo';
 import { useAuth } from '../contexts/AuthContext';
 import { signupSchema, type SignupFormData } from '../lib/validationSchemas';
 import { ROUTES } from '../routes';
@@ -236,16 +237,9 @@ const SignupPage: React.FC = () => {
           <div className="absolute inset-0 bg-gradient-to-br from-white/[0.02] via-transparent to-black/10 pointer-events-none rounded-[2rem]" />
           {/* Brand Header */}
           <div className="text-center space-y-3">
-            <div className="relative group mx-auto w-fit">
-              <div className="relative z-10 p-3 bg-gradient-to-br from-slate-900/80 via-purple-900/60 to-slate-800/80 backdrop-blur-xl rounded-xl border border-purple-400/30 group-hover:border-purple-400/50 transition-all duration-300">
-                <TrendingUp className="w-7 h-7 text-slate-300 group-hover:text-purple-300 transition-all duration-300" />
-              </div>
-            </div>
+            <BrandLogo size="lg" />
 
             <div className="space-y-3">
-              <h1 className="text-3xl font-black bg-gradient-to-r from-slate-100 via-purple-200 to-slate-100 bg-clip-text text-transparent tracking-tight">
-                TraderView
-              </h1>
               <div className="mx-auto px-3 py-1 bg-gradient-to-r from-purple-500/20 to-purple-600/20 border border-purple-400/30 rounded-full w-fit">
                 <span className="text-xs font-bold text-purple-300 tracking-wider">
                   Professional Risk Management Platform
