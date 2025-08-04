@@ -13,8 +13,9 @@ import '../components/ui/CinematicAnimations.css';
 const SignupPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { signup, signupError, isSignupLoading, clearErrors, isAuthenticated } = useAuth();
-  
+  const { signup, signupError, isSignupLoading, clearErrors, isAuthenticated } =
+    useAuth();
+
   // Get the intended destination from location state, or default to home
   const from = location.state?.from?.pathname || ROUTES.HOME;
 
@@ -230,26 +231,30 @@ const SignupPage: React.FC = () => {
         <div className="relative bg-gradient-to-br from-slate-900/98 via-purple-900/95 to-slate-800/98 backdrop-blur-3xl rounded-[2rem] border border-purple-400/40 shadow-[0_0_50px_rgba(168,85,247,0.3)] p-8 space-y-5 animate-terminal-float">
           {/* Dynamic light bar */}
           <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-purple-400/50 to-transparent" />
-          
+
           {/* Glass morphism overlay */}
           <div className="absolute inset-0 bg-gradient-to-br from-white/[0.02] via-transparent to-black/10 pointer-events-none rounded-[2rem]" />
           {/* Brand Header */}
-          <div className="text-center space-y-2">
+          <div className="text-center space-y-3">
             <div className="relative group mx-auto w-fit">
-              <div className="relative z-10 p-2.5 bg-gradient-to-br from-slate-900/80 via-purple-900/60 to-slate-800/80 backdrop-blur-xl rounded-xl border border-purple-400/30 group-hover:border-purple-400/50 transition-all duration-300">
-                <UserPlus className="w-6 h-6 text-slate-300 group-hover:text-purple-300 transition-all duration-300" />
+              <div className="relative z-10 p-3 bg-gradient-to-br from-slate-900/80 via-purple-900/60 to-slate-800/80 backdrop-blur-xl rounded-xl border border-purple-400/30 group-hover:border-purple-400/50 transition-all duration-300">
+                <TrendingUp className="w-7 h-7 text-slate-300 group-hover:text-purple-300 transition-all duration-300" />
               </div>
             </div>
 
-            <div className="space-y-1">
-              <h1 className="text-xl font-black bg-gradient-to-r from-slate-100 via-purple-200 to-slate-100 bg-clip-text text-transparent tracking-tight">
-                Join Today
+            <div className="space-y-3">
+              <h1 className="text-3xl font-black bg-gradient-to-r from-slate-100 via-purple-200 to-slate-100 bg-clip-text text-transparent tracking-tight">
+                TraderView
               </h1>
-              <div className="mx-auto px-2 py-0.5 bg-gradient-to-r from-purple-500/20 to-purple-600/20 border border-purple-400/30 rounded-full w-fit">
+              <div className="mx-auto px-3 py-1 bg-gradient-to-r from-purple-500/20 to-purple-600/20 border border-purple-400/30 rounded-full w-fit">
                 <span className="text-xs font-bold text-purple-300 tracking-wider">
-                  Risk Management Platform
+                  Professional Risk Management Platform
                 </span>
               </div>
+              <p className="text-sm text-slate-300 leading-relaxed max-w-sm mx-auto">
+                Join thousands of traders who trust TraderView for advanced
+                position sizing, risk management, and portfolio optimization.
+              </p>
             </div>
           </div>
 
@@ -261,14 +266,14 @@ const SignupPage: React.FC = () => {
                 <Input
                   {...register('firstName')}
                   type="text"
-                  placeholder="First name"
+                  placeholder="First Name"
                   error={errors.firstName?.message}
                   autoComplete="given-name"
                 />
                 <Input
                   {...register('lastName')}
                   type="text"
-                  placeholder="Last name"
+                  placeholder="Last Name"
                   error={errors.lastName?.message}
                   autoComplete="family-name"
                 />
@@ -277,7 +282,7 @@ const SignupPage: React.FC = () => {
               <Input
                 {...register('email')}
                 type="email"
-                placeholder="Email"
+                placeholder="john.doe@example.com"
                 error={errors.email?.message}
                 autoComplete="email"
               />
@@ -286,7 +291,7 @@ const SignupPage: React.FC = () => {
                 <Input
                   {...register('password')}
                   type="password"
-                  placeholder="Password"
+                  placeholder="Create strong password"
                   error={errors.password?.message}
                   isPassword={true}
                   showPasswordToggle={true}
@@ -296,7 +301,7 @@ const SignupPage: React.FC = () => {
                 <Input
                   {...register('confirmPassword')}
                   type="password"
-                  placeholder="Confirm"
+                  placeholder="Confirm password"
                   error={errors.confirmPassword?.message}
                   isPassword={true}
                   showPasswordToggle={true}
@@ -323,44 +328,58 @@ const SignupPage: React.FC = () => {
               loading={isSignupLoading}
               className="w-full"
             >
-              <TrendingUp className="w-4 h-4 mr-2 flex-shrink-0" />
-              <span className="font-semibold">Create Account</span>
+              <UserPlus className="w-4 h-4 mr-2 flex-shrink-0" />
+              <span className="font-semibold">
+                {isSignupLoading
+                  ? 'Creating Account...'
+                  : 'Start Trading Today'}
+              </span>
             </Button>
           </form>
 
-          {/* Features Grid */}
-          <div className="grid grid-cols-3 gap-3 py-2">
-            <div className="text-center space-y-1">
-              <div className="w-6 h-6 bg-gradient-to-br from-emerald-500/20 to-emerald-500/5 rounded-lg flex items-center justify-center mx-auto">
-                <Shield className="w-3 h-3 text-emerald-400" />
+          {/* Value Proposition */}
+          <div className="bg-gradient-to-r from-purple-500/10 to-cyan-500/10 border border-purple-400/20 rounded-xl p-4 space-y-3">
+            <h3 className="text-sm font-bold text-purple-200 text-center">
+              What You Get
+            </h3>
+            <div className="grid grid-cols-1 gap-2 text-xs">
+              <div className="flex items-center space-x-2">
+                <Shield className="w-3 h-3 text-emerald-400 flex-shrink-0" />
+                <span className="text-slate-300">
+                  Advanced position sizing calculators
+                </span>
               </div>
-              <p className="text-xs text-slate-400">Risk Mgmt</p>
-            </div>
-            <div className="text-center space-y-1">
-              <div className="w-6 h-6 bg-gradient-to-br from-purple-500/20 to-purple-500/5 rounded-lg flex items-center justify-center mx-auto">
-                <Zap className="w-3 h-3 text-purple-400" />
+              <div className="flex items-center space-x-2">
+                <Zap className="w-3 h-3 text-purple-400 flex-shrink-0" />
+                <span className="text-slate-300">
+                  Real-time risk management tools
+                </span>
               </div>
-              <p className="text-xs text-slate-400">Analytics</p>
-            </div>
-            <div className="text-center space-y-1">
-              <div className="w-6 h-6 bg-gradient-to-br from-cyan-500/20 to-cyan-500/5 rounded-lg flex items-center justify-center mx-auto">
-                <TrendingUp className="w-3 h-3 text-cyan-400" />
+              <div className="flex items-center space-x-2">
+                <TrendingUp className="w-3 h-3 text-cyan-400 flex-shrink-0" />
+                <span className="text-slate-300">
+                  Professional portfolio tracking
+                </span>
               </div>
-              <p className="text-xs text-slate-400">Portfolio</p>
             </div>
           </div>
 
           {/* Sign In Link */}
-          <div className="flex items-center justify-center space-x-2 text-xs pt-2">
-            <span className="text-slate-400">Already have an account?</span>
-            <button
-              type="button"
-              onClick={handleSwitchToLogin}
-              className="inline-flex items-center space-x-1 text-purple-300 hover:text-purple-200 transition-colors duration-300 font-medium focus:outline-none focus:ring-2 focus:ring-purple-400/50 focus:ring-offset-2 focus:ring-offset-slate-900 rounded px-2 py-1"
-            >
-              <Shield className="w-3 h-3 flex-shrink-0" />
-              <span>Sign In</span>
-            </button>
+          <div className="text-center space-y-2">
+            <div className="flex items-center justify-center space-x-2 text-xs">
+              <span className="text-slate-400">Already trading with us?</span>
+              <button
+                type="button"
+                onClick={handleSwitchToLogin}
+                className="inline-flex items-center space-x-1 text-purple-300 hover:text-purple-200 transition-colors duration-300 font-medium focus:outline-none focus:ring-2 focus:ring-purple-400/50 focus:ring-offset-2 focus:ring-offset-slate-900 rounded px-2 py-1"
+              >
+                <Shield className="w-3 h-3 flex-shrink-0" />
+                <span>Welcome Back</span>
+              </button>
+            </div>
+            <p className="text-xs text-slate-500">
+              Join 10,000+ traders • Free forever • No credit card required
+            </p>
           </div>
         </div>
       </div>
