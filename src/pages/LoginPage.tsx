@@ -13,8 +13,9 @@ import '../components/ui/CinematicAnimations.css';
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login, loginError, isLoginLoading, clearErrors, isAuthenticated } = useAuth();
-  
+  const { login, loginError, isLoginLoading, clearErrors, isAuthenticated } =
+    useAuth();
+
   // Get the intended destination from location state, or default to home
   const from = location.state?.from?.pathname || ROUTES.HOME;
 
@@ -49,7 +50,6 @@ const LoginPage: React.FC = () => {
     clearErrors();
     navigate('/signup');
   };
-
 
   return (
     <div className="min-h-screen relative overflow-hidden bg-black/80 backdrop-blur-2xl flex items-center justify-center p-4">
@@ -229,7 +229,7 @@ const LoginPage: React.FC = () => {
         <div className="relative bg-gradient-to-br from-slate-900/98 via-purple-900/95 to-slate-800/98 backdrop-blur-3xl rounded-[2rem] shadow-2xl border border-purple-400/40 shadow-[0_0_50px_rgba(168,85,247,0.3)] p-8 space-y-6 animate-terminal-float">
           {/* Dynamic light bar */}
           <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-purple-400/50 to-transparent" />
-          
+
           {/* Glass morphism overlay */}
           <div className="absolute inset-0 bg-gradient-to-br from-white/[0.02] via-transparent to-black/10 pointer-events-none rounded-[2rem]" />
           {/* Brand Header */}
@@ -240,15 +240,19 @@ const LoginPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="space-y-2">
-              <h1 className="text-2xl font-black bg-gradient-to-r from-slate-100 via-purple-200 to-slate-100 bg-clip-text text-transparent tracking-tight">
-                TradeView
+            <div className="space-y-3">
+              <h1 className="text-3xl font-black bg-gradient-to-r from-slate-100 via-purple-200 to-slate-100 bg-clip-text text-transparent tracking-tight">
+                TraderView
               </h1>
-              <div className="mx-auto px-2 py-0.5 bg-gradient-to-r from-purple-500/20 to-purple-600/20 border border-purple-400/30 rounded-full w-fit">
+              <div className="mx-auto px-3 py-1 bg-gradient-to-r from-purple-500/20 to-purple-600/20 border border-purple-400/30 rounded-full w-fit">
                 <span className="text-xs font-bold text-purple-300 tracking-wider">
-                  Risk Management Platform
+                  Advanced Risk Management Platform
                 </span>
               </div>
+              <p className="text-sm text-slate-300 leading-relaxed max-w-sm mx-auto">
+                Welcome back! Access your professional trading dashboard with
+                advanced position sizing and risk management tools.
+              </p>
             </div>
           </div>
 
@@ -258,7 +262,7 @@ const LoginPage: React.FC = () => {
               <Input
                 {...register('email')}
                 type="email"
-                placeholder="Enter your email"
+                placeholder="trader@example.com"
                 error={errors.email?.message}
                 autoComplete="email"
               />
@@ -266,7 +270,7 @@ const LoginPage: React.FC = () => {
               <Input
                 {...register('password')}
                 type="password"
-                placeholder="Enter your password"
+                placeholder="Your secure password"
                 error={errors.password?.message}
                 isPassword={true}
                 showPasswordToggle={true}
@@ -278,7 +282,9 @@ const LoginPage: React.FC = () => {
               <div className="relative p-3 bg-red-500/10 border border-red-500/30 rounded-lg backdrop-blur-sm">
                 <div className="flex items-center space-x-2">
                   <div className="w-1.5 h-1.5 bg-red-400 rounded-full animate-pulse flex-shrink-0"></div>
-                  <p className="text-xs text-red-400 font-medium">{loginError}</p>
+                  <p className="text-xs text-red-400 font-medium">
+                    {loginError}
+                  </p>
                 </div>
               </div>
             )}
@@ -291,23 +297,32 @@ const LoginPage: React.FC = () => {
               className="w-full"
             >
               <Shield className="w-4 h-4 mr-2 flex-shrink-0" />
-              <span className="font-semibold">Access Platform</span>
+              <span className="font-semibold">
+                {isLoginLoading ? 'Signing In...' : 'Sign In to Dashboard'}
+              </span>
             </Button>
           </form>
 
           {/* Action Links */}
           <div className="space-y-3">
             {/* Sign Up */}
-            <div className="flex items-center justify-center space-x-2 text-xs">
-              <span className="text-slate-400">New to TradeView?</span>
-              <button
-                type="button"
-                onClick={handleSwitchToSignup}
-                className="inline-flex items-center space-x-1 text-purple-300 hover:text-purple-200 transition-colors duration-300 font-medium focus:outline-none focus:ring-2 focus:ring-purple-400/50 focus:ring-offset-2 focus:ring-offset-slate-900 rounded px-2 py-1"
-              >
-                <Zap className="w-3 h-3 flex-shrink-0" />
-                <span>Create Account</span>
-              </button>
+            <div className="text-center space-y-3">
+              <div className="flex items-center justify-center space-x-2 text-xs">
+                <span className="text-slate-400">New to TraderView?</span>
+                <button
+                  type="button"
+                  onClick={handleSwitchToSignup}
+                  className="inline-flex items-center space-x-1 text-purple-300 hover:text-purple-200 transition-colors duration-300 font-medium focus:outline-none focus:ring-2 focus:ring-purple-400/50 focus:ring-offset-2 focus:ring-offset-slate-900 rounded px-2 py-1"
+                >
+                  <Zap className="w-3 h-3 flex-shrink-0" />
+                  <span>Start Your Journey</span>
+                </button>
+              </div>
+              <div className="text-xs text-slate-500 space-y-1">
+                <p>• Advanced position sizing calculators</p>
+                <p>• Professional risk management tools</p>
+                <p>• Real-time portfolio tracking</p>
+              </div>
             </div>
           </div>
         </div>
