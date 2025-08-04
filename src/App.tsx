@@ -1,10 +1,5 @@
 import './App.css';
-import {
-  HashRouter,
-  useRoutes,
-  Navigate,
-  useLocation,
-} from 'react-router-dom';
+import { HashRouter, useRoutes, Navigate, useLocation } from 'react-router-dom';
 import { SettingsProvider, useSettings } from './contexts/SettingsContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { TradingProvider } from './contexts/TradingContext';
@@ -86,10 +81,10 @@ function AppContent() {
 }
 
 function App() {
-  const basename =
-    import.meta.env.MODE === 'development'
-      ? '/'
-      : import.meta.env.VITE_BASE_PATH || '/';
+  // const basename =
+  //   import.meta.env.MODE === 'development'
+  //     ? '/'
+  //     : import.meta.env.VITE_BASE_PATH || '/';
 
   return (
     <HashRouter>
