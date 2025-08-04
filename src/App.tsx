@@ -82,17 +82,17 @@ function AppContent() {
 
 function App() {
   return (
-    // <HashRouter>
-    <AuthProvider>
-      <SettingsProvider>
-        <TradingProvider>
-          {/* <LiveDataProvider> */}
-          <AppContent />
-          {/* </LiveDataProvider> */}
-        </TradingProvider>
-      </SettingsProvider>
-    </AuthProvider>
-    // </HashRouter>
+    <HashRouter>
+      <AuthProvider>
+        <SettingsProvider>
+          <TradingProvider>
+            {/* <LiveDataProvider> */}
+            <AppContent />
+            {/* </LiveDataProvider> */}
+          </TradingProvider>
+        </SettingsProvider>
+      </AuthProvider>
+    </HashRouter>
   );
 }
 
