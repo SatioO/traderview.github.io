@@ -9,7 +9,7 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 }
 
 const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ label, error, showPasswordToggle = false, isPassword = false, className = '', ...props }, ref) => {
+  ({ label, error, showPasswordToggle = false, isPassword = false, className = '', type, ...props }, ref) => {
     const [showPassword, setShowPassword] = React.useState(false);
     const [isFocused, setIsFocused] = React.useState(false);
 
@@ -17,7 +17,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
       setShowPassword(!showPassword);
     };
 
-    const inputType = isPassword ? (showPassword ? 'text' : 'password') : props.type || 'text';
+    const inputType = isPassword ? (showPassword ? 'text' : 'password') : type || 'text';
 
     return (
       <div className="w-full group">
@@ -79,8 +79,11 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
             {showPasswordToggle && isPassword && (
               <button
                 type="button"
-                className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-200 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-purple-400/50 focus:ring-offset-2 focus:ring-offset-slate-900 rounded-lg"
+                className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-200 transition-colors duration-200 focus:outline-none rounded-lg"
                 onClick={togglePasswordVisibility}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+                aria-pressed={showPassword}
+                tabIndex={0}
               >
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
