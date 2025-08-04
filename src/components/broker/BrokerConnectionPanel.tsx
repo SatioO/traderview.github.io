@@ -260,7 +260,7 @@ const BrokerConnectionPanel: React.FC<BrokerConnectionPanelProps> = ({
           {/* Status Indicator */}
           {/* Enhanced Broker Selection with Names */}
           {!isLoading && brokers.length > 0 && (
-            <div className="pt-3 border-t border-violet-400/20 bg-gradient-to-r from-transparent via-violet-900/10 to-transparent">
+            <div className=" bg-gradient-to-r from-transparent via-violet-900/10 to-transparent">
               <div
                 className={`${
                   brokers.length > 2
