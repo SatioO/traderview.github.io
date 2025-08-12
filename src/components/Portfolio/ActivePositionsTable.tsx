@@ -268,18 +268,16 @@ const ActivePositionsTable: React.FC<ActivePositionsTableProps> = ({
         <div
           className="grid gap-4 text-xs font-medium text-slate-500 uppercase tracking-wider"
           style={{
-            gridTemplateColumns: '1.4fr 0.6fr 0.8fr 1fr 1.2fr 1fr 1fr 0.8fr 0.8fr',
+            gridTemplateColumns: '1.8fr 0.8fr 1.2fr 1fr 0.8fr 0.8fr 1fr',
           }}
         >
           <div>Symbol</div>
           <div className="text-center">Qty</div>
+          <div className="text-center">Position %</div>
+          <div className="text-center">Open Risk</div>
+          <div className="text-center">PF Risk %</div>
           <div className="text-right">LTP</div>
           <div className="text-right">P&L</div>
-          <div className="text-right">Position Value</div>
-          <div className="text-center">SLs (qty@price)</div>
-          <div className="text-center">Open Risk</div>
-          <div className="text-center">Position %</div>
-          <div className="text-center">PF Risk %</div>
         </div>
       </div>
 
@@ -365,22 +363,22 @@ const ActivePositionsTable: React.FC<ActivePositionsTableProps> = ({
                   <div
                     className="grid gap-4 items-center text-sm"
                     style={{
-                      gridTemplateColumns: '1.4fr 0.6fr 0.8fr 1fr 1.2fr 1fr 1fr 0.8fr 0.8fr',
+                      gridTemplateColumns: '1.8fr 0.8fr 1.2fr 1fr 0.8fr 0.8fr 1fr',
                     }}
                   >
                     {/* Symbol */}
                     <div className="flex items-center space-x-3 min-w-0">
                       <div
-                        className={`w-2 h-2 rounded-full flex-shrink-0 ${
+                        className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${
                           isClosed 
                             ? 'bg-slate-500' 
                             : position.qty > 0 
-                              ? 'bg-emerald-400' 
-                              : 'bg-red-400'
+                              ? 'bg-emerald-400 shadow-emerald-400/50 shadow-sm' 
+                              : 'bg-red-400 shadow-red-400/50 shadow-sm'
                         }`}
                       />
                       <div className="min-w-0 flex-1">
-                        <div className={`font-semibold text-base truncate ${
+                        <div className={`font-bold text-base truncate ${
                           isClosed ? 'text-slate-400' : 'text-white'
                         }`}>
                           {position.symbol}
@@ -388,86 +386,50 @@ const ActivePositionsTable: React.FC<ActivePositionsTableProps> = ({
                         <div className={`text-xs font-medium ${
                           isClosed ? 'text-slate-500' : 'text-slate-300'
                         }`}>
-                          ₹{position.avgPrice.toFixed(2)}
+                          Avg: ₹{position.avgPrice.toFixed(2)}
                         </div>
                       </div>
                     </div>
 
                     {/* Quantity */}
                     <div className="text-center">
-                      <div className={`font-semibold text-base ${
-                        isClosed ? 'text-slate-500' : 'text-white'
-                      }`}>
-                        {Math.abs(position.qty)}
+                      <div className="flex items-center justify-center space-x-2">
+                        {/* Direction indicator arrow */}
+                        {!isClosed && (
+                          <div className={`text-xs font-bold ${
+                            position.qty > 0 ? 'text-emerald-400' : 'text-red-400'
+                          }`}>
+                            {position.qty > 0 ? '↗' : '↙'}
+                          </div>
+                        )}
+                        <div className={`font-bold text-lg ${
+                          isClosed ? 'text-slate-500' : 'text-white'
+                        }`}>
+                          {Math.abs(position.qty)}
+                        </div>
                       </div>
-                      <div className={`text-xs ${
-                        isClosed ? 'text-slate-600' : position.qty > 0 ? 'text-emerald-400' : 'text-red-400'
-                      }`}>
-                        {isClosed ? '' : position.qty > 0 ? 'LONG' : 'SHORT'}
-                      </div>
                     </div>
 
-                    {/* LTP (Latest Price) */}
-                    <div className="text-right">
-                      <span className={`font-semibold ${
-                        isClosed ? 'text-slate-500' : 'text-slate-200'
-                      }`}>
-                        ₹{(position.lastPrice || 0).toFixed(2)}
-                      </span>
-                    </div>
-
-                    {/* P&L */}
-                    <div className="text-right">
-                      <span className={`font-semibold ${
-                        isClosed 
-                          ? 'text-slate-500'
-                          : position.pnl > 0 
-                            ? 'text-emerald-400' 
-                            : position.pnl < 0 
-                              ? 'text-red-400' 
-                              : 'text-slate-400'
-                      }`}>
-                        {position.pnl > 0 ? '+' : position.pnl < 0 ? '-' : ''}{formatCurrency(Math.abs(position.pnl))}
-                      </span>
-                    </div>
-
-                    {/* Position Value */}
-                    <div className="text-right">
-                      <span className={`font-semibold ${
-                        isClosed ? 'text-slate-500' : 'text-white'
-                      }`}>
-                        {formatCurrency(position.positionValue)}
-                      </span>
-                    </div>
-
-                    {/* SLs */}
+                    {/* Position % (with Value) */}
                     <div className="text-center">
-                      {isClosed ? (
-                        <span className="text-xs text-slate-600">-</span>
-                      ) : position.slList === '-' ? (
-                        <span className="text-xs text-orange-300 font-medium">No SL</span>
-                      ) : (() => {
-                        // Check if SL is at or above break even for LONG positions
-                        // Extract first SL price from slList (format: "qty@price" or "qty@price, qty@price")
-                        const firstSL = position.slList.split(',')[0].trim();
-                        const slPrice = parseFloat(firstSL.split('@')[1]);
-                        const isLong = position.qty > 0;
-                        const isAtBreakeven = isLong ? slPrice >= position.avgPrice : slPrice <= position.avgPrice;
-                        
-                        if (isAtBreakeven) {
-                          return <span className="text-xs text-blue-400 font-medium">SL ≥ BE</span>;
-                        } else {
-                          return <span className="text-xs text-emerald-400 font-medium">{position.slList}</span>;
-                        }
-                      })()}
+                      <div className={`font-bold text-base ${
+                        isClosed ? 'text-slate-500' : 'text-orange-400'
+                      }`}>
+                        {isClosed ? '0%' : position.posSizePercent}
+                      </div>
+                      <div className={`text-xs font-medium ${
+                        isClosed ? 'text-slate-600' : 'text-slate-400'
+                      }`}>
+                        {isClosed ? '₹0' : formatCurrency(position.positionValue)}
+                      </div>
                     </div>
 
-                    {/* Combined Open Risk (₹ + %) */}
+                    {/* Open Risk (₹ + %) */}
                     <div className="text-center">
                       <div className={`${
                         isClosed ? 'text-slate-500' : getRiskStyling(position.riskPercentOfPos)
                       }`}>
-                        <div className="text-sm font-semibold">
+                        <div className="text-sm font-bold">
                           {isClosed ? '₹0' : formatCurrency(position.totalRiskValue)}
                         </div>
                         <div className={`text-xs font-medium opacity-80 ${
@@ -478,22 +440,65 @@ const ActivePositionsTable: React.FC<ActivePositionsTableProps> = ({
                       </div>
                     </div>
 
-                    {/* Position Size % */}
-                    <div className="text-center">
-                      <span className={`text-sm font-semibold ${
-                        isClosed ? 'text-slate-500' : 'text-orange-400'
-                      }`}>
-                        {isClosed ? '0%' : position.posSizePercent}
-                      </span>
-                    </div>
-
                     {/* PF Risk % */}
                     <div className="text-center">
-                      <span className={`text-sm font-semibold ${
+                      <div className={`font-bold text-base ${
                         isClosed ? 'text-slate-500' : getRiskStyling(position.pfRiskPercent)
                       }`}>
                         {isClosed ? '0%' : position.pfRiskPercent}
-                      </span>
+                      </div>
+                      {!isClosed && position.slList !== '-' && (() => {
+                        // Show protection status below PF Risk
+                        const firstSL = position.slList.split(',')[0].trim();
+                        const slPrice = parseFloat(firstSL.split('@')[1]);
+                        const isLong = position.qty > 0;
+                        const isAtBreakeven = isLong ? slPrice >= position.avgPrice : slPrice <= position.avgPrice;
+                        
+                        return (
+                          <div className="flex items-center justify-center space-x-1 mt-1">
+                            <div className={`w-1.5 h-1.5 rounded-full ${
+                              isAtBreakeven ? 'bg-blue-400' : 'bg-emerald-400'
+                            }`}></div>
+                            <div className={`text-xs font-medium ${
+                              isAtBreakeven ? 'text-blue-400' : 'text-emerald-400'
+                            }`}>
+                              {isAtBreakeven ? 'Profit Lock' : 'GTT Shield'}
+                            </div>
+                          </div>
+                        );
+                      })()}
+                      {!isClosed && position.slList === '-' && (
+                        <div className="flex items-center justify-center space-x-1 mt-1">
+                          <div className="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse"></div>
+                          <div className="text-xs font-medium text-orange-400">
+                            Exposed
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* LTP */}
+                    <div className="text-right">
+                      <div className={`font-bold text-base ${
+                        isClosed ? 'text-slate-500' : 'text-cyan-400'
+                      }`}>
+                        ₹{(position.lastPrice || 0).toFixed(2)}
+                      </div>
+                    </div>
+
+                    {/* P&L */}
+                    <div className="text-right">
+                      <div className={`font-bold text-lg ${
+                        isClosed 
+                          ? 'text-slate-500'
+                          : position.pnl > 0 
+                            ? 'text-emerald-400' 
+                            : position.pnl < 0 
+                              ? 'text-red-400' 
+                              : 'text-slate-400'
+                      }`}>
+                        {position.pnl > 0 ? '+' : position.pnl < 0 ? '-' : ''}{formatCurrency(Math.abs(position.pnl))}
+                      </div>
                     </div>
                   </div>
                 </div>
