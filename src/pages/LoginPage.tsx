@@ -235,7 +235,7 @@ const LoginPage: React.FC = () => {
           <div className="absolute inset-0 bg-gradient-to-br from-white/[0.02] via-transparent to-black/10 pointer-events-none rounded-[2rem]" />
           {/* Brand Header */}
           <div className="text-center space-y-3">
-            <BrandLogo size="lg" />
+            <BrandLogo size="xl" />
 
             <div className="space-y-3">
               <div className="mx-auto px-3 py-1 bg-gradient-to-r from-purple-500/20 to-purple-600/20 border border-purple-400/30 rounded-full w-fit">

@@ -14,6 +14,7 @@ export type GTTStatus =
 export interface GTTCondition {
   exchange: string;
   tradingsymbol: string;
+  instrument_token?: string;
   trigger_values: number[];
   last_price: number;
 }

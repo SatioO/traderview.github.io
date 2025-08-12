@@ -1,7 +1,7 @@
 import React from 'react';
 
 interface BrandLogoProps {
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'sm' | 'md' | 'lg' | 'xl';
   className?: string;
 }
 
@@ -13,6 +13,7 @@ const BrandLogo: React.FC<BrandLogoProps> = ({
     sm: 'text-lg',
     md: 'text-2xl',
     lg: 'text-3xl',
+    xl: 'text-4xl',
   };
 
   return (

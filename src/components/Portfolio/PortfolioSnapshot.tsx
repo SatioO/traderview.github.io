@@ -1,13 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import {
-  TrendingUp,
-  Activity,
-  PieChart,
-  Shield,
-  ArrowUp,
-  Layers,
-  Wallet,
-} from 'lucide-react';
+import { TrendingUp, PieChart, Shield, Layers, Wallet } from 'lucide-react';
+import ActivePositionsTable from './ActivePositionsTable';
 
 // Static portfolio data matching the reference image
 const staticPortfolioData = {
@@ -64,11 +57,7 @@ const staticPortfolioData = {
 
 const PortfolioSnapshot: React.FC = () => {
   const [animationTriggered, setAnimationTriggered] = useState(false);
-  const [focusedRowIndex, setFocusedRowIndex] = useState<number>(-1);
-  const [selectedRowIndex, setSelectedRowIndex] = useState<number>(-1);
-  const [hoveredRowIndex, setHoveredRowIndex] = useState<number>(-1);
-  const { totalInvested, openRisk, totalPortfolioValue, positions } =
-    staticPortfolioData;
+  const { totalInvested, openRisk, totalPortfolioValue } = staticPortfolioData;
 
   const totalPnL = totalPortfolioValue - totalInvested;
   const portfolioInvestedPercent = Math.round(
@@ -82,39 +71,6 @@ const PortfolioSnapshot: React.FC = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  // Keyboard navigation handler
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.target && (e.target as HTMLElement).closest('.positions-table')) {
-        switch (e.key) {
-          case 'ArrowDown':
-            e.preventDefault();
-            setFocusedRowIndex((prev) =>
-              Math.min(prev + 1, positions.length - 1)
-            );
-            break;
-          case 'ArrowUp':
-            e.preventDefault();
-            setFocusedRowIndex((prev) => Math.max(prev - 1, 0));
-            break;
-          case 'Enter':
-          case ' ':
-            e.preventDefault();
-            setSelectedRowIndex(focusedRowIndex);
-            break;
-          case 'Escape':
-            e.preventDefault();
-            setFocusedRowIndex(-1);
-            setSelectedRowIndex(-1);
-            break;
-        }
-      }
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [focusedRowIndex, positions.length]);
-
   const formatCurrency = (amount: number): string => {
     if (amount >= 100000) {
       return `₹${(amount / 100000).toFixed(1)}L`;
@@ -122,13 +78,6 @@ const PortfolioSnapshot: React.FC = () => {
       return `₹${(amount / 1000).toFixed(1)}K`;
     }
     return `₹${amount.toLocaleString()}`;
-  };
-
-  const getLocationBadge = (location: string) => {
-    if (location === 'Pivot') {
-      return 'bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border-yellow-400/30 text-yellow-300';
-    }
-    return 'bg-gradient-to-r from-purple-500/20 to-pink-500/20 border-purple-400/30 text-purple-300';
   };
 
   return (
@@ -392,234 +341,8 @@ const PortfolioSnapshot: React.FC = () => {
         </div>
       </div>
 
-      {/* Active Positions - Streamlined Design */}
-      <div className="backdrop-blur-xl rounded-xl border border-slate-700/30 overflow-hidden bg-slate-900/20">
-        {/* Compact Header */}
-        <div className="px-4 py-3 bg-slate-900/20 border-b border-slate-700/20">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <Activity className="w-4 h-4 text-slate-400" />
-              <h2 className="text-lg font-semibold text-white">
-                Active Positions
-              </h2>
-              <span className="text-xs text-slate-500">
-                ({positions.length})
-              </span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full"></div>
-              <span className="text-xs font-medium text-emerald-400">
-                All Protected
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Streamlined Table Header */}
-        <div className="px-4 py-2 bg-slate-900/10 border-b border-slate-700/20">
-          <div
-            className="grid gap-3 text-xs font-medium text-slate-500 uppercase tracking-wide"
-            style={{ gridTemplateColumns: '2fr 1fr 1fr 1.2fr 1fr 1fr 1.5fr' }}
-          >
-            <div>Symbol</div>
-            <div>Status</div>
-            <div>Days</div>
-            <div>Management</div>
-            <div className="text-center">Size</div>
-            <div>Group</div>
-            <div className="text-right">Return</div>
-          </div>
-        </div>
-
-        {/* Keyboard Navigation Help */}
-        {focusedRowIndex >= 0 && (
-          <div className="absolute top-2 right-2 z-10 bg-slate-800/90 backdrop-blur-sm border border-slate-600/50 rounded-lg px-3 py-2 text-xs text-slate-300 pointer-events-none animate-fade-in">
-            <div className="flex items-center space-x-4">
-              <span>↑↓ Navigate</span>
-              <span>↵ Select</span>
-              <span>Esc Exit</span>
-            </div>
-          </div>
-        )}
-
-        {/* Enhanced Scrollable Container with Keyboard Navigation */}
-        <div
-          className="positions-table max-h-80 overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-slate-600/30 hover:scrollbar-thumb-slate-500/50 focus-within:scrollbar-thumb-slate-500/70 relative"
-          tabIndex={0}
-          role="grid"
-          aria-label="Active positions table - Use arrow keys to navigate, Enter to select, Escape to exit"
-          onFocus={() => setFocusedRowIndex(0)}
-          onBlur={() => setFocusedRowIndex(-1)}
-        >
-          <div className="divide-y divide-slate-700/20">
-            {positions.map((position, index) => {
-              const isSelected = selectedRowIndex === index;
-              const isFocused = focusedRowIndex === index;
-              const isHovered = hoveredRowIndex === index;
-
-              return (
-                <div
-                  key={`${position.ticker}-${index}`}
-                  className={`
-                    px-4 py-3 transition-all duration-300 cursor-pointer relative
-                    ${
-                      animationTriggered
-                        ? 'opacity-100 transform translate-y-0'
-                        : 'opacity-0 transform translate-y-4'
-                    }
-                    ${
-                      isSelected
-                        ? 'bg-cyan-500/10 border-l-2 border-cyan-500'
-                        : ''
-                    }
-                    ${
-                      isFocused
-                        ? 'bg-slate-800/20 ring-2 ring-cyan-500/50 ring-inset'
-                        : ''
-                    }
-                    ${isHovered ? 'bg-slate-800/15' : ''}
-                    hover:bg-slate-800/15 focus:outline-none
-                  `}
-                  style={{ transitionDelay: `${600 + index * 200}ms` }}
-                  tabIndex={0}
-                  role="row"
-                  aria-selected={isSelected}
-                  onMouseEnter={() => setHoveredRowIndex(index)}
-                  onMouseLeave={() => setHoveredRowIndex(-1)}
-                  onClick={() => setSelectedRowIndex(index)}
-                  onFocus={() => setFocusedRowIndex(index)}
-                >
-                  {/* Focus indicator */}
-                  {isFocused && (
-                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-cyan-500 to-blue-500 opacity-80"></div>
-                  )}
-
-                  <div
-                    className="grid gap-3 items-center"
-                    style={{
-                      gridTemplateColumns: '2fr 1fr 1fr 1.2fr 1fr 1fr 1.5fr',
-                    }}
-                  >
-                    {/* Compact Symbol */}
-                    <div className="flex items-center space-x-2 min-w-0">
-                      <div
-                        className={`w-1.5 h-1.5 rounded-full ${
-                          position.status === 'Open'
-                            ? 'bg-emerald-400'
-                            : 'bg-slate-500'
-                        }`}
-                      ></div>
-                      <div className="min-w-0">
-                        <div className="font-semibold text-white text-sm truncate">
-                          {position.ticker}
-                        </div>
-                        <div className="text-xs text-slate-500 font-mono">
-                          ₹{position.currentPrice?.toFixed(2)}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Simple Status */}
-                    <div>
-                      <span
-                        className={`text-xs font-medium px-2 py-1 rounded ${
-                          position.status === 'Open'
-                            ? 'bg-emerald-500/15 text-emerald-400'
-                            : 'bg-red-500/15 text-red-400'
-                        }`}
-                      >
-                        {position.status}
-                      </span>
-                    </div>
-
-                    {/* Clean Days */}
-                    <div>
-                      <span className="text-sm text-slate-300 font-medium">
-                        {position.daysHeld}d
-                      </span>
-                    </div>
-
-                    {/* Simplified Management */}
-                    <div>
-                      <span className="text-xs bg-emerald-500/15 text-emerald-400 px-2 py-1 rounded font-medium">
-                        {position.tradeManagement}
-                      </span>
-                    </div>
-
-                    {/* Size with Mini Bar */}
-                    <div className="flex flex-col items-center justify-center text-center">
-                      <div className="text-sm font-semibold text-orange-400 mb-1">
-                        {position.sizePercent}%
-                      </div>
-                      <div className="w-full bg-slate-700/30 rounded-full h-1 overflow-hidden">
-                        <div
-                          className="bg-orange-400 h-full rounded-full transition-all duration-1000"
-                          style={{
-                            width: animationTriggered
-                              ? `${Math.min(position.sizePercent * 10, 100)}%`
-                              : '0%',
-                          }}
-                        ></div>
-                      </div>
-                    </div>
-
-                    {/* Compact Group */}
-                    <div className="min-w-0">
-                      <div className="text-xs text-slate-400 truncate font-medium">
-                        {position.group}
-                      </div>
-                      <span
-                        className={`text-xs px-1.5 py-0.5 rounded ${getLocationBadge(
-                          position.location
-                        )}`}
-                      >
-                        {position.location}
-                      </span>
-                    </div>
-
-                    {/* Clean P&L */}
-                    <div className="text-right">
-                      <div className="flex items-center justify-end space-x-1">
-                        <ArrowUp className="w-3 h-3 text-emerald-400" />
-                        <span className="text-sm font-bold text-emerald-400">
-                          {position.pnlPercent.toFixed(2)}%
-                        </span>
-                      </div>
-                      <div className="text-xs text-slate-500 font-mono">
-                        +
-                        {formatCurrency(
-                          ((position.currentPrice || 0) -
-                            (position.entryPrice || 0)) *
-                            (position.quantity || 0)
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Compact Footer */}
-        <div className="px-4 py-3 bg-slate-900/10 border-t border-slate-700/20">
-          <div className="flex items-center justify-between text-sm">
-            <div className="flex items-center space-x-4 text-slate-400">
-              <span>{positions.length} positions</span>
-              <span>•</span>
-              <span>All protected</span>
-              <span>•</span>
-              <span>Portfolio health: Excellent</span>
-            </div>
-            <div className="flex items-center space-x-3">
-              <span className="text-slate-500 text-xs">Total P&L:</span>
-              <span className="text-emerald-400 font-bold">
-                +{formatCurrency(totalPnL)}
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* Active Positions with Risk Management */}
+      <ActivePositionsTable refreshInterval={60000} />
     </div>
   );
 };

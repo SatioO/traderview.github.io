@@ -180,108 +180,102 @@ class OrderService {
       hasTarget: !!targetPrice,
     });
 
-    // First place the regular order
-    try {
-      const orderResponse = await this.placeOrder(
-        broker,
-        orderRequest,
-        stopLossMetadata
+    const orderResponse = await this.placeOrder(
+      broker,
+      orderRequest,
+      stopLossMetadata
+    );
+    console.log('✅ Order placed successfully:', orderResponse);
+
+    // Extract stopLoss from metadata
+    const actualStopLossPrice = stopLossMetadata?.stopLossPrice;
+
+    // If order is successful and we have stop loss or target prices, create GTT
+    if (orderResponse.success && (actualStopLossPrice || targetPrice)) {
+      console.log(
+        '🎯 Creating GTT because order succeeded and we have stop loss/target:',
+        {
+          stopLossPrice: actualStopLossPrice,
+          targetPrice,
+          stopLossMetadata,
+        }
       );
-      console.log('✅ Order placed successfully:', orderResponse);
+      let gttRequest: PlaceGTTRequest | null = null;
 
-      // Extract stopLoss from metadata
-      const actualStopLossPrice = stopLossMetadata?.stopLossPrice;
-
-      // If order is successful and we have stop loss or target prices, create GTT
-      if (orderResponse.success && (actualStopLossPrice || targetPrice)) {
-        console.log(
-          '🎯 Creating GTT because order succeeded and we have stop loss/target:',
+      if (actualStopLossPrice && targetPrice) {
+        // Two-leg GTT (OCO - One Cancels Other)
+        gttRequest = gttService.createTwoLegGTT(
+          instrument,
           {
-            stopLossPrice: actualStopLossPrice,
-            targetPrice,
-            stopLossMetadata,
-          }
+            transaction_type:
+              orderRequest.transaction_type === 'BUY' ? 'SELL' : 'BUY',
+            quantity: orderRequest.quantity,
+            product: orderRequest.product,
+          },
+          actualStopLossPrice,
+          targetPrice,
+          currentPrice
         );
-        let gttRequest: PlaceGTTRequest | null = null;
-
-        if (actualStopLossPrice && targetPrice) {
-          // Two-leg GTT (OCO - One Cancels Other)
-          gttRequest = gttService.createTwoLegGTT(
-            instrument,
-            {
-              transaction_type:
-                orderRequest.transaction_type === 'BUY' ? 'SELL' : 'BUY',
-              quantity: orderRequest.quantity,
-              product: orderRequest.product,
-            },
-            actualStopLossPrice,
-            targetPrice,
-            currentPrice
-          );
-        } else if (actualStopLossPrice) {
-          // Single GTT for stop loss
-          gttRequest = gttService.createSingleGTT(
-            instrument,
-            {
-              transaction_type:
-                orderRequest.transaction_type === 'BUY' ? 'SELL' : 'BUY',
-              quantity: orderRequest.quantity,
-              order_type: 'LIMIT',
-              product: orderRequest.product,
-            },
-            actualStopLossPrice,
-            currentPrice,
-            stopLossMetadata
-              ? {
-                  stop_loss_mode: stopLossMetadata.mode,
-                  stop_loss_percentage: stopLossMetadata.percentage,
-                  original_entry_price:
-                    stopLossMetadata.originalPrice || currentPrice,
-                }
-              : undefined
-          );
-        } else if (targetPrice) {
-          // Single GTT for target
-          gttRequest = gttService.createSingleGTT(
-            instrument,
-            {
-              transaction_type:
-                orderRequest.transaction_type === 'BUY' ? 'SELL' : 'BUY',
-              quantity: orderRequest.quantity,
-              order_type: 'LIMIT',
-              product: orderRequest.product,
-            },
-            targetPrice,
-            currentPrice
-          );
-        }
-
-        if (gttRequest) {
-          try {
-            const gttResponse = await gttService.placeGTT(gttRequest);
-            orderResponse.gtt = {
-              success: true,
-              triggerId: gttResponse.triggerId,
-            };
-            orderResponse.message += ` GTT created successfully (ID: ${gttResponse.triggerId})`;
-          } catch (gttError: any) {
-            console.error('GTT creation failed:', gttError);
-            orderResponse.gtt = {
-              success: false,
-              error: gttService.getErrorMessage(gttError),
-            };
-            orderResponse.message += ` Warning: GTT creation failed - ${gttService.getErrorMessage(
-              gttError
-            )}`;
-          }
-        }
+      } else if (actualStopLossPrice) {
+        // Single GTT for stop loss
+        gttRequest = gttService.createSingleGTT(
+          instrument,
+          {
+            transaction_type:
+              orderRequest.transaction_type === 'BUY' ? 'SELL' : 'BUY',
+            quantity: orderRequest.quantity,
+            order_type: 'LIMIT',
+            product: orderRequest.product,
+          },
+          actualStopLossPrice,
+          currentPrice,
+          stopLossMetadata
+            ? {
+                stop_loss_mode: stopLossMetadata.mode,
+                stop_loss_percentage: stopLossMetadata.percentage,
+                original_entry_price:
+                  stopLossMetadata.originalPrice || currentPrice,
+              }
+            : undefined
+        );
+      } else if (targetPrice) {
+        // Single GTT for target
+        gttRequest = gttService.createSingleGTT(
+          instrument,
+          {
+            transaction_type:
+              orderRequest.transaction_type === 'BUY' ? 'SELL' : 'BUY',
+            quantity: orderRequest.quantity,
+            order_type: 'LIMIT',
+            product: orderRequest.product,
+          },
+          targetPrice,
+          currentPrice
+        );
       }
 
-      return orderResponse;
-    } catch (error) {
-      // If regular order fails, don't attempt GTT creation
-      throw error;
+      if (gttRequest) {
+        try {
+          const gttResponse = await gttService.placeGTT(gttRequest);
+          orderResponse.gtt = {
+            success: true,
+            triggerId: gttResponse.triggerId,
+          };
+          orderResponse.message += ` GTT created successfully (ID: ${gttResponse.triggerId})`;
+        } catch (gttError: any) {
+          console.error('GTT creation failed:', gttError);
+          orderResponse.gtt = {
+            success: false,
+            error: gttService.getErrorMessage(gttError),
+          };
+          orderResponse.message += ` Warning: GTT creation failed - ${gttService.getErrorMessage(
+            gttError
+          )}`;
+        }
+      }
     }
+
+    return orderResponse;
   }
 
   // Validate order request before sending
@@ -383,8 +377,8 @@ class OrderService {
       transaction_type: 'BUY', // Default to BUY, can be made configurable
       order_type: entryPriceMode === 'mkt' ? 'MARKET' : 'LIMIT',
       product: 'CNC', // Default to Cash & Carry
-      quantity: Math.floor(calculations?.positionSize || 0),
-      // quantity: 1,
+      // quantity: Math.floor(calculations?.positionSize || 0),
+      quantity: 1,
       price: entryPriceMode === 'lmt' ? formData.entryPrice : undefined,
       validity: 'DAY',
       tag: `tv_${Date.now().toString().slice(-8)}`,
