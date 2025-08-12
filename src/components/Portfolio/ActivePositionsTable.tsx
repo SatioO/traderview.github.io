@@ -72,6 +72,7 @@ const ActivePositionsTable: React.FC<ActivePositionsTableProps> = ({
   const loadData = async () => {
     try {
       setError(null);
+      setAnimationTriggered(false); // Reset animation when starting to load new data
       
       // Fetch positions and GTTs in parallel
       const [positionsData, gttData] = await Promise.all([
@@ -173,15 +174,17 @@ const ActivePositionsTable: React.FC<ActivePositionsTableProps> = ({
     return () => clearInterval(interval);
   }, [refreshInterval, tradingCapital]);
 
-  // Trigger animations after data loads
+  // Trigger animations after data loads and sorting is complete
   useEffect(() => {
-    if (positionsWithRisk.length > 0) {
+    if (positionsWithRisk.length > 0 && !loading) {
+      // Reset animation first
+      setAnimationTriggered(false);
       const timer = setTimeout(() => {
         setAnimationTriggered(true);
-      }, 300);
+      }, 100); // Shorter delay since we're not waiting for data
       return () => clearTimeout(timer);
     }
-  }, [positionsWithRisk]);
+  }, [positionsWithRisk, loading]);
 
   // Format currency for display
   const formatCurrency = (amount: number): string => {
@@ -353,10 +356,9 @@ const ActivePositionsTable: React.FC<ActivePositionsTableProps> = ({
                     px-4 py-4 transition-all duration-300 hover:bg-slate-800/10
                     ${
                       animationTriggered
-                        ? 'opacity-100 transform translate-y-0'
+                        ? `${isClosed ? 'opacity-50' : 'opacity-100'} transform translate-y-0`
                         : 'opacity-0 transform translate-y-4'
                     }
-                    ${isClosed ? 'opacity-50' : ''}
                   `}
                   style={{ transitionDelay: `${index * 50}ms` }}
                 >
@@ -425,7 +427,7 @@ const ActivePositionsTable: React.FC<ActivePositionsTableProps> = ({
                               ? 'text-red-400' 
                               : 'text-slate-400'
                       }`}>
-                        {position.pnl > 0 ? '+' : ''}{formatCurrency(Math.abs(position.pnl))}
+                        {position.pnl > 0 ? '+' : position.pnl < 0 ? '-' : ''}{formatCurrency(Math.abs(position.pnl))}
                       </span>
                     </div>
 
@@ -524,6 +526,9 @@ const ActivePositionsTable: React.FC<ActivePositionsTableProps> = ({
             </div>
             <div className="flex items-center space-x-6">
               {(() => {
+                // Calculate totals for all positions (including closed for P&L)
+                const totalPnl = positionsWithRisk.reduce((sum, p) => sum + (p.pnl || 0), 0);
+                
                 // Calculate risk only from active positions
                 const activePositions = positionsWithRisk.filter(p => {
                   const posData = positions.find(pos => (pos.tradingsymbol || pos.trading_symbol) === p.symbol);
@@ -538,6 +543,18 @@ const ActivePositionsTable: React.FC<ActivePositionsTableProps> = ({
                 
                 return (
                   <>
+                    <div className="flex items-center space-x-2">
+                      <span className="text-slate-500 text-xs">Total P&L:</span>
+                      <span className={`font-bold ${
+                        totalPnl > 0 
+                          ? 'text-emerald-400' 
+                          : totalPnl < 0 
+                            ? 'text-red-400' 
+                            : 'text-slate-400'
+                      }`}>
+                        {totalPnl > 0 ? '+' : totalPnl < 0 ? '-' : ''}{formatCurrency(Math.abs(totalPnl))}
+                      </span>
+                    </div>
                     <div className="flex items-center space-x-2">
                       <span className="text-slate-500 text-xs">Active Risk:</span>
                       <span className={`font-bold ${getRiskStyling(activeRiskPercent)}`}>
