@@ -442,15 +442,24 @@ const ActivePositionsTable: React.FC<ActivePositionsTableProps> = ({
 
                     {/* SLs */}
                     <div className="text-center">
-                      <span className={`text-sm font-medium ${
-                        isClosed 
-                          ? 'text-slate-600'
-                          : position.slList === '-' 
-                            ? 'text-slate-500' 
-                            : 'text-emerald-400'
-                      }`}>
-                        {isClosed ? '-' : position.slList}
-                      </span>
+                      {isClosed ? (
+                        <span className="text-xs text-slate-600">-</span>
+                      ) : position.slList === '-' ? (
+                        <span className="text-xs text-orange-300 font-medium">No SL</span>
+                      ) : (() => {
+                        // Check if SL is at or above break even for LONG positions
+                        // Extract first SL price from slList (format: "qty@price" or "qty@price, qty@price")
+                        const firstSL = position.slList.split(',')[0].trim();
+                        const slPrice = parseFloat(firstSL.split('@')[1]);
+                        const isLong = position.qty > 0;
+                        const isAtBreakeven = isLong ? slPrice >= position.avgPrice : slPrice <= position.avgPrice;
+                        
+                        if (isAtBreakeven) {
+                          return <span className="text-xs text-blue-400 font-medium">SL ≥ BE</span>;
+                        } else {
+                          return <span className="text-xs text-emerald-400 font-medium">{position.slList}</span>;
+                        }
+                      })()}
                     </div>
 
                     {/* Combined Open Risk (₹ + %) */}
